@@ -1,0 +1,210 @@
+/*
+==========================================================
+SMANSASOO Kesiswaan Portal
+CSS Variables
+Version : 1.1.0
+==========================================================
+FIX (v1.1.0):
+- BUG KRITIS: file ini sempat berisi potongan diff mentah
+  yang belum diterapkan (baris "+"/"-" literal). Custom
+  property WAJIB diawali "--" persis tanpa karakter lain di
+  depannya, jadi baris "+   --glass-tint-top:..." maupun
+  "-   --glass-tint-top:..." SAMA-SAMA dibuang browser
+  (nama property jadi tidak valid). Akibatnya
+  --glass-tint-top & --glass-tint-bottom TIDAK TERDEFINISI
+  SAMA SEKALI — bukan cuma balik ke nilai lama. Semua kartu
+  glass yang pakai var(--glass-tint-top) di background jadi
+  "invalid at computed-value time" dan computed ke
+  transparent di browser modern manapun (bukan fallback ke
+  rgba solid) — kartu kehilangan tint putihnya total.
+- Sekarang diterapkan yang sebenarnya dimaksud: tint
+  dinaikkan ke rgba(255,255,255,.40) / rgba(255,255,255,.16)
+  (dari .28/.06) supaya kartu glass lebih terbaca, tidak
+  tembus pandang berlebihan.
+- --z-celebration didefinisikan (tersedia untuk dipakai nanti
+  kalau dibutuhkan) TAPI SENGAJA TIDAK dipasang ke .overlay
+  di glass.css. Kalau dipasang, seluruh layer .overlay
+  (termasuk foto syari.png yang opaque) akan naik di atas
+  confetti/balon (z 1000) — efeknya confetti/balon jadi
+  TIDAK KELIHATAN SAMA SEKALI, bukan cuma di belakang kartu.
+  Atas keputusan pemilik project: confetti/balon tetap di
+  depan seperti kondisi sekarang (.overlay tetap pakai
+  var(--z-overlay), lihat glass.css).
+==========================================================
+*/
+
+:root{
+
+    /* ==========================================
+       BRAND COLORS
+    ========================================== */
+
+    --primary:#0F4C81;
+    --primary-light:#3B82C4;
+    --primary-dark:#0A355B;
+
+    --secondary:#F4B400;
+    --secondary-light:#FFD54F;
+    --secondary-dark:#D89B00;
+
+    /* ==========================================
+       STATUS COLORS
+    ========================================== */
+
+    --success:#22C55E;
+    --warning:#F59E0B;
+    --danger:#EF4444;
+    --info:#3B82F6;
+
+    /* ==========================================
+       BACKGROUND
+    ========================================== */
+
+    --background:#F5F7FB;
+    --surface:#FFFFFF;
+    --surface-alt:#F9FAFB;
+
+    /* ==========================================
+       TEXT
+    ========================================== */
+
+    --text:#1F2937;
+    --text-light:#6B7280;
+    --text-muted:#9CA3AF;
+    --text-white:#FFFFFF;
+
+    /* ==========================================
+       BORDER
+    ========================================== */
+
+    --border:#E5E7EB;
+    --border-light:#F3F4F6;
+
+    /* ==========================================
+       SHADOW
+    ========================================== */
+
+    --shadow-sm:0 2px 8px rgba(0,0,0,.05);
+
+    --shadow-md:0 8px 24px rgba(0,0,0,.08);
+
+    --shadow-lg:0 16px 40px rgba(0,0,0,.12);
+
+    /* ==========================================
+       BORDER RADIUS
+    ========================================== */
+
+    --radius-sm:8px;
+
+    --radius-md:12px;
+
+    --radius-lg:18px;
+
+    --radius-xl:24px;
+
+    --radius-pill:999px;
+
+    /* ==========================================
+       SPACING
+    ========================================== */
+
+    --space-xs:.25rem;
+
+    --space-sm:.5rem;
+
+    --space-md:1rem;
+
+    --space-lg:1.5rem;
+
+    --space-xl:2rem;
+
+    --space-2xl:3rem;
+
+    /* ==========================================
+       FONT
+    ========================================== */
+
+    --font-family:'Plus Jakarta Sans',sans-serif;
+
+    --font-xs:.75rem;
+
+    --font-sm:.875rem;
+
+    --font-md:1rem;
+
+    --font-lg:1.125rem;
+
+    --font-xl:1.5rem;
+
+    --font-2xl:2rem;
+
+    --font-3xl:2.75rem;
+
+    /* ==========================================
+       FONT WEIGHT
+    ========================================== */
+
+    --weight-regular:400;
+
+    --weight-medium:500;
+
+    --weight-semibold:600;
+
+    --weight-bold:700;
+
+    --weight-extrabold:800;
+
+    /* ==========================================
+       LAYOUT
+    ========================================== */
+
+    --container-width:1100px;
+
+    --header-height:90px;
+
+    /* ==========================================
+       TRANSITION
+    ========================================== */
+
+    --transition-fast:.2s ease;
+
+    --transition:.3s ease;
+
+    --transition-slow:.5s ease;
+
+    /* ==========================================
+       Z-INDEX
+    ========================================== */
+
+    --z-dropdown:100;
+    --z-sticky:500;
+    --z-overlay:900;
+    --z-modal:1000;
+    --z-toast:1100;
+
+    /* Tersedia untuk dipakai nanti, TIDAK dipasang ke
+       .overlay saat ini (lihat catatan FIX di atas). */
+    --z-celebration:1050;
+
+    /* ==========================================
+       LIQUID GLASS (iOS26-style material)
+    ========================================== */
+
+    --glass-blur:34px;
+    --glass-saturate:180%;
+    --glass-tint-top:rgba(255,255,255,.40);
+    --glass-tint-bottom:rgba(255,255,255,.16);
+    --glass-border:rgba(255,255,255,.38);
+    --glass-highlight:rgba(255,255,255,.55);
+    --glass-radius:28px;
+    --glass-radius-sm:20px;
+
+    /* ==========================================
+       MOTION (iOS spring curves)
+    ========================================== */
+
+    --ease-spring:cubic-bezier(.34,1.56,.64,1);
+
+    --ease-ios:cubic-bezier(.4,0,.2,1);
+
+}

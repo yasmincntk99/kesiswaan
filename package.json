@@ -1,0 +1,13 @@
+{
+  "name": "smansasoo-kesiswaan-portal",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Portal kesiswaan dan kedisiplinan siswa SMAN 1 Sooko Mojokerto",
+  "scripts": {
+    "dev": "node scripts/dev-server.js",
+    "sample": "node scripts/gen-sample.js"
+  },
+  "engines": {
+    "node": "24.x"
+  }
+}

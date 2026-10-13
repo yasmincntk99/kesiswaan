@@ -1,0 +1,32 @@
+{
+  "_catatan": "CONTOH. Sesuaikan jenis, poin, dan sanksi dengan Tata Tertib resmi SMAN 1 Sooko Mojokerto sebelum dipakai. Jika spreadsheet terhubung, daftar jenis pelanggaran dibaca dari tab TATA_TERTIB; tingkat sanksi di bawah selalu dibaca dari file ini.",
+  "pelanggaran": [
+    { "kode": "R01", "jenis": "Terlambat masuk sekolah", "kategori": "Ringan", "poin": 2 },
+    { "kode": "R02", "jenis": "Seragam tidak sesuai ketentuan", "kategori": "Ringan", "poin": 3 },
+    { "kode": "R03", "jenis": "Atribut tidak lengkap (topi, dasi, sabuk, kaos kaki)", "kategori": "Ringan", "poin": 2 },
+    { "kode": "R04", "jenis": "Rambut tidak rapi / tidak sesuai ketentuan", "kategori": "Ringan", "poin": 3 },
+    { "kode": "R05", "jenis": "Tidak mengikuti upacara/apel tanpa keterangan", "kategori": "Ringan", "poin": 5 },
+    { "kode": "R06", "jenis": "Membuang sampah sembarangan", "kategori": "Ringan", "poin": 3 },
+    { "kode": "R07", "jenis": "Menggunakan HP saat pembelajaran tanpa izin", "kategori": "Ringan", "poin": 5 },
+    { "kode": "R08", "jenis": "Keluar kelas tanpa izin", "kategori": "Ringan", "poin": 5 },
+    { "kode": "S01", "jenis": "Tidak masuk tanpa keterangan (alpa)", "kategori": "Sedang", "poin": 10 },
+    { "kode": "S02", "jenis": "Meninggalkan sekolah tanpa izin (membolos)", "kategori": "Sedang", "poin": 15 },
+    { "kode": "S03", "jenis": "Merusak fasilitas sekolah (ringan)", "kategori": "Sedang", "poin": 15 },
+    { "kode": "S04", "jenis": "Berkata kasar / tidak sopan kepada warga sekolah", "kategori": "Sedang", "poin": 15 },
+    { "kode": "S05", "jenis": "Merokok / membawa rokok di lingkungan sekolah", "kategori": "Sedang", "poin": 20 },
+    { "kode": "S06", "jenis": "Mencontek / plagiasi saat ujian", "kategori": "Sedang", "poin": 20 },
+    { "kode": "B01", "jenis": "Berkelahi / perundungan (bullying)", "kategori": "Berat", "poin": 40 },
+    { "kode": "B02", "jenis": "Memalsukan tanda tangan / dokumen", "kategori": "Berat", "poin": 40 },
+    { "kode": "B03", "jenis": "Pencurian", "kategori": "Berat", "poin": 60 },
+    { "kode": "B04", "jenis": "Membawa senjata tajam", "kategori": "Berat", "poin": 75 },
+    { "kode": "B05", "jenis": "Membawa / menggunakan miras atau narkoba", "kategori": "Berat", "poin": 100 },
+    { "kode": "B06", "jenis": "Pelecehan / kekerasan seksual", "kategori": "Berat", "poin": 100 }
+  ],
+  "tingkat": [
+    { "min": 0,   "max": 24,  "label": "Pembinaan Ringan",  "tindakan": "Teguran lisan dan pembinaan oleh guru / wali kelas.", "warna": "ok" },
+    { "min": 25,  "max": 49,  "label": "Surat Peringatan 1", "tindakan": "Panggilan siswa oleh Guru BK dan Surat Peringatan 1.", "warna": "warn" },
+    { "min": 50,  "max": 74,  "label": "Surat Peringatan 2", "tindakan": "Pemanggilan orang tua / wali dan Surat Peringatan 2.", "warna": "warn2" },
+    { "min": 75,  "max": 99,  "label": "Surat Peringatan 3", "tindakan": "Pernyataan tertulis bermaterai, pembinaan intensif, dan dapat dikenai skorsing.", "warna": "danger" },
+    { "min": 100, "max": null,"label": "Pembinaan Khusus",   "tindakan": "Dibahas dalam rapat dewan guru; dapat direkomendasikan dikembalikan kepada orang tua / pindah sekolah.", "warna": "critical" }
+  ]
+}

@@ -1,0 +1,24 @@
+name: Project Check
+
+on:
+  push:
+    branches:
+      - main
+      - development
+
+jobs:
+  project-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Repository Information
+        run: |
+          echo "SMANSASOO Kesiswaan Portal"
+          echo "Version 1.0"
+          echo "Repository structure checked."
+
+      - name: List Project Files
+        run: ls -R

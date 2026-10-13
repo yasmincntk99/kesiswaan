@@ -1,0 +1,914 @@
+/*
+==========================================================
+SMANSASOO Kesiswaan Portal
+Glassmorphism Layer + Celebration Overlay
+Version : 2.2.0 — "Liquid Glass" (iOS26-style)
+==========================================================
+File ini TIDAK menggantikan style.css/animation.css, hanya
+menambah:
+1. Background foto sekolah (blur + saturate + gradient) via
+   #bgLayer/.bg-layer, dengan swap otomatis ke syari.jpg
+   saat body mendapat class ".celebration".
+2. Material "Liquid Glass": card berlapis (tint gradient +
+   specular highlight di sudut atas + border tipis + shadow
+   ganda inset/outset), meniru bahasa desain iOS26 Apple.
+3. Overlay perayaan (flash, confetti, balon) untuk status
+   LULUS — kartu overlay pakai material glass yang sama.
+4. Kartu netral (.result-neutral) untuk status TIDAK LULUS —
+   sengaja tenang, tidak dramatis, tidak pakai warna mencolok.
+
+FIX (v2.2.0):
+- BUG KRITIS: blok .overlay sebelumnya berisi potongan diff
+  mentah yang belum diterapkan (baris "-"/"+" literal di
+  dalam CSS). Baris seperti "-    display:flex;" dan
+  "+    display:grid;" adalah deklarasi CSS TIDAK VALID
+  (nama properti jadi "-    display"/"+    display"), jadi
+  browser membuangnya diam-diam. Efeknya: .overlay TIDAK
+  PUNYA display maupun z-index sama sekali (balik ke default
+  browser, display:block) — makanya .result-box tidak pernah
+  benar-benar center, hanya mengikuti alur block biasa.
+- Diganti jadi CSS valid: display:grid + place-items:center,
+  dengan progressive enhancement ke place-items:safe center
+  (browser lama mengabaikan baris ini & tetap pakai center
+  biasa; browser modern upgrade ke "safe" supaya saat kartu
+  lebih tinggi dari viewport pendek — mis. jendela 960x540 —
+  bagian atas kartu TIDAK terpotong, melainkan rata atas +
+  bisa discroll).
+- z-index dikembalikan ke var(--z-overlay) yang memang sudah
+  ada di variables.css (sebelumnya mengarah ke
+  var(--z-celebration) yang tidak pernah didefinisikan di
+  manapun, sehingga deklarasi itu juga gagal diterapkan).
+- .result-box ditambah max-height + overflow-y:auto supaya
+  di viewport pendek kartu discroll di dalam dirinya sendiri,
+  bukan meluber/terpotong di luar layar.
+- Tambahan media query (max-height:600px) untuk mengecilkan
+  padding & ukuran font kartu overlay di jendela pendek
+  (termasuk kasus 960x540) supaya lebih pas tanpa perlu
+  scroll di kebanyakan kasus.
+- Tidak ada perubahan pada bagian lain (background brightness/
+  tint, fallback @supports backdrop-filter, badge-year, form,
+  balloon, confetti, reduced-motion) — semua tetap sama
+  persis seperti versi sebelumnya.
+==========================================================
+*/
+
+/* ==============================
+   BACKGROUND LAYER
+============================== */
+
+body{
+
+    position:relative;
+
+    /* overflow-x:hidden DIPINDAH ke <html> di
+       css/kelulusan/style.css -- overflow di body merusak
+       position:sticky pada navbar shell. */
+
+    /* Background asli dari style.css sengaja ditransparankan
+       supaya .bg-layer di bawahnya tidak tertutup "kanvas"
+       warna body. */
+    background:transparent;
+
+}
+
+.bg-layer{
+
+    position:fixed;
+
+    inset:-4%;
+
+    z-index:-2;
+
+    background: url("../assets/images/scc.jpg") center center / cover no-repeat;
+
+    filter:blur(5px) brightness(.68) saturate(1.25);
+
+    transform:scale(1.06);
+
+    animation: bgDrift 26s var(--ease-ios) infinite alternate;
+
+    transition: background 1.1s var(--ease-ios), filter .9s ease;
+
+    will-change: transform, filter;
+
+}
+
+@keyframes bgDrift{
+
+    from{ transform:scale(1.06) translate3d(0,0,0); }
+
+    to{ transform:scale(1.14) translate3d(-1%,-1%,0); }
+
+}
+
+body.celebration .bg-layer{
+
+    background:
+    url("../assets/images/syari.jpg")
+    center center / cover no-repeat;
+
+    filter:
+        blur(5px)
+        brightness(.72)
+        saturate(1.3);
+
+}
+
+/* Gradient darkening + subtle vignette di atas foto,
+   supaya card glass tetap kontras & mudah dibaca —
+   diturunkan opacity-nya supaya foto sekolah tetap terlihat */
+.bg-layer::after{
+
+    content:'';
+
+    position:absolute;
+
+    inset:0;
+
+    background:
+        radial-gradient(120% 90% at 50% -10%, rgba(255,255,255,.08), rgba(255,255,255,0) 55%),
+        linear-gradient(
+            180deg,
+            rgba(10,53,91,.3) 0%,
+            rgba(7,26,53,.5) 65%,
+            rgba(7,26,53,.62) 100%
+        );
+
+    transition: background 1s ease;
+
+}
+
+/* ==============================
+   HEADER (teks putih di atas foto)
+============================== */
+
+.header h1{
+
+    color:var(--text-white);
+
+    letter-spacing:-.02em;
+
+}
+
+.header h1 span{
+
+    color:var(--secondary-light);
+
+}
+
+.header p{
+
+    color:rgba(255,255,255,.85);
+
+}
+
+.header p strong{
+
+    color:#ffffff;
+
+}
+
+.header .link-primary{
+
+    color:var(--secondary-light);
+
+    text-decoration:underline;
+
+}
+
+.logo{
+
+    filter:drop-shadow(0 6px 18px rgba(0,0,0,.4));
+
+}
+
+/* ==============================
+   BADGE (Tahun Ajaran)
+============================== */
+
+.badge-year{
+
+    display:inline-block;
+
+    padding:7px 18px;
+
+    margin-bottom:14px;
+
+    border-radius:var(--radius-pill);
+
+    background:linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.08));
+
+    border:1px solid rgba(255,255,255,.35);
+
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.4), 0 4px 14px rgba(0,0,0,.15);
+
+    -webkit-backdrop-filter:blur(16px) saturate(160%);
+
+    backdrop-filter:blur(16px) saturate(160%);
+
+    font-size:.78rem;
+
+    font-weight:700;
+
+    letter-spacing:.06em;
+
+    text-transform:uppercase;
+
+    color:#ffffff;
+
+}
+
+/* ==============================
+   LIQUID GLASS CARDS
+   (search-card, result-card, loading-box, error-card)
+============================== */
+
+.search-card,
+.result-card,
+.loading-box,
+.error-card{
+
+    position:relative;
+
+    isolation:isolate;
+
+    overflow:hidden;
+
+    /* Fallback dulu untuk browser tanpa backdrop-filter —
+       ditimpa oleh @supports di bawah kalau browser dukung. */
+    background:rgba(12,32,58,.82);
+
+    border:1px solid var(--glass-border);
+
+    border-radius:var(--glass-radius);
+
+    box-shadow:
+        0 25px 70px rgba(0,0,0,.35),
+        0 2px 8px rgba(0,0,0,.15),
+        inset 0 1px 0 rgba(255,255,255,.45),
+        inset 0 -1px 0 rgba(255,255,255,.05);
+
+    color:var(--text-white);
+
+    transition:
+        transform .45s var(--ease-spring),
+        box-shadow .35s var(--ease-ios),
+        background 1s ease;
+
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))){
+
+    .search-card,
+    .result-card,
+    .loading-box,
+    .error-card{
+
+        background:linear-gradient(165deg, var(--glass-tint-top) 0%, var(--glass-tint-bottom) 100%);
+
+        -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate));
+
+        backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate));
+
+    }
+
+}
+
+/* Specular highlight — pantulan cahaya lembut di sudut kiri atas,
+   ciri khas material "Liquid Glass" iOS26 */
+.search-card::before,
+.result-card::before,
+.loading-box::before,
+.error-card::before{
+
+    content:'';
+
+    position:absolute;
+
+    inset:0;
+
+    z-index:-1;
+
+    background:radial-gradient(
+        130% 100% at 12% -15%,
+        rgba(255,255,255,.55) 0%,
+        rgba(255,255,255,.12) 35%,
+        rgba(255,255,255,0) 60%
+    );
+
+    pointer-events:none;
+
+}
+
+/* Hairline refraksi di tepi bawah, memperkuat kesan kaca tebal */
+.search-card::after,
+.result-card::after,
+.loading-box::after,
+.error-card::after{
+
+    content:'';
+
+    position:absolute;
+
+    left:6%;
+    right:6%;
+    bottom:0;
+
+    height:1px;
+
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+
+    pointer-events:none;
+
+}
+
+.search-card h2,
+.result-title{
+
+    color:#ffffff;
+
+    letter-spacing:-.01em;
+
+}
+
+.search-card p{
+
+    color:rgba(255,255,255,.8);
+
+}
+
+/* ==============================
+   FORM (glass input + pill button)
+============================== */
+
+#searchForm input{
+
+    background:rgba(255,255,255,.1);
+
+    border:1px solid rgba(255,255,255,.28);
+
+    border-radius:var(--glass-radius-sm);
+
+    color:#ffffff;
+
+    box-shadow:inset 0 1px 4px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.12);
+
+    transition:border-color .25s var(--ease-ios), box-shadow .25s var(--ease-ios), background .25s ease;
+
+}
+
+#searchForm input::placeholder{
+
+    color:rgba(255,255,255,.55);
+
+}
+
+#searchForm input:focus{
+
+    border-color:var(--secondary-light);
+
+    background:rgba(255,255,255,.16);
+
+    box-shadow:inset 0 1px 4px rgba(0,0,0,.18), 0 0 0 4px rgba(255,213,79,.18);
+
+}
+
+#searchForm button{
+
+    position:relative;
+
+    overflow:hidden;
+
+    background:linear-gradient(135deg, var(--secondary-light) 0%, var(--secondary) 100%);
+
+    color:var(--primary-dark);
+
+    border-radius:var(--radius-pill);
+
+    box-shadow:
+        0 10px 24px rgba(244,180,0,.35),
+        inset 0 1px 0 rgba(255,255,255,.6);
+
+    transition:
+        transform .3s var(--ease-spring),
+        box-shadow .3s var(--ease-ios),
+        filter .25s ease;
+
+}
+
+#searchForm button::after{
+
+    content:'→';
+
+    display:inline-block;
+
+    margin-left:8px;
+
+    transition:transform .3s var(--ease-spring);
+
+}
+
+#searchForm button:hover{
+
+    filter:brightness(1.05);
+
+    box-shadow:
+        0 14px 30px rgba(244,180,0,.42),
+        inset 0 1px 0 rgba(255,255,255,.6);
+
+}
+
+#searchForm button:hover::after{
+
+    transform:translateX(5px);
+
+}
+
+#searchForm button:active{
+
+    transform:scale(.96);
+
+}
+
+#searchForm button:disabled{
+
+    filter:saturate(.6) brightness(.9);
+
+    cursor:progress;
+
+}
+
+#searchForm button:disabled::after{
+
+    display:none;
+
+}
+
+/* ==============================
+   RESULT / LOADING / ERROR DETAILS
+============================== */
+
+.result-item{
+
+    border-bottom:1px solid rgba(255,255,255,.15);
+
+}
+
+.result-label{
+
+    color:rgba(255,255,255,.7);
+
+}
+
+.result-value{
+
+    color:#ffffff;
+
+}
+
+.loading-box p{
+
+    color:rgba(255,255,255,.85);
+
+}
+
+.spinner{
+
+    border:4px solid rgba(255,255,255,.18);
+
+    border-top:4px solid var(--secondary-light);
+
+}
+
+.error-card{
+
+    color:#ffffff;
+
+    background:linear-gradient(165deg, rgba(239,68,68,.32), rgba(198,40,40,.18));
+
+    border-color:rgba(255,255,255,.25);
+
+}
+
+/* ==============================
+   KARTU NETRAL (status: TIDAK LULUS)
+============================== */
+
+.result-neutral{
+
+    background:linear-gradient(165deg, rgba(255,255,255,.22), rgba(255,255,255,.09));
+
+}
+
+.result-neutral .status-note{
+
+    margin-top:20px;
+
+    padding:16px;
+
+    border-radius:var(--radius-md);
+
+    background:rgba(255,255,255,.1);
+
+    border:1px solid rgba(255,255,255,.15);
+
+    color:rgba(255,255,255,.88);
+
+    font-size:.9rem;
+
+    line-height:1.7;
+
+    text-align:left;
+
+}
+
+/* ==============================
+   FLASH
+============================== */
+
+.flash{
+
+    position:fixed;
+
+    inset:0;
+
+    background:#ffffff;
+
+    opacity:0;
+
+    z-index:var(--z-toast);
+
+    pointer-events:none;
+
+}
+
+.flash.show{
+
+    animation:flashPulse .5s ease;
+
+}
+
+@keyframes flashPulse{
+
+    0%{ opacity:1; }
+
+    100%{ opacity:0; }
+
+}
+
+/* ==============================
+   OVERLAY PERAYAAN (status: LULUS)
+============================== */
+
+.overlay{
+
+    position:fixed;
+
+    inset:0;
+
+    /* Grid + place-items adalah cara paling robust untuk
+       center konten yang tingginya dinamis di dalam elemen
+       fixed-full-viewport. "safe center" (baris kedua) adalah
+       progressive enhancement: browser yang belum kenal nilai
+       ini akan mengabaikan baris tsb & tetap pakai "center"
+       biasa; browser modern upgrade otomatis supaya saat kartu
+       lebih tinggi dari viewport pendek (mis. jendela 960x540),
+       bagian atas kartu TIDAK kepotong — rata atas + scrollable,
+       bukan center-lalu-clip. */
+    display:grid;
+
+    place-items:center;
+    place-items:safe center;
+
+    overflow-y:auto;
+
+    padding:20px;
+
+    background:url('../assets/images/syari.jpg') center/cover no-repeat;
+
+    opacity:0;
+
+    visibility:hidden;
+
+    transition:opacity var(--transition-slow), visibility var(--transition-slow);
+
+    z-index:var(--z-overlay);
+
+}
+
+.overlay::before{
+
+    content:'';
+
+    position:absolute;
+
+    inset:0;
+
+    -webkit-backdrop-filter:blur(6px);
+
+    backdrop-filter:blur(6px);
+
+    background:linear-gradient(
+        180deg,
+        rgba(15,76,129,.5),
+        rgba(10,53,91,.72)
+    );
+
+}
+
+.overlay.show{
+
+    /* PENTING: menang atas .show{display:block} dari animation.css.
+       Selector gabungan ".overlay.show" (specificity 0,2,0) lebih
+       tinggi dari ".show" saja (0,1,0), jadi menang terlepas dari
+       urutan file CSS mana yang di-load lebih akhir. Tanpa baris
+       ini, tepat saat overlay ditampilkan, display:grid akan
+       ketiban display:block dan grid-centering batal aktif. */
+    display:grid;
+
+    opacity:1;
+
+    visibility:visible;
+
+}
+
+.result-box{
+
+    position:relative;
+
+    isolation:isolate;
+
+    overflow-y:auto;
+
+    z-index:2;
+
+    width:100%;
+
+    max-width:480px;
+
+    /* Jaga-jaga di viewport pendek (mis. 540px tinggi): kartu
+       tidak akan melebihi tinggi layar, kelebihan konten
+       discroll di dalam kartu itu sendiri. Juga fallback
+       margin:auto untuk browser tanpa dukungan grid/place-items
+       (kartu tetap ter-center secara block-level biasa). */
+    max-height:calc(100vh - 40px);
+
+    margin:auto;
+
+    background:rgba(12,32,58,.82);
+
+    border:1px solid var(--glass-border);
+
+    border-radius:var(--glass-radius);
+
+    padding:44px 32px;
+
+    text-align:center;
+
+    color:#ffffff;
+
+    transform:scale(.85);
+
+    opacity:0;
+
+    transition:transform var(--transition-slow) var(--ease-spring), opacity var(--transition-slow) ease;
+
+    box-shadow:0 30px 80px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.45);
+
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))){
+
+    .result-box{
+
+        background:linear-gradient(165deg, rgba(255,255,255,.30), rgba(255,255,255,.12));
+
+        -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate));
+
+        backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate));
+
+    }
+
+}
+
+.result-box::before{
+
+    content:'';
+
+    position:absolute;
+
+    inset:0;
+
+    z-index:-1;
+
+    background:radial-gradient(130% 100% at 15% -15%, rgba(255,255,255,.5), rgba(255,255,255,0) 55%);
+
+    pointer-events:none;
+
+}
+
+.overlay.show .result-box{
+
+    transform:scale(1);
+
+    opacity:1;
+
+}
+
+.result-box .headline{
+
+    font-size:clamp(28px,6vw,52px);
+
+    font-weight:800;
+
+    letter-spacing:-.02em;
+
+    color:var(--secondary-light);
+
+    text-shadow:0 0 30px rgba(244,180,0,.55);
+
+}
+
+.result-box .subtext{
+
+    font-size:clamp(15px,3vw,20px);
+
+    margin-top:8px;
+
+    color:rgba(255,255,255,.9);
+
+    letter-spacing:.5px;
+
+}
+
+.result-box .student-name{
+
+    margin-top:18px;
+
+    font-size:clamp(18px,3.5vw,26px);
+
+    font-weight:700;
+
+}
+
+.result-box .student-detail{
+
+    margin-top:6px;
+
+    font-size:.95rem;
+
+    color:rgba(255,255,255,.8);
+
+}
+
+.result-box button{
+
+    margin-top:28px;
+
+    width:auto;
+
+    padding:13px 34px;
+
+    border-radius:var(--radius-pill);
+
+    border:1px solid rgba(255,255,255,.4);
+
+    background:rgba(255,255,255,.14);
+
+    color:#ffffff;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    -webkit-backdrop-filter:blur(12px);
+
+    backdrop-filter:blur(12px);
+
+    transition:transform .3s var(--ease-spring), background .25s ease;
+
+}
+
+.result-box button:hover{
+
+    background:rgba(255,255,255,.22);
+
+}
+
+.result-box button:active{
+
+    transform:scale(.95);
+
+}
+
+/* Jendela pendek (mis. 960x540, landscape kecil): kartu
+   dipadatkan supaya lebih pas tanpa perlu scroll. */
+@media screen and (max-height:600px){
+
+    .result-box{
+
+        padding:24px 24px;
+
+        max-height:calc(100vh - 24px);
+
+    }
+
+    .result-box .headline{
+
+        font-size:clamp(22px,5vw,34px);
+
+    }
+
+    .result-box .student-name{
+
+        margin-top:10px;
+
+        font-size:clamp(16px,3vw,22px);
+
+    }
+
+    .result-box .subtext{
+
+        margin-top:4px;
+
+    }
+
+    .result-box button{
+
+        margin-top:16px;
+
+        padding:10px 28px;
+
+    }
+
+}
+
+/* ==============================
+   BALON
+============================== */
+
+#balloons{
+
+    position:fixed;
+
+    inset:0;
+
+    pointer-events:none;
+
+    z-index:var(--z-modal);
+
+}
+
+.balloon{
+
+    position:absolute;
+
+    bottom:-100px;
+
+    width:38px;
+
+    height:48px;
+
+    border-radius:50%;
+
+    opacity:.9;
+
+    animation:balloonRise 6s linear forwards;
+
+}
+
+@keyframes balloonRise{
+
+    from{ transform:translateY(0); }
+
+    to{ transform:translateY(-120vh); opacity:0; }
+
+}
+
+/* ==============================
+   CANVAS CONFETTI
+============================== */
+
+canvas{
+
+    position:fixed !important;
+
+    inset:0;
+
+    pointer-events:none;
+
+    z-index:var(--z-modal) !important;
+
+}
+
+/* ==============================
+   REDUCED MOTION
+============================== */
+
+@media (prefers-reduced-motion: reduce){
+
+    .bg-layer{
+        animation:none;
+    }
+
+}

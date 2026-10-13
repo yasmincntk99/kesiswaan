@@ -1,0 +1,247 @@
+/*
+==========================================================
+SMANSASOO Kesiswaan Portal
+Animation Stylesheet
+Version : 1.0.0
+==========================================================
+*/
+
+/* ==========================================
+   FADE IN
+========================================== */
+
+@keyframes fadeIn {
+
+    from{
+        opacity:0;
+    }
+
+    to{
+        opacity:1;
+    }
+
+}
+
+.fade-in{
+    animation:fadeIn .5s ease forwards;
+}
+
+/* ==========================================
+   SLIDE UP
+========================================== */
+
+@keyframes slideUp{
+
+    from{
+        opacity:0;
+        transform:translateY(30px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+
+}
+
+.slide-up{
+    animation:slideUp .55s var(--ease-spring, ease);
+}
+
+/* ==========================================
+   ZOOM IN
+========================================== */
+
+@keyframes zoomIn{
+
+    from{
+        opacity:0;
+        transform:scale(.9);
+    }
+
+    to{
+        opacity:1;
+        transform:scale(1);
+    }
+
+}
+
+.zoom-in{
+    animation:zoomIn .4s var(--ease-spring, ease);
+}
+
+/* ==========================================
+   SPINNER
+========================================== */
+
+@keyframes spin{
+
+    from{
+        transform:rotate(0deg);
+    }
+
+    to{
+        transform:rotate(360deg);
+    }
+
+}
+
+.spinner{
+
+    width:42px;
+    height:42px;
+
+    border:4px solid rgba(0,0,0,.1);
+
+    border-top:4px solid var(--primary);
+
+    border-radius:50%;
+
+    animation:spin .9s linear infinite;
+
+}
+
+/* ==========================================
+   BUTTON HOVER
+========================================== */
+
+.btn,
+button{
+
+    transition:
+    background .25s ease,
+    color .25s ease,
+    transform .25s ease,
+    box-shadow .25s ease;
+
+}
+
+.btn:hover,
+button:hover{
+
+    transform:translateY(-2px);
+
+    box-shadow:0 10px 20px rgba(0,0,0,.15);
+
+}
+
+/* ==========================================
+   CARD HOVER
+========================================== */
+
+.card,
+.search-card,
+.result-card{
+
+    transition:
+    transform .25s ease,
+    box-shadow .25s ease;
+
+}
+
+.card:hover,
+.search-card:hover,
+.result-card:hover{
+
+    transform:translateY(-4px);
+
+    box-shadow:0 12px 28px rgba(0,0,0,.12);
+
+}
+
+/* ==========================================
+   RIPPLE
+========================================== */
+
+.ripple{
+
+    position:relative;
+
+    overflow:hidden;
+
+}
+
+.ripple::after{
+
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    background:rgba(255,255,255,.25);
+
+    opacity:0;
+
+    transition:.4s;
+
+}
+
+.ripple:active::after{
+
+    opacity:1;
+
+    transition:0s;
+
+}
+
+/* ==========================================
+   SHAKE
+========================================== */
+
+@keyframes shake{
+
+    0%{transform:translateX(0);}
+    20%{transform:translateX(-5px);}
+    40%{transform:translateX(5px);}
+    60%{transform:translateX(-5px);}
+    80%{transform:translateX(5px);}
+    100%{transform:translateX(0);}
+
+}
+
+.shake{
+
+    animation:shake .35s ease;
+
+}
+
+/* ==========================================
+   HIDDEN
+========================================== */
+
+.hidden{
+
+    display:none;
+
+}
+
+/* ==========================================
+   SHOW
+========================================== */
+
+.show{
+
+    display:block;
+
+}
+
+/* ==========================================
+   DISABLE ANIMATION
+========================================== */
+
+@media (prefers-reduced-motion: reduce){
+
+    *,
+    *::before,
+    *::after{
+
+        animation:none !important;
+
+        transition:none !important;
+
+        scroll-behavior:auto !important;
+
+    }
+
+}

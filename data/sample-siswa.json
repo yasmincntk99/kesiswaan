@@ -1,0 +1,434 @@
+[
+ {
+  "nis": "26007",
+  "nisn": "0051000131",
+  "nama": "Maulana Syahputra",
+  "kelas": "X-1"
+ },
+ {
+  "nis": "26014",
+  "nisn": "0051000262",
+  "nama": "Maulana Anggraini",
+  "kelas": "X-1"
+ },
+ {
+  "nis": "26021",
+  "nisn": "0051000393",
+  "nama": "Salsa Anggraini",
+  "kelas": "X-1"
+ },
+ {
+  "nis": "26028",
+  "nisn": "0051000524",
+  "nama": "Iqbal Nugroho",
+  "kelas": "X-1"
+ },
+ {
+  "nis": "26035",
+  "nisn": "0051000655",
+  "nama": "Nadia Lestari",
+  "kelas": "X-1"
+ },
+ {
+  "nis": "26042",
+  "nisn": "0051000786",
+  "nama": "Maulana Kusuma",
+  "kelas": "X-1"
+ },
+ {
+  "nis": "26049",
+  "nisn": "0051000917",
+  "nama": "Umar Ramadhan",
+  "kelas": "X-2"
+ },
+ {
+  "nis": "26056",
+  "nisn": "0051001048",
+  "nama": "Raka Santoso",
+  "kelas": "X-2"
+ },
+ {
+  "nis": "26063",
+  "nisn": "0051001179",
+  "nama": "Raka Lestari",
+  "kelas": "X-2"
+ },
+ {
+  "nis": "26070",
+  "nisn": "0051001310",
+  "nama": "Dimas Hidayat",
+  "kelas": "X-2"
+ },
+ {
+  "nis": "26077",
+  "nisn": "0051001441",
+  "nama": "Maulana Kusuma",
+  "kelas": "X-2"
+ },
+ {
+  "nis": "26084",
+  "nisn": "0051001572",
+  "nama": "Raka Lestari",
+  "kelas": "X-2"
+ },
+ {
+  "nis": "26091",
+  "nisn": "0051001703",
+  "nama": "Nadia Setiawan",
+  "kelas": "X-3"
+ },
+ {
+  "nis": "26098",
+  "nisn": "0051001834",
+  "nama": "Tegar Firmansyah",
+  "kelas": "X-3"
+ },
+ {
+  "nis": "26105",
+  "nisn": "0051001965",
+  "nama": "Oki Pratama",
+  "kelas": "X-3"
+ },
+ {
+  "nis": "26112",
+  "nisn": "0051002096",
+  "nama": "Dina Maharani",
+  "kelas": "X-3"
+ },
+ {
+  "nis": "26119",
+  "nisn": "0051002227",
+  "nama": "Nadia Firmansyah",
+  "kelas": "X-3"
+ },
+ {
+  "nis": "26126",
+  "nisn": "0051002358",
+  "nama": "Tegar Utami",
+  "kelas": "X-3"
+ },
+ {
+  "nis": "26133",
+  "nisn": "0051002489",
+  "nama": "Wahyu Santoso",
+  "kelas": "X-4"
+ },
+ {
+  "nis": "26140",
+  "nisn": "0051002620",
+  "nama": "Umar Pratama",
+  "kelas": "X-4"
+ },
+ {
+  "nis": "26147",
+  "nisn": "0051002751",
+  "nama": "Maulana Saputra",
+  "kelas": "X-4"
+ },
+ {
+  "nis": "26154",
+  "nisn": "0051002882",
+  "nama": "Yoga Nugroho",
+  "kelas": "X-4"
+ },
+ {
+  "nis": "26161",
+  "nisn": "0051003013",
+  "nama": "Citra Anggraini",
+  "kelas": "X-4"
+ },
+ {
+  "nis": "26168",
+  "nisn": "0051003144",
+  "nama": "Putri Santoso",
+  "kelas": "X-4"
+ },
+ {
+  "nis": "26175",
+  "nisn": "0051003275",
+  "nama": "Umar Utami",
+  "kelas": "XI-1"
+ },
+ {
+  "nis": "26182",
+  "nisn": "0051003406",
+  "nama": "Eka Syahputra",
+  "kelas": "XI-1"
+ },
+ {
+  "nis": "26189",
+  "nisn": "0051003537",
+  "nama": "Bella Syahputra",
+  "kelas": "XI-1"
+ },
+ {
+  "nis": "26196",
+  "nisn": "0051003668",
+  "nama": "Iqbal Hidayat",
+  "kelas": "XI-1"
+ },
+ {
+  "nis": "26203",
+  "nisn": "0051003799",
+  "nama": "Nadia Saputra",
+  "kelas": "XI-1"
+ },
+ {
+  "nis": "26210",
+  "nisn": "0051003930",
+  "nama": "Kevin Anggraini",
+  "kelas": "XI-1"
+ },
+ {
+  "nis": "26217",
+  "nisn": "0051004061",
+  "nama": "Kevin Permata",
+  "kelas": "XI-2"
+ },
+ {
+  "nis": "26224",
+  "nisn": "0051004192",
+  "nama": "Cahya Nugroho",
+  "kelas": "XI-2"
+ },
+ {
+  "nis": "26231",
+  "nisn": "0051004323",
+  "nama": "Tegar Wijaya",
+  "kelas": "XI-2"
+ },
+ {
+  "nis": "26238",
+  "nisn": "0051004454",
+  "nama": "Putri Maharani",
+  "kelas": "XI-2"
+ },
+ {
+  "nis": "26245",
+  "nisn": "0051004585",
+  "nama": "Putri Permata",
+  "kelas": "XI-2"
+ },
+ {
+  "nis": "26252",
+  "nisn": "0051004716",
+  "nama": "Gita Lestari",
+  "kelas": "XI-2"
+ },
+ {
+  "nis": "26259",
+  "nisn": "0051004847",
+  "nama": "Yoga Syahputra",
+  "kelas": "XI-3"
+ },
+ {
+  "nis": "26266",
+  "nisn": "0051004978",
+  "nama": "Ahmad Nugroho",
+  "kelas": "XI-3"
+ },
+ {
+  "nis": "26273",
+  "nisn": "0051005109",
+  "nama": "Putri Anggraini",
+  "kelas": "XI-3"
+ },
+ {
+  "nis": "26280",
+  "nisn": "0051005240",
+  "nama": "Farel Hidayat",
+  "kelas": "XI-3"
+ },
+ {
+  "nis": "26287",
+  "nisn": "0051005371",
+  "nama": "Jihan Lestari",
+  "kelas": "XI-3"
+ },
+ {
+  "nis": "26294",
+  "nisn": "0051005502",
+  "nama": "Fajar Hidayat",
+  "kelas": "XI-3"
+ },
+ {
+  "nis": "26301",
+  "nisn": "0051005633",
+  "nama": "Wahyu Hidayat",
+  "kelas": "XI-4"
+ },
+ {
+  "nis": "26308",
+  "nisn": "0051005764",
+  "nama": "Alif Syahputra",
+  "kelas": "XI-4"
+ },
+ {
+  "nis": "26315",
+  "nisn": "0051005895",
+  "nama": "Salsa Anggraini",
+  "kelas": "XI-4"
+ },
+ {
+  "nis": "26322",
+  "nisn": "0051006026",
+  "nama": "Vina Permata",
+  "kelas": "XI-4"
+ },
+ {
+  "nis": "26329",
+  "nisn": "0051006157",
+  "nama": "Ahmad Wijaya",
+  "kelas": "XI-4"
+ },
+ {
+  "nis": "26336",
+  "nisn": "0051006288",
+  "nama": "Fajar Santoso",
+  "kelas": "XI-4"
+ },
+ {
+  "nis": "26343",
+  "nisn": "0051006419",
+  "nama": "Iqbal Wijaya",
+  "kelas": "XII-1"
+ },
+ {
+  "nis": "26350",
+  "nisn": "0051006550",
+  "nama": "Yoga Santoso",
+  "kelas": "XII-1"
+ },
+ {
+  "nis": "26357",
+  "nisn": "0051006681",
+  "nama": "Maulana Lestari",
+  "kelas": "XII-1"
+ },
+ {
+  "nis": "26364",
+  "nisn": "0051006812",
+  "nama": "Citra Saputra",
+  "kelas": "XII-1"
+ },
+ {
+  "nis": "26371",
+  "nisn": "0051006943",
+  "nama": "Eka Nugroho",
+  "kelas": "XII-1"
+ },
+ {
+  "nis": "26378",
+  "nisn": "0051007074",
+  "nama": "Fajar Saputra",
+  "kelas": "XII-1"
+ },
+ {
+  "nis": "26385",
+  "nisn": "0051007205",
+  "nama": "Bagas Ramadhan",
+  "kelas": "XII-2"
+ },
+ {
+  "nis": "26392",
+  "nisn": "0051007336",
+  "nama": "Dimas Pratama",
+  "kelas": "XII-2"
+ },
+ {
+  "nis": "26399",
+  "nisn": "0051007467",
+  "nama": "Hana Ramadhan",
+  "kelas": "XII-2"
+ },
+ {
+  "nis": "26406",
+  "nisn": "0051007598",
+  "nama": "Iqbal Nugroho",
+  "kelas": "XII-2"
+ },
+ {
+  "nis": "26413",
+  "nisn": "0051007729",
+  "nama": "Laila Hidayat",
+  "kelas": "XII-2"
+ },
+ {
+  "nis": "26420",
+  "nisn": "0051007860",
+  "nama": "Gita Pratama",
+  "kelas": "XII-2"
+ },
+ {
+  "nis": "26427",
+  "nisn": "0051007991",
+  "nama": "Gita Wijaya",
+  "kelas": "XII-3"
+ },
+ {
+  "nis": "26434",
+  "nisn": "0051008122",
+  "nama": "Jihan Permata",
+  "kelas": "XII-3"
+ },
+ {
+  "nis": "26441",
+  "nisn": "0051008253",
+  "nama": "Wahyu Ramadhan",
+  "kelas": "XII-3"
+ },
+ {
+  "nis": "26448",
+  "nisn": "0051008384",
+  "nama": "Laila Maharani",
+  "kelas": "XII-3"
+ },
+ {
+  "nis": "26455",
+  "nisn": "0051008515",
+  "nama": "Bagas Anggraini",
+  "kelas": "XII-3"
+ },
+ {
+  "nis": "26462",
+  "nisn": "0051008646",
+  "nama": "Laila Firmansyah",
+  "kelas": "XII-3"
+ },
+ {
+  "nis": "26469",
+  "nisn": "0051008777",
+  "nama": "Eka Saputra",
+  "kelas": "XII-4"
+ },
+ {
+  "nis": "26476",
+  "nisn": "0051008908",
+  "nama": "Alif Wijaya",
+  "kelas": "XII-4"
+ },
+ {
+  "nis": "26483",
+  "nisn": "0051009039",
+  "nama": "Citra Ramadhan",
+  "kelas": "XII-4"
+ },
+ {
+  "nis": "26490",
+  "nisn": "0051009170",
+  "nama": "Hana Saputra",
+  "kelas": "XII-4"
+ },
+ {
+  "nis": "26497",
+  "nisn": "0051009301",
+  "nama": "Tegar Lestari",
+  "kelas": "XII-4"
+ },
+ {
+  "nis": "26504",
+  "nisn": "0051009432",
+  "nama": "Jihan Utami",
+  "kelas": "XII-4"
+ }
+]

@@ -1,0 +1,279 @@
+/*
+==========================================================
+SMANSASOO Kesiswaan Portal
+Stats Panel Stylesheet
+Version : 1.0.0
+==========================================================
+Style untuk dua bagian:
+1. Tombol toggle (.app-sidebar-stats-toggle) yang dirender
+   js/shell.js di baris paling bawah sidebar.
+2. Panel floating (#statsPanel) yang muncul saat tombol itu
+   diklik -- dirender & diisi oleh js/stats-panel.js.
+
+Warna semuanya lewat var(--...) dari css/variables.css supaya
+otomatis ikut gelap kalau html[data-theme="dark"] aktif, dan
+efek glass-nya konsisten dengan .settings-drawer / .rapor-toolbar
+(blur + saturate di atas background semi-transparan).
+==========================================================
+*/
+
+/* ==========================================
+   TOMBOL TOGGLE (di dalam sidebar)
+========================================== */
+
+.app-sidebar-stats-toggle{
+
+    display:flex;
+    align-items:center;
+    gap:.6rem;
+
+    width:100%;
+    margin-top:var(--space-sm);
+    padding:.6rem .6rem;
+
+    border:1px solid transparent;
+    border-radius:var(--radius-md);
+    background:transparent;
+
+    font-family:inherit;
+    font-size:var(--font-sm);
+    font-weight:var(--weight-semibold);
+    color:var(--text-light);
+    text-align:left;
+    cursor:pointer;
+
+    transition:
+        background var(--transition-fast),
+        color var(--transition-fast),
+        border-color var(--transition-fast);
+
+}
+
+.app-sidebar-stats-toggle-pinned{
+    margin-top:auto;
+    padding-top:var(--space-md);
+    border-top:1px solid var(--border-light);
+    border-radius:0;
+}
+
+.app-sidebar-stats-toggle:hover,
+.app-sidebar-stats-toggle[aria-expanded="true"]{
+    background:var(--surface-alt);
+    color:var(--primary);
+}
+
+.app-sidebar-stats-toggle .icon{
+    font-size:1.1rem;
+    line-height:1;
+}
+
+body.sidebar-collapsed .app-sidebar-stats-toggle .label{
+    display:none;
+}
+
+body.sidebar-collapsed .app-sidebar-stats-toggle{
+    justify-content:center;
+}
+
+/* ==========================================
+   OVERLAY (dipakai juga di mobile supaya panel
+   bisa ditutup dengan tap di luar area)
+========================================== */
+
+.stats-panel-overlay{
+
+    position:fixed;
+    inset:0;
+    z-index:1290;
+
+    background:rgba(0,0,0,.25);
+
+    opacity:0;
+    pointer-events:none;
+
+    transition:opacity var(--transition);
+
+}
+
+.stats-panel-overlay.open{
+    opacity:1;
+    pointer-events:auto;
+}
+
+/* ==========================================
+   PANEL FLOATING (glassmorphism)
+========================================== */
+
+.stats-panel{
+
+    position:fixed;
+    left:20px;
+    bottom:20px;
+    z-index:1295;
+
+    width:min(320px, calc(100vw - 40px));
+
+    border-radius:var(--radius-xl);
+    border:1px solid rgba(255,255,255,.55);
+
+    background:rgba(255,255,255,.62);
+    box-shadow:
+        var(--shadow-lg),
+        inset 0 1px 0 rgba(255,255,255,.7);
+
+    padding:var(--space-lg);
+
+    opacity:0;
+    transform:translateY(12px) scale(.97);
+    pointer-events:none;
+
+    transition:
+        opacity var(--transition-fast),
+        transform var(--transition-fast);
+
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))){
+
+    .stats-panel{
+        background:linear-gradient(160deg, rgba(255,255,255,.68) 0%, rgba(255,255,255,.42) 100%);
+        -webkit-backdrop-filter:blur(20px) saturate(180%);
+        backdrop-filter:blur(20px) saturate(180%);
+    }
+
+}
+
+html[data-theme="dark"] .stats-panel{
+    border-color:rgba(255,255,255,.12);
+    background:rgba(30,32,40,.62);
+    box-shadow:
+        var(--shadow-lg),
+        inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))){
+
+    html[data-theme="dark"] .stats-panel{
+        background:linear-gradient(160deg, rgba(40,42,52,.68) 0%, rgba(28,30,38,.5) 100%);
+    }
+
+}
+
+.stats-panel.open{
+    opacity:1;
+    transform:translateY(0) scale(1);
+    pointer-events:auto;
+}
+
+.stats-panel-head{
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:var(--space-md);
+
+    margin-bottom:var(--space-md);
+
+}
+
+.stats-panel-head strong{
+    font-size:var(--font-sm);
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--text);
+}
+
+.stats-panel-close{
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    width:26px;
+    height:26px;
+
+    border:none;
+    border-radius:50%;
+
+    background:rgba(0,0,0,.06);
+    color:var(--text-light);
+
+    font-size:1.1rem;
+    line-height:1;
+    cursor:pointer;
+
+}
+
+.stats-panel-close:hover{
+    background:rgba(0,0,0,.12);
+    color:var(--text);
+}
+
+.stats-panel-total{
+
+    display:flex;
+    flex-direction:column;
+    gap:.15rem;
+
+    margin-bottom:var(--space-md);
+    padding-bottom:var(--space-md);
+    border-bottom:1px solid rgba(0,0,0,.08);
+
+}
+
+html[data-theme="dark"] .stats-panel-total{
+    border-bottom-color:rgba(255,255,255,.1);
+}
+
+.stats-panel-total-value{
+    font-size:1.6rem;
+    font-weight:var(--weight-bold);
+    color:var(--primary);
+    line-height:1.1;
+}
+
+.stats-panel-total-label{
+    font-size:var(--font-xs);
+    color:var(--text-light);
+}
+
+.stats-panel-list{
+    display:flex;
+    flex-direction:column;
+    gap:.5rem;
+    max-height:220px;
+    overflow-y:auto;
+}
+
+.stats-panel-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:var(--space-sm);
+    font-size:var(--font-sm);
+    color:var(--text);
+}
+
+.stats-panel-row-value{
+    font-weight:var(--weight-bold);
+    color:var(--text);
+}
+
+.stats-panel-empty,
+.stats-panel-loading{
+    font-size:var(--font-xs);
+    color:var(--text-light);
+    text-align:center;
+    padding:var(--space-md) 0;
+}
+
+@media (max-width: 640px){
+
+    .stats-panel{
+        left:16px;
+        right:16px;
+        bottom:16px;
+        width:auto;
+    }
+
+}

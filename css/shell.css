@@ -1,0 +1,742 @@
+/*
+==========================================================
+SMANSASOO Kesiswaan Portal
+Shell Stylesheet (Navbar + Sidebar + Footer)
+Version : 2.4.0
+==========================================================
+CHANGELOG (v2.4.0):
+- Background sidebar diganti dari backdrop-filter (nge-blur
+  apa pun di baliknya, beda-beda tiap halaman) jadi foto
+  assets/images/drh.jpg sendiri yang di-blur langsung lewat
+  ::before + filter:blur -- konsisten sama persis di semua
+  halaman, termasuk yang sama sekali tidak punya foto
+  background sendiri (nilai, rekap, prestasi, rapor, dst).
+  Tint di atasnya (::after) pakai token --glass-tint-* yang
+  sama dengan komponen glass lain di situs. Konten asli
+  sidebar dinaikkan z-index (".app-sidebar > *") supaya
+  selalu di atas kedua lapisan itu.
+==========================================================
+CHANGELOG (v2.3.0):
+- Trik "abaikan sidebar untuk center" (v2.2.0) diganti dari
+  daftar selector manual (main/header/.container/#shellFooter)
+  jadi wildcard "> *" + :not() pengecualian. Sebelumnya
+  rekap.html, prestasi.html, simulasi-tka.html (pembungkus
+  custom: .rekap-topbar/.rekap-hero/.prestasi-hero/.tka-hero)
+  kelewat dari daftar itu, jadi masih tidak proporsional
+  dibanding halaman lain. Wildcard ini otomatis mencakup
+  pembungkus custom halaman BARU juga, tanpa perlu diedit lagi
+  di sini tiap kali ada halaman baru.
+==========================================================
+CHANGELOG (v2.2.0):
+- Perluas trik "abaikan sidebar untuk center" (sebelumnya
+  cuma .header) ke SEMUA elemen level-atas halaman: <main>,
+  <header>, .container (kelulusan.html), dan #shellFooter.
+  Sebelumnya cuma header yang full-bleed, jadi kartu "Cek
+  Hasil" / komponen tengah lain masih ke-tengah relatif ke
+  area yang dipersempit sidebar, bukan ke layar penuh.
+==========================================================
+CHANGELOG (v2.0.0):
+- Diganti total dari versi dropdown sebelumnya. Sekarang
+  memakai pola navbar+sidebar yang sebelumnya cuma ada di
+  pages/prestasi.html (css/prestasi.css), digeneralisasi ke
+  sini supaya SEMUA halaman pakai satu sistem yang sama:
+  navbar atas sticky + sidebar (drawer di mobile, kolom tetap
+  di desktop >=1024px).
+- Dulu ada 4 pola navbar berbeda di situs ini (dropdown di
+  shell lama, navbar custom index.html, sidebar prestasi.html,
+  topbar lokal rekap.html) — semuanya sekarang memakai file
+  ini, dirender oleh js/shell.js, supaya konsisten.
+- Warna dipetakan ke token bersama di variables.css
+  (var(--primary), var(--surface), dst) — bukan variabel
+  --prestasi-* terpisah seperti sebelumnya — supaya otomatis
+  ikut tema/mode gelap jika halaman memuat css/theme.css.
+
+Layout:
+
+  ┌─────────────────────────────────────────────┐
+  │              app-navbar (sticky)             │
+  ├───────────────┬───────────────────────────────┤
+  │  app-sidebar   │        app-content            │
+  │  (kolom tetap  │  (seluruh isi asli halaman,   │
+  │   di desktop)  │   dipindah otomatis oleh JS)  │
+  └───────────────┴───────────────────────────────┘
+
+Di mobile, sidebar jadi drawer yang dibuka lewat tombol
+hamburger di navbar (overlay dari kiri, klik overlay = tutup).
+==========================================================
+*/
+
+:root{
+
+    --shell-navbar-h:64px;
+    --shell-sidebar-w:250px;
+    --shell-sidebar-w-collapsed:68px;
+
+}
+
+/* ==========================================
+   NAVBAR (atas, sticky)
+========================================== */
+
+/* PENTING: yang sticky harus PEMBUNGKUSNYA (#shellNav), bukan
+   cuma .app-navbar di dalamnya. position:sticky hanya bisa
+   menempel di dalam kotak parent-nya; #shellNav tingginya
+   persis setinggi navbar, jadi kalau cuma .app-navbar yang
+   sticky, dia tidak punya ruang untuk menempel -- begitu
+   halaman di-scroll, #shellNav ikut hilang dari layar dan
+   navbar terbawa (ini penyebab navbar "ikut scroll ke atas"
+   di semua halaman). Parent #shellNav adalah <body> yang
+   setinggi seluruh halaman, jadi di sini sticky bisa jalan. */
+#shellNav{
+
+    position:sticky;
+    top:0;
+    z-index:var(--z-sticky);
+
+}
+
+.app-navbar{
+
+    position:relative;
+    z-index:var(--z-sticky);
+
+    height:var(--shell-navbar-h);
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:1rem;
+
+    padding:0 clamp(1rem,3vw,2rem);
+
+    /* Fallback dulu untuk browser tanpa backdrop-filter --
+       ditimpa oleh @supports di bawah. Tetap solid & terbaca
+       walau tanpa efek glass. */
+    background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+
+    border-bottom:1px solid var(--glass-border,rgba(255,255,255,.18));
+
+    color:var(--text-white);
+
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))){
+
+    .app-navbar{
+
+        background:linear-gradient(135deg,
+            color-mix(in srgb, var(--primary) 78%, transparent),
+            color-mix(in srgb, var(--primary-dark) 82%, transparent)
+        );
+
+        -webkit-backdrop-filter:blur(var(--glass-blur,24px)) saturate(var(--glass-saturate,180%));
+
+        backdrop-filter:blur(var(--glass-blur,24px)) saturate(var(--glass-saturate,180%));
+
+    }
+
+}
+
+.app-navbar-left{
+
+    display:flex;
+    align-items:center;
+    gap:.75rem;
+
+    min-width:0;
+
+}
+
+.app-hamburger{
+
+    display:none;
+
+    width:36px;
+    height:36px;
+
+    align-items:center;
+    justify-content:center;
+
+    background:rgba(255,255,255,.12);
+    border:none;
+    border-radius:var(--radius-sm);
+
+    color:var(--text-white);
+    font-size:1.1rem;
+
+    cursor:pointer;
+
+    flex-shrink:0;
+
+}
+
+.app-navbar-brand{
+
+    display:flex;
+    align-items:center;
+    gap:.6rem;
+
+    text-decoration:none;
+    color:var(--text-white);
+
+    min-width:0;
+
+}
+
+.app-navbar-brand img{
+
+    width:30px;
+    height:30px;
+    object-fit:contain;
+    flex-shrink:0;
+
+}
+
+.app-navbar-brand strong{
+
+    font-size:var(--font-sm);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+
+}
+
+/* ==========================================
+   LAYOUT: SIDEBAR + KONTEN
+========================================== */
+
+.app-layout{
+
+    display:flex;
+    align-items:flex-start;
+
+    /* SENGAJA tidak ada max-width/margin:auto di sini lagi --
+       sebelumnya ada, dan itu yang membuat sidebar ikut
+       ke-tengah di layar lebar (>1300px), bukan lock di tepi
+       kiri viewport. .app-sidebar sekarang position:fixed
+       sendiri (lihat breakpoint desktop di bawah), dan
+       .app-content mengatur lebar+center kontennya sendiri
+       lewat .container internal tiap halaman. */
+
+}
+
+.app-sidebar{
+
+    width:var(--shell-sidebar-w);
+    flex-shrink:0;
+
+    height:calc(100vh - var(--shell-navbar-h));
+    overflow-y:auto;
+    overflow-x:hidden;
+
+    padding:var(--space-lg) var(--space-md);
+
+    /* Fallback kalau assets/images/drh.jpg gagal dimuat --
+       lapisan foto+tint ada di ::before/::after di bawah,
+       jadi warna ini normalnya tidak kelihatan sama sekali. */
+    background:var(--surface);
+
+    /* Perlu positioned + isolate supaya ::before (foto blur)
+       dan ::after (tint) punya "panggung" sendiri untuk
+       z-index, terpisah dari stacking context sidebar lain. */
+    position:relative;
+    isolation:isolate;
+
+    border-right:1px solid var(--glass-border,var(--border-light));
+
+    display:none;
+
+    transition:width var(--transition-fast);
+
+}
+
+/* ==========================================
+   BACKGROUND SIDEBAR: assets/images/drh.jpg + glassmorphism
+   ==========================================
+   Beda dengan trik glass di komponen lain (search-card, dst)
+   yang pakai backdrop-filter (nge-blur apa pun yang ada DI
+   BALIK elemennya, jadi hasilnya beda-beda tergantung halaman
+   -- ada yang punya foto scc.jpg di baliknya, ada yang tidak).
+
+   Sidebar butuh foto yang SAMA & KONSISTEN di semua halaman,
+   jadi fotonya ditaruh di ::before sebagai lapisannya sendiri
+   (bukan mengintip apa yang ada di belakang sidebar), lalu
+   di-blur langsung (filter:blur, bukan backdrop-filter) supaya
+   hasilnya identik di halaman mana pun -- termasuk halaman yang
+   sama sekali tidak punya foto background sendiri (nilai,
+   rekap, prestasi, rapor, dst).
+
+   Urutan lapisan (dari paling belakang ke depan):
+   1. ::before -- foto drh.jpg, di-blur
+   2. ::after  -- tint gradient (variabel --glass-tint-* yang
+      sama dipakai komponen glass lain), supaya teks menu tetap
+      terbaca di atas foto
+   3. Konten asli sidebar (nav, judul, dst) -- diberi z-index
+      lebih tinggi lewat ".app-sidebar > *" di bawah supaya
+      selalu di atas kedua lapisan itu, apa pun urutan elemen
+      barunya nanti.
+========================================== */
+
+.app-sidebar::before{
+
+    content:"";
+
+    position:absolute;
+    inset:0;
+    z-index:0;
+
+    background-image:url("../assets/images/drh.jpg");
+    background-size:cover;
+    background-position:center;
+
+    filter:blur(var(--glass-blur,24px));
+
+    pointer-events:none;
+
+}
+
+.app-sidebar::after{
+
+    content:"";
+
+    position:absolute;
+    inset:0;
+    z-index:1;
+
+    background:linear-gradient(165deg,
+        var(--glass-tint-top,rgba(255,255,255,.55)) 0%,
+        var(--glass-tint-bottom,rgba(255,255,255,.3)) 100%
+    );
+
+    pointer-events:none;
+
+}
+
+.app-sidebar > *{
+
+    position:relative;
+    z-index:2;
+
+}
+
+.app-sidebar-head{
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:.5rem;
+
+    margin:0 0 .75rem .5rem;
+
+}
+
+.app-sidebar-head .app-sidebar-title{
+
+    margin:0;
+
+}
+
+.app-sidebar-collapse-btn{
+
+    display:none;
+
+    align-items:center;
+    justify-content:center;
+
+    width:26px;
+    height:26px;
+    flex-shrink:0;
+
+    border:1px solid var(--border-light);
+    border-radius:var(--radius-sm);
+
+    background:var(--surface-alt);
+    color:var(--text-light);
+
+    font-size:.75rem;
+    line-height:1;
+
+    cursor:pointer;
+
+    transition:transform var(--transition-fast),background var(--transition-fast);
+
+}
+
+.app-sidebar-collapse-btn:hover{
+
+    background:var(--border-light);
+    color:var(--text);
+
+}
+
+.app-sidebar-title{
+
+    font-size:var(--font-xs);
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--text-light);
+    font-weight:var(--weight-bold);
+
+    margin:0 0 .75rem .5rem;
+
+}
+
+.app-sidebar nav{
+
+    display:flex;
+    flex-direction:column;
+    gap:.15rem;
+
+    margin-bottom:var(--space-lg);
+
+}
+
+.app-sidebar nav a{
+
+    display:flex;
+    align-items:center;
+    gap:.6rem;
+
+    padding:.6rem .6rem;
+
+    border-radius:var(--radius-sm);
+
+    color:var(--text);
+    text-decoration:none;
+    font-size:var(--font-sm);
+
+}
+
+.app-sidebar nav a .icon{
+
+    width:20px;
+    text-align:center;
+    flex-shrink:0;
+
+}
+
+.app-sidebar nav a:hover{
+
+    background:var(--surface-alt);
+
+}
+
+.app-sidebar nav a.active{
+
+    background:color-mix(in srgb, var(--primary) 12%, transparent);
+    color:var(--primary);
+    font-weight:var(--weight-semibold);
+
+}
+
+.app-sidebar-external{
+
+    margin-top:auto;
+    padding-top:var(--space-md);
+    border-top:1px solid var(--border-light);
+
+}
+
+.app-sidebar-external a{
+
+    display:block;
+
+    font-size:var(--font-xs);
+    color:var(--info);
+    text-decoration:none;
+    padding:.5rem .6rem;
+
+}
+
+.app-sidebar-external a:hover{
+
+    text-decoration:underline;
+
+}
+
+.app-content{
+
+    flex:1;
+    min-width:0;
+
+}
+
+/* ==========================================
+   OVERLAY (drawer sidebar di mobile)
+========================================== */
+
+.app-sidebar-overlay{
+
+    display:none;
+
+    position:fixed;
+    inset:0;
+
+    background:rgba(16,24,40,.45);
+
+    z-index:calc(var(--z-overlay) - 1);
+
+}
+
+body.sidebar-open .app-sidebar-overlay{
+
+    display:block;
+
+}
+
+body.sidebar-open .app-sidebar{
+
+    display:flex;
+    flex-direction:column;
+
+    position:fixed;
+    top:0;
+    left:0;
+    bottom:0;
+
+    height:100vh;
+
+    z-index:var(--z-overlay);
+
+    width:80vw;
+    max-width:300px;
+
+    box-shadow:var(--shadow-lg);
+
+}
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media screen and (max-width:1023px){
+
+    .app-hamburger{
+
+        display:flex;
+
+    }
+
+}
+
+@media screen and (min-width:1024px){
+
+    .app-sidebar{
+
+        display:flex;
+        flex-direction:column;
+
+        /* Lock ke tepi kiri VIEWPORT (bukan ikut center
+           bareng .app-layout) -- lihat catatan di rule
+           .app-layout di atas. */
+        position:fixed;
+        top:var(--shell-navbar-h);
+        left:0;
+
+        z-index:var(--z-sticky);
+
+    }
+
+    .app-content{
+
+        /* Kasih ruang selebar sidebar supaya konten tidak
+           ketiban, karena sidebar-nya sekarang fixed
+           (dikeluarkan dari alur flex). */
+        margin-left:var(--shell-sidebar-w);
+
+        transition:margin-left var(--transition-fast);
+
+    }
+
+    /* ==========================================
+       FULL-BLEED: allowlist, bukan blocklist
+       ==========================================
+       Anak langsung .app-content secara DEFAULT ikut margin-left
+       dari .app-content di atas (artinya: center relatif ke area
+       yang sudah dipersempit sidebar -- pas untuk kolom bacaan
+       macam .container yang punya width:min(92%,1100px)+margin:auto
+       sendiri, karena dia memang harus tetap di "area aman" biar
+       tidak ketiban sidebar).
+
+       Elemen yang MEMANG perlu selebar layar penuh (hero, header,
+       footer shell, topbar custom) harus MINTA IZIN eksplisit
+       lewat class .app-fullbleed di HTML-nya -- BUKAN sebaliknya
+       (dulu: semua full-bleed KECUALI yang didaftar di :not(...),
+       gampang lupa didaftar tiap ada elemen baru, ini yang bikin
+       kelulusan/prestasi/simulasi-tka/tombol pengaturan bolak-balik
+       kena bug "nempel kiri, ketutup sidebar" atau "jadi oval").
+       Sekarang kalau lupa nambah .app-fullbleed ke elemen baru,
+       akibatnya paling elemen itu ikut lebar kolom aman (masih
+       kelihatan wajar) -- bukan pecah/ketutup sidebar.
+
+       .header dan #shellFooter DIMASUKKAN LANGSUNG di selector
+       (tidak perlu class .app-fullbleed manual di tiap halaman)
+       karena keduanya SELALU perlu full-bleed di semua halaman
+       yang memakainya, tanpa pengecualian -- #shellFooter khususnya
+       cuma mount point kosong (diisi shell.js), amannya selalu
+       sama di semua halaman.
+
+       Kalau bikin halaman baru: tambahkan class="app-fullbleed"
+       ke elemen hero/header/footer custom yang perlu selebar
+       layar; JANGAN ditambahkan ke kolom bacaan/kartu konten biasa
+       (biar tetap center di area aman, tidak ketiban sidebar). */
+    .app-content > .header,
+    .app-content > #shellFooter,
+    .app-content > .app-fullbleed{
+
+        margin-left:calc(-1 * var(--shell-sidebar-w));
+        width:calc(100% + var(--shell-sidebar-w));
+
+        transition:margin-left var(--transition-fast),width var(--transition-fast);
+
+    }
+
+    body.sidebar-collapsed .app-content > .header,
+    body.sidebar-collapsed .app-content > #shellFooter,
+    body.sidebar-collapsed .app-content > .app-fullbleed{
+
+        margin-left:calc(-1 * var(--shell-sidebar-w-collapsed));
+        width:calc(100% + var(--shell-sidebar-w-collapsed));
+
+    }
+
+    .app-sidebar-collapse-btn{
+
+        display:flex;
+
+    }
+
+    /* ==========================================
+       SIDEBAR MINIMIZE (Ctrl+B) -- desktop saja.
+       Sidebar menyempit jadi kolom ikon, label teks
+       disembunyikan (bukan dihapus, tetap ada untuk
+       screen reader lewat title="" di tiap link).
+    ========================================== */
+
+    body.sidebar-collapsed .app-sidebar{
+
+        width:var(--shell-sidebar-w-collapsed);
+        padding-left:.5rem;
+        padding-right:.5rem;
+
+    }
+
+    body.sidebar-collapsed .app-content{
+
+        margin-left:var(--shell-sidebar-w-collapsed);
+
+    }
+
+    body.sidebar-collapsed .app-sidebar-title,
+    body.sidebar-collapsed .app-sidebar nav a .label,
+    body.sidebar-collapsed .app-sidebar-external{
+
+        display:none;
+
+    }
+
+    body.sidebar-collapsed .app-sidebar-head{
+
+        justify-content:center;
+
+    }
+
+    body.sidebar-collapsed .app-sidebar nav a{
+
+        justify-content:center;
+
+    }
+
+    body.sidebar-collapsed .app-sidebar-collapse-btn{
+
+        transform:rotate(180deg);
+
+    }
+
+}
+
+/* ==========================================
+   FOOTER (dipakai lewat #shellFooter)
+========================================== */
+
+.shell-footer{
+
+    margin-top:var(--space-2xl);
+    padding:var(--space-xl) 0;
+    text-align:center;
+    color:var(--text-light);
+    font-size:var(--font-sm);
+    border-top:1px solid var(--border-light);
+
+}
+
+.shell-footer-links{
+
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:var(--space-md);
+    margin-bottom:var(--space-sm);
+
+}
+
+.shell-footer-links a{
+
+    color:var(--text-light);
+    text-decoration:none;
+    font-weight:var(--weight-semibold);
+    font-size:var(--font-xs);
+    text-transform:uppercase;
+    letter-spacing:.04em;
+
+}
+
+.shell-footer-links a:hover{
+
+    color:var(--primary);
+
+}
+
+.shell-footer-inner small{
+
+    display:block;
+    margin-top:var(--space-xs);
+    color:var(--text-muted);
+
+}
+
+/* ==========================================
+   PRINT: sembunyikan chrome shell (navbar, sidebar,
+   overlay, footer) supaya yang tercetak cuma konten
+   halamannya (kartu hasil, dsb). Detail styling kartu hasil
+   itu sendiri ada di css/print.css (dipakai halaman yang
+   punya tombol "Cetak / Unduh PDF").
+========================================== */
+
+@media print{
+
+    .app-navbar,
+    .app-sidebar,
+    .app-sidebar-overlay,
+    .app-sidebar-collapse-btn,
+    .shell-footer{
+
+        display:none !important;
+
+    }
+
+    .app-content{
+
+        margin-left:0 !important;
+        width:100% !important;
+
+    }
+
+    .app-content > *:not(.bg-layer):not(.flash):not(#balloons):not(.overlay):not(audio):not(script){
+
+        margin-left:0 !important;
+        width:100% !important;
+
+    }
+
+}

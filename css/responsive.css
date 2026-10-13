@@ -1,0 +1,423 @@
+/*
+==========================================================
+SMANSASOO Kesiswaan Portal
+Responsive Stylesheet
+Version : 1.1.0
+==========================================================
+FIX (v1.1.0):
+- Breakpoint TABLET/LAPTOP/DESKTOP/LARGE DESKTOP tidak diubah
+  (progresi 720 -> 960 -> 1140 -> 1320px sudah baik).
+- Ditambahkan breakpoint FULL HD (min-width:1600px) khusus
+  untuk layar 1920x1080: container & search-card/result-card
+  dilebarkan sedikit lagi, tipografi & padding dinaikkan
+  supaya proporsional di layar besar (sebelumnya breakpoint
+  berhenti di 1400px, jadi di 1920px tampilan terasa sama
+  persis seperti di laptop 1400px — kurang memanfaatkan
+  ruang layar).
+- LANDSCAPE PHONE diperluas jangkauannya dari cuma
+  (max-height:500px) jadi juga menangani tinggi <=430px
+  (kebanyakan HP landscape ada di rentang ini), dan sekarang
+  ikut mengecilkan logo, judul, serta padding kartu overlay
+  perayaan (.result-box) — sebelumnya cuma header &
+  search-section yang disesuaikan, kartu overlay/hasil di
+  landscape masih pakai ukuran desktop penuh sehingga rawan
+  terpotong di layar pendek.
+- Ditambahkan aturan khusus landscape+lebar (rasio mendekati
+  16:9 seperti HP di-putar) supaya search-card tidak melebar
+  penuh 100% (janggal di layar lebar pendek) — dibatasi
+  max-width dan diposisikan di tengah.
+==========================================================
+*/
+
+/* ==========================================
+   TABLET
+   768px - 991px
+========================================== */
+
+@media screen and (min-width:768px){
+
+    .container{
+        max-width:720px;
+    }
+
+    .header h1{
+        font-size:2rem;
+    }
+
+    .search-card,
+    .result-card,
+    .error-card{
+
+        padding:2rem;
+
+    }
+
+    #searchForm{
+
+        display:flex;
+        gap:1rem;
+
+    }
+
+    #searchForm input{
+
+        flex:1;
+
+    }
+
+    #searchForm button{
+
+        width:180px;
+
+    }
+
+}
+
+/* ==========================================
+   LAPTOP
+   992px - 1199px
+========================================== */
+
+@media screen and (min-width:992px){
+
+    .container{
+        max-width:960px;
+    }
+
+    body{
+
+        font-size:16px;
+
+    }
+
+    .header{
+
+        padding:3rem 0;
+
+    }
+
+    .header h1{
+
+        font-size:2.5rem;
+
+    }
+
+    .search-section{
+
+        padding:3rem 0;
+
+    }
+
+    .search-card{
+
+        max-width:650px;
+        margin:auto;
+
+    }
+
+    .result-card{
+
+        max-width:700px;
+        margin:auto;
+
+    }
+    .result-box{
+        max-width:500px;
+    }
+}
+
+/* ==========================================
+   DESKTOP
+   1200px - 1599px
+========================================== */
+
+@media screen and (min-width:1200px){
+
+    .container{
+
+        max-width:1140px;
+
+    }
+
+    .header h1{
+
+        font-size:3rem;
+
+    }
+
+    .search-card{
+
+        max-width:700px;
+
+    }
+
+    .result-card{
+
+        max-width:760px;
+
+    }
+    .result-box{
+        max-width:540px;
+    }
+}
+
+/* ==========================================
+   LARGE DESKTOP
+   1400px - 1599px
+========================================== */
+
+@media screen and (min-width:1400px){
+
+    .container{
+
+        max-width:1320px;
+
+    }
+
+}
+
+/* ==========================================
+   FULL HD / 1920x1080
+   1600px+
+========================================== */
+
+@media screen and (min-width:1600px){
+
+    .container{
+
+        max-width:1440px;
+
+    }
+
+    .header{
+
+        padding:4rem 0;
+
+    }
+
+    .header h1{
+
+        font-size:3.25rem;
+
+    }
+
+    .header p{
+
+        font-size:1.05rem;
+
+    }
+
+    .search-card{
+
+        max-width:760px;
+        padding:2.5rem;
+
+    }
+
+    .result-card{
+
+        max-width:820px;
+        padding:2.5rem;
+
+    }
+
+    #searchForm input,
+    #searchForm button{
+
+        height:60px;
+        font-size:1.05rem;
+
+    }
+
+    .result-box{
+
+        max-width:560px;
+        padding:56px 44px;
+
+    }
+
+}
+
+/* ==========================================
+   LANDSCAPE PHONE
+   Tinggi layar pendek (HP diputar), termasuk
+   perangkat dengan notch/dynamic island.
+========================================== */
+
+@media screen and (max-height:500px) and (orientation:landscape){
+
+    .logo{
+
+        width:64px;
+        margin-bottom:10px;
+
+    }
+
+    .header{
+
+        padding:1rem 0;
+
+    }
+
+    .header h1{
+
+        font-size:1.4rem;
+
+    }
+
+    .header p{
+
+        font-size:.85rem;
+
+        margin-top:6px;
+
+    }
+
+    .search-section{
+
+        padding:.75rem 0;
+
+    }
+
+    .search-card{
+
+        padding:1.25rem;
+
+    }
+
+    .search-card h2{
+
+        font-size:1.15rem;
+
+        margin-bottom:4px;
+
+    }
+
+    .badge-year{
+
+        margin-bottom:8px;
+
+        padding:5px 14px;
+
+        font-size:.68rem;
+
+    }
+
+    /* Kartu overlay perayaan — sebelumnya ikut ukuran
+       desktop penuh, rawan terpotong di layar pendek. */
+    .result-box{
+
+        padding:24px 22px;
+        max-width:380px;
+
+    }
+
+    .result-box .headline{
+
+        font-size:clamp(22px,7vw,34px);
+
+    }
+
+    .result-box .student-name{
+
+        margin-top:10px;
+        font-size:clamp(15px,3.5vw,20px);
+
+    }
+
+    .result-box .subtext{
+
+        margin-top:4px;
+
+    }
+
+    .result-box button{
+
+        margin-top:16px;
+        padding:10px 26px;
+
+    }
+
+}
+
+/* ==========================================
+   LANDSCAPE PHONE — lebar sedang (16:9 rotasi)
+   Mencegah search-card melebar penuh 100% di
+   layar lebar-tapi-pendek, tetap center & rapi.
+========================================== */
+
+@media screen and (max-height:500px) and (min-width:650px) and (orientation:landscape){
+
+    .search-card,
+    #result{
+
+        max-width:480px;
+        margin:0 auto;
+
+    }
+
+}
+
+/* ==========================================
+   SMALL PHONE
+========================================== */
+
+@media screen and (max-width:360px){
+
+    body{
+
+        font-size:14px;
+
+    }
+
+    .header h1{
+
+        font-size:1.5rem;
+
+    }
+
+    .search-card,
+    .result-card{
+
+        padding:1rem;
+
+    }
+    .result-box{
+        padding:28px 20px;
+    }
+    #searchForm button{
+
+        width:100%;
+
+    }
+
+}
+
+/* ==========================================
+   PRINT
+========================================== */
+
+@media print{
+
+    body{
+
+        background:#ffffff;
+        color:#000000;
+
+    }
+
+    button,
+    footer{
+
+        display:none;
+
+    }
+
+    .result-card{
+
+        box-shadow:none;
+        border:1px solid #000;
+
+    }
+
+}
