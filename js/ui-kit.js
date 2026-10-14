@@ -37,6 +37,7 @@ window.KD = (() => {
             if (!r.ok || body.success === false) {
                 const err = new Error(body.message || `Permintaan gagal (HTTP ${r.status}).`);
                 err.status = r.status;
+                err.detail = body.detail;
                 throw err;
             }
             return body;

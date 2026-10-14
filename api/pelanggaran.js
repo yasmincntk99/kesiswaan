@@ -101,6 +101,7 @@ module.exports = async (req, res) => {
         return res.status(405).json({ success: false, message: "Metode tidak diizinkan." });
 
     } catch (err) {
-        return res.status(500).json({ success: false, message: err.message || "Terjadi kesalahan pada server." });
+        // Rincian diagnosis hanya untuk admin (endpoint ini sudah lolos verifyAdmin).
+        return res.status(500).json({ success: false, message: err.message || "Terjadi kesalahan pada server.", detail: err.detail ? { ...err.detail, ...sheets.diagnostics() } : undefined });
     }
 };

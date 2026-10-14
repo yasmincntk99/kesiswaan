@@ -383,7 +383,7 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
                 $("adminMode").textContent = "Offline · data tersimpan di perangkat";
                 return;
             }
-            $("adminAlert").innerHTML = `<div class="kd-card kd-error" role="alert"><strong>Data tidak dapat dimuat.</strong> <span>${esc(e.message)}</span> <button type="button" class="kd-btn kd-btn--sm" id="retry" style="margin-left:.5rem">Coba lagi</button></div>`;
+            $("adminAlert").innerHTML = `<div class="kd-card kd-error" role="alert"><strong>Data tidak dapat dimuat.</strong> <span>${esc(e.message)}</span>${e.detail ? `<br><small>Alasan Google: <code>${esc([e.detail.status, e.detail.reason].filter(Boolean).join(" · "))}</code> ${esc(e.detail.message || "")}<br>Sheet yang dibaca server: <code>${esc(e.detail.sheet || "-")}</code> · Akun: <code>${esc(e.detail.account || "-")}</code></small>` : ""} <button type="button" class="kd-btn kd-btn--sm" id="retry" style="margin-left:.5rem">Coba lagi</button></div>`;
             const r = $("retry"); if (r) r.addEventListener("click", () => load());
         }
     }

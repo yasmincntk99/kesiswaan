@@ -99,12 +99,36 @@ async function accessToken() {
     });
 
     if (!response.ok) {
-        throw new Error(`Gagal mendapat token Google (HTTP ${response.status}).`);
+        const detail = await googleDetail(response);
+        console.error("Token Google gagal", JSON.stringify(detail));
+        throw Object.assign(new Error(`Gagal mendapat token Google (HTTP ${response.status}).`), { detail });
     }
 
     const data = await response.json();
     cached = { token: data.access_token, exp: now + (data.expires_in || 3600) };
     return cached.token;
+}
+
+/** Ambil alasan dari respons error Google tanpa membocorkan data (hanya status, reason, pesan). */
+async function googleDetail(response) {
+    let reason = "", message = "";
+    try {
+        const body = await response.json();
+        const e = body && body.error ? body.error : {};
+        message = String(e.message || "").slice(0, 300);
+        reason = String((e.status || (e.errors && e.errors[0] && e.errors[0].reason) || (e.details && e.details[0] && e.details[0].reason)) || "");
+    } catch (x) { /* bukan JSON */ }
+    return { status: response.status, reason, message };
+}
+
+/** Petunjuk non-rahasia untuk diagnosis admin: sheet mana & akun mana yang dipakai server. */
+function diagnostics() {
+    const id = SHEET_ID();
+    return {
+        mode: mode(),
+        sheet: id ? `${id.slice(0, 6)}…${id.slice(-4)}` : "",
+        account: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || ""
+    };
 }
 
 /* ---------- API publik lib ---------- */
@@ -118,7 +142,11 @@ async function readTab(tab) {
         const token = await accessToken();
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent(tab)}?valueRenderOption=FORMATTED_VALUE`;
         const response = await fetch(url, { headers: { Authorization: "Bearer " + token } });
-        if (!response.ok) throw new Error(`Gagal membaca tab "${tab}" (HTTP ${response.status}). Pastikan sheet di-share ke service account.`);
+        if (!response.ok) {
+            const detail = await googleDetail(response);
+            console.error("Sheets read gagal", tab, JSON.stringify(detail));
+            throw Object.assign(new Error(`Gagal membaca tab "${tab}" (HTTP ${response.status}). Pastikan sheet di-share ke service account.`), { detail });
+        }
         const data = await response.json();
         return data.values || [];
     }
@@ -157,8 +185,10 @@ async function appendRow(tab, values) {
     });
 
     if (!response.ok) {
-        throw new Error(`Gagal menulis ke sheet (HTTP ${response.status}). Pastikan service account menjadi Editor.`);
+        const detail = await googleDetail(response);
+        console.error("Sheets append gagal", tab, JSON.stringify(detail));
+        throw Object.assign(new Error(`Gagal menulis ke sheet (HTTP ${response.status}). Pastikan service account menjadi Editor.`), { detail });
     }
 }
 
-module.exports = { mode, canWrite, sheetUrl, readTab, rowsToObjects, appendRow };
+module.exports = { mode, canWrite, sheetUrl, readTab, rowsToObjects, appendRow, diagnostics };
