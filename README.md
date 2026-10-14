@@ -7,13 +7,24 @@ Portal kesiswaan & kedisiplinan siswa SMAN 1 Sooko Mojokerto. Memakai shell, tem
 - **Cek Poin Siswa**: lihat poin & riwayat dengan NIS/NISN.
 - **Tata Tertib & Sanksi**: daftar pelanggaran, poin, tingkat pembinaan.
 - **Floating badge "Admin"** di semua halaman → panel login admin, menu admin, dan toggle mode gelap/terang.
-- **Panel Admin** (`/pages/admin`): catat pelanggaran, data pelanggaran (filter + CSV), siswa perlu pembinaan.
+- **Panel Admin** (`/pages/admin`): alur Kelas → Siswa → profil (foto, poin, riwayat) → input pelanggaran, rekap per kelas, antrean offline (kirim otomatis saat online, tanpa data ganda), data pelanggaran (filter + CSV), siswa perlu pembinaan.
 
 ## Menjalankan lokal
 ```bash
 npm run dev      # http://localhost:3000
 npm run sample   # regenerasi data contoh (fiktif)
 ```
+
+## Struktur Google Sheet
+Sama dengan skema Apps Script sebelumnya (dibaca per posisi kolom, baris 1 = header):
+
+| Tab | Kolom |
+|-----|-------|
+| `Data_Siswa` | NIS \| Nama \| Kelas \| Foto (https / link Drive) \| NISN (opsional) |
+| `Master_Pelanggaran` | Kode \| Nama \| Poin \| Kategori (opsional) |
+| `Input_Pelanggaran` | Timestamp \| NIS \| Nama \| Kelas \| Jenis \| Poin \| Keterangan \| Kode \| Sanksi \| Pencatat \| ClientID |
+
+Kolom A–G `Input_Pelanggaran` kompatibel dengan Apps Script lama; H–K ditambahkan portal. Atur *Locale* spreadsheet ke Indonesia (dd/mm/yyyy).
 
 ## Mode data
 | Mode | Syarat | Kemampuan |

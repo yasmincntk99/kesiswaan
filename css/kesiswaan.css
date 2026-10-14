@@ -463,6 +463,23 @@ body.kd-lock{overflow:hidden}
 .kd-pager{display:flex;justify-content:space-between;align-items:center;gap:var(--space-md);margin-top:var(--space-md);font-size:var(--font-sm);flex-wrap:wrap}
 .kd-actions{display:flex;gap:.5rem;flex-wrap:wrap}
 .kd-count{font-size:var(--font-sm);color:rgba(255,255,255,.8)}
+
+/* ---- Panel admin: profil siswa, rekap kelas, antrean offline ---- */
+.kd-queue{display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:var(--space-md);padding:.75rem 1rem;border-radius:var(--radius-md);background:rgba(244,180,0,.18);border:1px solid rgba(244,180,0,.55);color:#fff;font-size:var(--font-sm)}
+.kd-dialog{width:min(100%,640px);max-height:90vh;padding:var(--space-lg);border-radius:var(--glass-radius-sm);color:#fff;border:1px solid var(--glass-border);background:linear-gradient(165deg,rgba(255,255,255,.2),rgba(255,255,255,.07)),rgba(14,33,60,.97);box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.kd-profile{display:grid;grid-template-columns:200px minmax(0,1fr);gap:var(--space-lg);align-items:start}
+@media (max-width:760px){.kd-profile{grid-template-columns:minmax(0,1fr)}.kd-foto{max-width:200px}}
+.kd-foto{width:200px;height:260px;object-fit:cover;border-radius:var(--radius-lg);background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25)}
+.kd-profile-grid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--space-md);align-items:start}
+@media (max-width:480px){.kd-profile-grid{grid-template-columns:minmax(0,1fr)}}
+.kd-val{font-size:var(--font-lg);font-weight:var(--weight-bold);margin:0 0 .6rem;overflow-wrap:anywhere}
+.kd-val--muted{opacity:.75}
+.kd-poinbox{min-width:150px;text-align:center;padding:.9rem 1rem;border-radius:var(--radius-lg);background:rgba(239,68,68,.16);border:1px solid rgba(239,68,68,.5)}
+.kd-poinbox strong{display:block;font-size:var(--font-3xl);line-height:1.1;font-weight:var(--weight-extrabold)}
+.kd-poinbox small{display:block;margin-top:.25rem;font-size:var(--font-xs);opacity:.85}
+.kd-subtitle{margin:var(--space-md) 0 .5rem;font-size:var(--font-md);font-weight:var(--weight-bold);color:var(--secondary-light)}
+.kd-poinrow{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.7rem 1rem;border-radius:var(--radius-md);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);font-size:var(--font-sm)}
+.kd-poinbadge{padding:.3rem .9rem;border-radius:var(--radius-pill);background:rgba(239,68,68,.85);font-weight:var(--weight-bold)}
 .kd-hidden{display:none !important}
 
 /* ==========================================

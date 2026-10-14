@@ -74,53 +74,108 @@
 
         <div id="adminAlert" aria-live="polite"></div>
 
-        <!-- INPUT -->
-        <section class="kd-card" id="panel-input" role="tabpanel" aria-labelledby="tab-input">
-            <h2 class="kd-card-title">Catat Pelanggaran Baru</h2>
-            <p class="kd-card-sub">Nama, kelas, kategori, dan poin diisi otomatis dari data siswa &amp; tata tertib.</p>
+        <!-- INPUT (alur: pilih kelas -> siswa -> profil -> tambah pelanggaran) -->
+        <section id="panel-input" role="tabpanel" aria-labelledby="tab-input">
 
-            <form id="inputForm" novalidate>
+            <div class="kd-queue kd-hidden" id="queueBanner" role="status">
+                <span id="queueCountText">Ada 0 data antrean offline belum terkirim.</span>
+                <button type="button" class="kd-btn kd-btn--sm kd-btn--primary" id="syncBtn">Kirim sekarang</button>
+            </div>
+
+            <div class="kd-card" id="sectionPilih">
+                <div class="kd-toolbar" style="margin-bottom:.75rem">
+                    <h2 class="kd-card-title" style="margin:0">Langkah 1: Pilih Siswa</h2>
+                    <button type="button" class="kd-btn kd-btn--sm kd-hidden" id="rekapBtn">Lihat rekap kelas</button>
+                </div>
                 <div class="kd-form-grid">
-
-                    <div class="kd-field full">
-                        <label class="kd-field-label" for="siswaSearch">Siswa (cari nama atau NIS)</label>
-                        <input class="kd-input" id="siswaSearch" type="text" autocomplete="off" placeholder="Ketik minimal 2 huruf / angka…"
-                               role="combobox" aria-expanded="false" aria-controls="siswaList" aria-autocomplete="list">
-                        <ul class="kd-suggest kd-hidden" id="siswaList" role="listbox" aria-label="Hasil pencarian siswa"></ul>
-                        <div class="kd-picked kd-hidden" id="siswaPicked"></div>
-                    </div>
-
                     <div class="kd-field">
-                        <label class="kd-field-label" for="fKode">Jenis pelanggaran</label>
-                        <select class="kd-select" id="fKode" required></select>
+                        <label class="kd-field-label" for="selKelas">1. Kelas</label>
+                        <select class="kd-select" id="selKelas"><option value="">Memuat…</option></select>
                     </div>
-
                     <div class="kd-field">
-                        <label class="kd-field-label" for="fTanggal">Tanggal kejadian</label>
-                        <input class="kd-input" id="fTanggal" type="date" required>
-                    </div>
-
-                    <div class="kd-field full">
-                        <label class="kd-field-label" for="fSanksi">Tindak lanjut / sanksi (opsional)</label>
-                        <input class="kd-input" id="fSanksi" type="text" maxlength="200" placeholder="mis. Teguran lisan, Panggilan BK">
-                    </div>
-
-                    <div class="kd-field full">
-                        <label class="kd-field-label" for="fCatatan">Catatan (opsional)</label>
-                        <textarea class="kd-textarea" id="fCatatan" maxlength="500" placeholder="Kronologi singkat"></textarea>
+                        <label class="kd-field-label" for="selSiswa">2. Nama / NIS siswa</label>
+                        <select class="kd-select" id="selSiswa" disabled><option value="">— pilih kelas dulu —</option></select>
                     </div>
                 </div>
+            </div>
 
-                <div class="kd-note-box kd-hidden" id="preview" aria-live="polite"></div>
-                <p class="kd-form-error" id="formError" role="alert" hidden></p>
-                <p class="kd-form-ok" id="formOk" role="status" hidden></p>
-
-                <div class="kd-actions" style="margin-top:1rem">
-                    <button type="submit" class="kd-btn kd-btn--primary" id="saveBtn">Simpan Pelanggaran</button>
-                    <button type="button" class="kd-btn kd-hidden" id="copyBtn">Salin baris untuk Sheet</button>
-                    <button type="reset" class="kd-btn" id="resetBtn">Kosongkan</button>
+            <div class="kd-card kd-hidden" id="sectionProfil" style="margin-top:1rem">
+                <div class="kd-toolbar" style="margin-bottom:1rem">
+                    <span class="kd-chip kd-chip--live">Siswa terpilih</span>
+                    <button type="button" class="kd-btn kd-btn--sm" id="gantiBtn">Ganti siswa</button>
                 </div>
-            </form>
+                <div class="kd-profile">
+                    <img class="kd-foto" id="pFoto" alt="Foto siswa" referrerpolicy="no-referrer" width="200" height="260">
+                    <div class="kd-profile-main">
+                        <div class="kd-profile-grid">
+                            <div>
+                                <span class="kd-field-label">Nama siswa</span><div class="kd-val" id="pNama">-</div>
+                                <span class="kd-field-label">Kelas</span><div class="kd-val" id="pKelas">-</div>
+                                <span class="kd-field-label">NIS / NISN</span><div class="kd-val kd-val--muted" id="pNis">-</div>
+                            </div>
+                            <div class="kd-poinbox"><span class="kd-field-label">Akumulasi poin</span><strong id="pPoin">0</strong><small id="pTier"></small></div>
+                        </div>
+                        <h3 class="kd-subtitle">Riwayat pelanggaran (tahun ajaran ini)</h3>
+                        <div class="kd-table-wrap" style="max-height:200px;overflow:auto"><table class="kd-table" style="min-width:420px">
+                            <thead><tr><th scope="col">Tanggal</th><th scope="col">Pelanggaran &amp; keterangan</th><th scope="col" class="num">Poin</th></tr></thead>
+                            <tbody id="pRiwayat"></tbody>
+                        </table></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="kd-card kd-hidden" id="sectionForm" style="margin-top:1rem">
+                <h2 class="kd-card-title">Langkah 2: Tambah Pelanggaran Baru</h2>
+                <p class="kd-card-sub">Kategori dan poin diambil dari Master Pelanggaran.</p>
+
+                <form id="inputForm" novalidate>
+                    <div class="kd-form-grid">
+                        <div class="kd-field">
+                            <label class="kd-field-label" for="fKode">Jenis pelanggaran</label>
+                            <select class="kd-select" id="fKode" required></select>
+                        </div>
+                        <div class="kd-field">
+                            <label class="kd-field-label" for="fTanggal">Tanggal kejadian</label>
+                            <input class="kd-input" id="fTanggal" type="date" required>
+                        </div>
+                        <div class="kd-field full">
+                            <div class="kd-poinrow"><span>Poin pelanggaran ini</span><span class="kd-poinbadge" id="previewPoin">+0 poin</span></div>
+                        </div>
+                        <div class="kd-field full">
+                            <label class="kd-field-label" for="fSanksi">Tindak lanjut / sanksi (opsional)</label>
+                            <input class="kd-input" id="fSanksi" type="text" maxlength="200" placeholder="mis. Teguran lisan, Panggilan BK">
+                        </div>
+                        <div class="kd-field full">
+                            <label class="kd-field-label" for="fCatatan">Keterangan kejadian (opsional)</label>
+                            <textarea class="kd-textarea" id="fCatatan" maxlength="500" placeholder="Catatan detail / kronologi singkat"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="kd-note-box kd-hidden" id="preview" aria-live="polite"></div>
+                    <p class="kd-form-error" id="formError" role="alert" hidden></p>
+                    <p class="kd-form-ok" id="formOk" role="status" hidden></p>
+
+                    <div class="kd-actions" style="margin-top:1rem">
+                        <button type="submit" class="kd-btn kd-btn--primary" id="saveBtn">Simpan Pelanggaran</button>
+                        <button type="button" class="kd-btn kd-hidden" id="copyBtn">Salin baris untuk Sheet</button>
+                        <button type="reset" class="kd-btn" id="resetBtn">Kosongkan</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Modal rekap kelas -->
+            <div class="kd-overlay kd-hidden" id="rekapModal" role="dialog" aria-modal="true" aria-labelledby="rekapTitle">
+                <div class="kd-dialog">
+                    <div class="kd-toolbar" style="margin-bottom:.75rem">
+                        <h2 class="kd-card-title" id="rekapTitle" style="margin:0">Rekap kelas</h2>
+                        <button type="button" class="kd-btn kd-btn--sm" id="rekapClose">Tutup</button>
+                    </div>
+                    <div class="kd-table-wrap" style="max-height:60vh;overflow:auto"><table class="kd-table" style="min-width:460px">
+                        <thead><tr><th scope="col">No</th><th scope="col">NIS</th><th scope="col">Nama</th><th scope="col" class="num">Poin</th><th scope="col"><span class="kd-sr">Aksi</span></th></tr></thead>
+                        <tbody id="rekapBody"></tbody>
+                    </table></div>
+                </div>
+            </div>
         </section>
 
         <!-- DATA -->

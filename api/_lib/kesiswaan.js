@@ -3,11 +3,13 @@
 SMANSASOO Kesiswaan Portal
 Shared Library: model data + agregasi kedisiplinan
 ==========================================================
-Tab spreadsheet yang dibaca:
-  SISWA        NIS | NISN | Nama | Kelas
-  PELANGGARAN  ID | Tanggal | NIS | Nama | Kelas | Kode | Jenis |
-               Kategori | Poin | Sanksi | Pencatat | Catatan
-  TATA_TERTIB  Kode | Jenis | Kategori | Poin
+Tab spreadsheet (sama dengan skema Apps Script lama; dibaca per POSISI
+kolom, baris 1 = header):
+  Data_Siswa         NIS | Nama | Kelas | Foto (URL/Drive) | NISN (opsional)
+  Master_Pelanggaran Kode | Nama | Poin | Kategori (opsional)
+  Input_Pelanggaran  Timestamp | NIS | Nama | Kelas | Jenis | Poin | Keterangan
+                     | Kode | Sanksi | Pencatat | ClientID   (kolom 8-11 opsional,
+                     ditambahkan portal; Apps Script lama tetap kompatibel)
 Tanpa GOOGLE_SHEET_ID -> data fiktif dari /data/sample-*.json.
 ==========================================================
 */
@@ -29,7 +31,12 @@ function normDate(value) {
     let m = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
     if (m) return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`;
     m = v.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/);
-    if (m) return `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+    if (m) {
+        // Default dd/mm/yyyy (locale Indonesia); jika bagian kedua > 12 berarti mm/dd/yyyy.
+        const [a, b] = [Number(m[1]), Number(m[2])];
+        const [d, mo] = b > 12 && a <= 12 ? [b, a] : [a, b];
+        return `${m[3]}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    }
     return "";
 }
 
@@ -50,12 +57,35 @@ function academicYearLabel(startYear) {
     return `${startYear}/${startYear + 1}`;
 }
 
+/** Kategori dari poin bila kolom Kategori tidak ada (selaras tata-tertib.json). */
+const kategoriByPoin = (p) => (p >= 40 ? "Berat" : p >= 10 ? "Sedang" : "Ringan");
+
+const VALID_KAT = ["Ringan", "Sedang", "Berat"];
+
+/** Baris data sebuah tab (tanpa header, tanpa baris kosong) -> [{ cells, row }]. */
+function bodyRows(rows) {
+    return rows.map((cells, i) => ({ cells, row: i + 1 })).slice(1)
+        .filter((r) => r.cells.some((c) => String(c || "").trim() !== ""));
+}
+const cell = (cells, i) => String(cells[i] === undefined || cells[i] === null ? "" : cells[i]).trim();
+
+/** Link Google Drive -> URL gambar langsung; hanya https yang diterima. */
+function fotoUrl(v) {
+    const raw = String(v || "").trim();
+    const m = raw.match(/(?:\/d\/|[?&]id=)([A-Za-z0-9_-]{10,})/);
+    if (m && /drive\.google\.com|docs\.google\.com|googleusercontent\.com/.test(raw)) return `https://lh3.googleusercontent.com/d/${m[1]}`;
+    return /^https:\/\//i.test(raw) ? raw : "";
+}
+
 async function loadTatib() {
     if (sheets.mode() === "demo") return tatibFile.pelanggaran;
     try {
-        const list = sheets.rowsToObjects(await sheets.readTab("TATA_TERTIB"))
-            .map((r) => ({ kode: r.kode, jenis: r.jenis, kategori: r.kategori, poin: num(r.poin) }))
-            .filter((r) => r.kode && r.jenis);
+        const list = bodyRows(await sheets.readTab("Master_Pelanggaran")).map(({ cells }) => {
+            const kode = cell(cells, 0), poin = num(cell(cells, 2));
+            const kat = VALID_KAT.find((k) => k.toLowerCase() === cell(cells, 3).toLowerCase());
+            const ref = tatibFile.pelanggaran.find((t) => t.kode === kode);
+            return { kode, jenis: cell(cells, 1), poin, kategori: kat || (ref && ref.kategori) || kategoriByPoin(poin) };
+        }).filter((r) => r.kode && r.jenis);
         return list.length ? list : tatibFile.pelanggaran;
     } catch (e) {
         return tatibFile.pelanggaran;
@@ -63,10 +93,16 @@ async function loadTatib() {
 }
 
 async function loadSiswa() {
-    if (sheets.mode() === "demo") return require("../../data/sample-siswa.json");
-    return sheets.rowsToObjects(await sheets.readTab("SISWA"))
-        .map((r) => ({ nis: cleanNIS(r.nis), nisn: cleanNIS(r.nisn), nama: r.nama, kelas: r.kelas }))
-        .filter((r) => r.nis || r.nisn);
+    if (sheets.mode() === "demo") return require("../../data/sample-siswa.json").map((s) => ({ foto: "", ...s }));
+    return bodyRows(await sheets.readTab("Data_Siswa"))
+        .map(({ cells, row }) => ({
+            nis: cleanNIS(cell(cells, 0)) || `TANPA-NIS-${row}`,
+            nisn: cleanNIS(cell(cells, 4)),
+            nama: cell(cells, 1) || "(Belum ada nama)",
+            kelas: cell(cells, 2),
+            foto: fotoUrl(cell(cells, 3))
+        }))
+        .filter((r) => r.kelas);
 }
 
 async function loadPelanggaran() {
@@ -74,11 +110,17 @@ async function loadPelanggaran() {
     if (sheets.mode() === "demo") {
         rows = require("../../data/sample-pelanggaran.json");
     } else {
-        rows = sheets.rowsToObjects(await sheets.readTab("PELANGGARAN")).map((r) => ({
-            id: r.id, tanggal: r.tanggal, nis: r.nis, nama: r.nama, kelas: r.kelas,
-            kode: r.kode, jenis: r.jenis, kategori: r.kategori, poin: r.poin,
-            sanksi: r.sanksi, pencatat: r.pencatat, catatan: r.catatan
-        }));
+        const [raw, tatib] = await Promise.all([sheets.readTab("Input_Pelanggaran"), loadTatib()]);
+        rows = bodyRows(raw).map(({ cells, row }) => {
+            const poin = num(cell(cells, 5)), jenis = cell(cells, 4);
+            const kode = cell(cells, 7);
+            const ref = tatib.find((t) => (kode && t.kode === kode) || t.jenis === jenis);
+            return {
+                id: "V" + String(row - 1).padStart(4, "0"), tanggal: cell(cells, 0), nis: cell(cells, 1), nama: cell(cells, 2),
+                kelas: cell(cells, 3), kode: kode || (ref ? ref.kode : ""), jenis, kategori: ref ? ref.kategori : kategoriByPoin(poin),
+                poin, sanksi: cell(cells, 8), pencatat: cell(cells, 9), catatan: cell(cells, 6), clientId: cell(cells, 10)
+            };
+        });
     }
     return rows
         .map((r) => ({
@@ -93,7 +135,8 @@ async function loadPelanggaran() {
             poin: num(r.poin),
             sanksi: String(r.sanksi || ""),
             pencatat: String(r.pencatat || ""),
-            catatan: String(r.catatan || "")
+            catatan: String(r.catatan || ""),
+            clientId: String(r.clientId || "")
         }))
         .filter((r) => r.tanggal);
 }

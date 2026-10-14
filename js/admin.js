@@ -80,48 +80,80 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
     });
     window.addEventListener("hashchange", () => showTab(location.hash.slice(1)));
 
-    /* ---------- INPUT ---------- */
+    /* ---------- INPUT: kelas -> siswa -> profil -> form ---------- */
+
+    const natural = (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: "base" });
+    const QKEY = "kd-pelanggaran-queue";
+    const CKEY = "kd-admin-cache";
 
     function fillJenis() {
         const groups = ["Ringan", "Sedang", "Berat"].map((c) => {
             const items = state.tatib.filter((t) => t.kategori === c);
-            return items.length ? `<optgroup label="${c}">${items.map((t) => `<option value="${esc(t.kode)}">${esc(t.kode)} · ${esc(t.jenis)} (${t.poin} poin)</option>`).join("")}</optgroup>` : "";
+            return items.length ? `<optgroup label="${c}">${items.map((t) => `<option value="${esc(t.kode)}">[${esc(t.kode)}] ${esc(t.jenis)} (+${t.poin} poin)</option>`).join("")}</optgroup>` : "";
         }).join("");
         $("fKode").innerHTML = `<option value="">— pilih jenis pelanggaran —</option>${groups}`;
     }
 
-    function renderSuggest(q) {
-        const list = $("siswaList");
-        const query = q.trim().toLowerCase();
-        if (query.length < 2) { list.classList.add("kd-hidden"); $("siswaSearch").setAttribute("aria-expanded", "false"); return; }
-        const hits = state.siswa.filter((s) => s.nama.toLowerCase().includes(query) || s.nis.includes(query) || s.nisn.includes(query)).slice(0, 8);
-        list.innerHTML = hits.length
-            ? hits.map((s) => `<li role="option"><button type="button" data-nis="${esc(s.nis)}"><span>${esc(s.nama)}</span><small>${esc(s.kelas)} · ${esc(s.nis)}</small></button></li>`).join("")
-            : `<li class="kd-empty" role="option" aria-disabled="true">Tidak ada siswa cocok.</li>`;
-        list.classList.remove("kd-hidden");
-        $("siswaSearch").setAttribute("aria-expanded", "true");
+    function fillKelas() {
+        const cur = $("selKelas").value;
+        const kelas = [...new Set(state.siswa.map((s) => s.kelas))].filter(Boolean).sort(natural);
+        $("selKelas").innerHTML = `<option value="">— pilih kelas —</option>` + kelas.map((k) => `<option>${esc(k)}</option>`).join("");
+        if (cur && kelas.includes(cur)) $("selKelas").value = cur;
+    }
+
+    function siswaDiKelas(k) { return state.siswa.filter((s) => s.kelas === k).sort((a, b) => a.nama.localeCompare(b.nama)); }
+
+    function onKelas() {
+        const k = $("selKelas").value;
+        $("selSiswa").disabled = !k;
+        $("selSiswa").innerHTML = k
+            ? `<option value="">— pilih nama siswa —</option>` + siswaDiKelas(k).map((s) => `<option value="${esc(s.nis)}">${esc(s.nama)} (NIS ${esc(s.nis)})</option>`).join("")
+            : `<option value="">— pilih kelas dulu —</option>`;
+        $("rekapBtn").classList.toggle("kd-hidden", !k);
+        hideSiswa();
+    }
+
+    function hideSiswa() {
+        state.picked = null;
+        $("sectionProfil").classList.add("kd-hidden");
+        $("sectionForm").classList.add("kd-hidden");
+    }
+
+    function riwayatOf(nis) {
+        const r = ayRange();
+        return state.v.filter((x) => x.nis === nis && x.tanggal >= r.from && x.tanggal <= r.to)
+            .sort((a, z) => (a.tanggal < z.tanggal ? 1 : a.tanggal > z.tanggal ? -1 : (a.id < z.id ? 1 : -1)));
+    }
+
+    function safeImg(url) { return /^https:\/\//i.test(url || "") ? url : ""; }
+
+    function renderProfil() {
+        const s = state.picked;
+        if (!s) return;
+        const rw = riwayatOf(s.nis), total = rw.reduce((a, x) => a + x.poin, 0), tier = tierOf(total);
+        $("pNama").textContent = s.nama;
+        $("pKelas").textContent = s.kelas;
+        $("pNis").textContent = s.nisn ? `${s.nis} / ${s.nisn}` : s.nis;
+        $("pPoin").textContent = fmt(total);
+        $("pTier").textContent = tier ? tier.label : "";
+        const img = $("pFoto");
+        img.onerror = () => { img.onerror = null; img.removeAttribute("src"); img.style.visibility = "hidden"; };
+        img.style.visibility = "";
+        if (safeImg(s.foto)) img.src = s.foto; else { img.removeAttribute("src"); img.style.visibility = "hidden"; }
+        $("pRiwayat").innerHTML = rw.length ? rw.map((x) => `
+            <tr><td>${esc(fmtDate(x.tanggal))}</td><td><strong>${esc(x.jenis)}</strong>${x.catatan && x.catatan !== "-" ? `<br><small style="opacity:.75">Ket: ${esc(x.catatan)}</small>` : ""}</td><td class="num"><strong>+${fmt(x.poin)}</strong></td></tr>`).join("")
+            : `<tr><td colspan="3" class="kd-empty">Belum ada catatan pelanggaran.</td></tr>`;
     }
 
     function pick(nis) {
         const s = state.siswa.find((x) => x.nis === nis);
-        if (!s) return;
+        if (!s) return hideSiswa();
+        $("selKelas").value = s.kelas;
+        if ($("selSiswa").value !== nis) { onKelas(); $("selSiswa").value = nis; }
         state.picked = s;
-        $("siswaList").classList.add("kd-hidden");
-        $("siswaSearch").classList.add("kd-hidden");
-        $("siswaSearch").setAttribute("aria-expanded", "false");
-        const pts = pointsOf(s.nis);
-        $("siswaPicked").classList.remove("kd-hidden");
-        $("siswaPicked").innerHTML = `<span><strong>${esc(s.nama)}</strong><br><small>Kelas ${esc(s.kelas)} · NIS ${esc(s.nis)} · ${fmt(pts)} poin tahun ini</small></span><button type="button" id="unpick">Ganti</button>`;
-        $("unpick").addEventListener("click", unpick);
-        updatePreview();
-    }
-
-    function unpick() {
-        state.picked = null;
-        $("siswaPicked").classList.add("kd-hidden");
-        $("siswaSearch").classList.remove("kd-hidden");
-        $("siswaSearch").value = "";
-        $("siswaSearch").focus();
+        renderProfil();
+        $("sectionProfil").classList.remove("kd-hidden");
+        $("sectionForm").classList.remove("kd-hidden");
         updatePreview();
     }
 
@@ -130,6 +162,7 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
     function updatePreview() {
         const box = $("preview");
         const t = currentTatib();
+        $("previewPoin").textContent = `+${t ? t.poin : 0} poin`;
         if (!state.picked || !t) { box.classList.add("kd-hidden"); return; }
         const before = pointsOf(state.picked.nis), after = before + t.poin;
         const tb = tierOf(before), ta = tierOf(after);
@@ -142,29 +175,86 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
         }
     }
 
-    function rowForSheet(id) {
+    function rowForSheet() {
         const t = currentTatib(), s = state.picked;
-        return [id || "(otomatis)", $("fTanggal").value, s.nis, s.nama, s.kelas, t.kode, t.jenis, t.kategori, t.poin, $("fSanksi").value, "admin", $("fCatatan").value];
+        return [`${$("fTanggal").value} ${new Date().toLocaleTimeString("en-GB", { timeZone: "Asia/Jakarta" })}`, s.nis, s.nama, s.kelas, t.jenis, t.poin, $("fCatatan").value || "-", t.kode, $("fSanksi").value, "admin", ""];
     }
 
     function setMsg(el, text) { el.textContent = text || ""; el.hidden = !text; }
 
-    $("siswaSearch").addEventListener("input", (e) => renderSuggest(e.target.value));
-    $("siswaSearch").addEventListener("keydown", (e) => { if (e.key === "Escape") renderSuggest(""); });
-    $("siswaList").addEventListener("click", (e) => { const b = e.target.closest("button[data-nis]"); if (b) pick(b.dataset.nis); });
+    /* ---- rekap kelas (modal) ---- */
+
+    function closeRekap() { $("rekapModal").classList.add("kd-hidden"); $("rekapBtn").focus(); }
+    $("rekapBtn").addEventListener("click", () => {
+        const k = $("selKelas").value;
+        if (!k) return;
+        $("rekapTitle").textContent = `Rekap kelas ${k}`;
+        const list = siswaDiKelas(k);
+        $("rekapBody").innerHTML = list.length ? list.map((s, i) => {
+            const p = pointsOf(s.nis);
+            return `<tr><td>${i + 1}</td><td><small>${esc(s.nis)}</small></td><td>${esc(s.nama)}</td><td class="num"><span class="kd-badge-cat" data-cat="${p > 0 ? "Berat" : "Ringan"}">${fmt(p)}</span></td><td><button type="button" class="kd-btn kd-btn--sm" data-nis="${esc(s.nis)}">Pilih</button></td></tr>`;
+        }).join("") : `<tr><td colspan="5" class="kd-empty">Tidak ada siswa di kelas ini.</td></tr>`;
+        $("rekapModal").classList.remove("kd-hidden");
+        $("rekapClose").focus();
+    });
+    $("rekapClose").addEventListener("click", closeRekap);
+    $("rekapModal").addEventListener("click", (e) => { if (e.target === $("rekapModal")) closeRekap(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("rekapModal").classList.contains("kd-hidden")) closeRekap(); });
+    $("rekapBody").addEventListener("click", (e) => { const b = e.target.closest("button[data-nis]"); if (b) { closeRekap(); pick(b.dataset.nis); } });
+
+    $("selKelas").addEventListener("change", onKelas);
+    $("selSiswa").addEventListener("change", () => pick($("selSiswa").value));
+    $("gantiBtn").addEventListener("click", () => { $("selSiswa").value = ""; hideSiswa(); $("selSiswa").focus(); });
     $("fKode").addEventListener("change", updatePreview);
     $("fSanksi").addEventListener("input", () => { $("fSanksi").dataset.auto = "0"; });
 
     $("resetBtn").addEventListener("click", () => {
-        setTimeout(() => { unpick(); $("fTanggal").value = state.hariIni; $("fSanksi").dataset.auto = ""; setMsg($("formError")); setMsg($("formOk")); $("copyBtn").classList.add("kd-hidden"); }, 0);
+        setTimeout(() => { $("fTanggal").value = state.hariIni; $("fSanksi").dataset.auto = ""; updatePreview(); setMsg($("formError")); setMsg($("formOk")); }, 0);
     });
 
     $("copyBtn").addEventListener("click", async () => {
-        if (!state.picked || !currentTatib()) return;
+        if (!state.picked || !currentTatib()) return setMsg($("formError"), "Pilih siswa dan jenis pelanggaran dulu.");
         const text = rowForSheet().map((c) => String(c).replace(/[\t\r\n]+/g, " ")).join("\t");
-        try { await navigator.clipboard.writeText(text); setMsg($("formOk"), "Baris disalin. Tempel di baris kosong tab PELANGGARAN pada Google Sheet."); }
+        try { await navigator.clipboard.writeText(text); setMsg($("formOk"), "Baris disalin. Tempel di baris kosong tab Input_Pelanggaran pada Google Sheet."); }
         catch (e) { setMsg($("formError"), "Tidak bisa menyalin otomatis. Salin manual: " + text); }
     });
+
+    /* ---- antrean offline (hanya NIS + kode + isian; tanpa nama siswa) ---- */
+
+    function getQueue() { try { return JSON.parse(localStorage.getItem(QKEY) || "[]"); } catch (e) { return []; } }
+    function setQueue(q) { try { localStorage.setItem(QKEY, JSON.stringify(q)); } catch (e) { /* penyimpanan tidak tersedia */ } renderQueue(); }
+    function renderQueue() {
+        const n = getQueue().length;
+        $("queueBanner").classList.toggle("kd-hidden", n === 0);
+        $("queueCountText").textContent = `Ada ${n} data antrean offline belum terkirim.`;
+    }
+    const newId = () => "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+    async function postItem(item) {
+        const r = await fetch(CONFIG.API.PELANGGARAN, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(item) });
+        const body = await r.json().catch(() => ({}));
+        return { r, body };
+    }
+
+    let syncing = false;
+    async function syncQueue() {
+        if (syncing || !navigator.onLine) return;
+        syncing = true;
+        try {
+            let q = getQueue();
+            while (q.length) {
+                let res;
+                try { res = await postItem(q[0]); } catch (e) { break; }          // jaringan putus -> coba lagi nanti
+                if (res.r.status === 401) { AdminAuth.logout(); location.reload(); return; }
+                if (res.r.status >= 500 || res.body.code === "READ_ONLY") break;  // server belum siap -> tetap antre
+                q = q.slice(1);                                                   // sukses / duplikat / ditolak permanen (4xx)
+                setQueue(q);
+            }
+            await load(true);
+        } finally { syncing = false; }
+    }
+    $("syncBtn").addEventListener("click", syncQueue);
+    window.addEventListener("online", syncQueue);
 
     $("inputForm").addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -175,18 +265,18 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
         if (!$("fTanggal").value) return setMsg($("formError"), "Tanggal kejadian wajib diisi.");
         if ($("fTanggal").value > state.hariIni) return setMsg($("formError"), "Tanggal tidak boleh di masa depan.");
 
+        const item = { nis: state.picked.nis, kode: t.kode, tanggal: $("fTanggal").value, sanksi: $("fSanksi").value, catatan: $("fCatatan").value, clientId: newId() };
+        const afterSave = () => { $("inputForm").reset(); $("fTanggal").value = state.hariIni; $("fSanksi").dataset.auto = ""; updatePreview(); };
+
         $("saveBtn").disabled = true;
         $("saveBtn").textContent = "Menyimpan…";
         try {
-            const r = await fetch(CONFIG.API.PELANGGARAN, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nis: state.picked.nis, kode: t.kode, tanggal: $("fTanggal").value, sanksi: $("fSanksi").value, catatan: $("fCatatan").value })
-            });
-            const body = await r.json().catch(() => ({}));
+            if (!navigator.onLine) throw Object.assign(new Error("offline"), { offline: true });
+            const { r, body } = await postItem(item);
 
             if (r.status === 401) { AdminAuth.logout(); location.reload(); return; }
             if (!r.ok || !body.success) {
+                if (r.status >= 500 && body.code !== "READ_ONLY") throw Object.assign(new Error("server"), { offline: true });
                 setMsg($("formError"), body.message || `Gagal menyimpan (HTTP ${r.status}).`);
                 if (body.code === "READ_ONLY") $("copyBtn").classList.remove("kd-hidden");
                 return;
@@ -194,12 +284,13 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
             setMsg($("formOk"), `Tersimpan: ${body.data.nama} (${body.data.kelas}) · ${body.data.jenis} +${body.data.poin} poin · ${body.data.id}`);
             $("copyBtn").classList.add("kd-hidden");
             await load(true);
-            $("inputForm").reset();
-            unpick();
-            $("fTanggal").value = state.hariIni;
-            $("fSanksi").dataset.auto = "";
+            renderProfil();
+            afterSave();
         } catch (err) {
-            setMsg($("formError"), "Tidak bisa terhubung ke server.");
+            // Jaringan/server bermasalah: simpan di antrean, kirim otomatis nanti (clientId mencegah dobel).
+            setQueue([...getQueue(), item]);
+            setMsg($("formOk"), "Koneksi bermasalah. Data disimpan di perangkat ini dan dikirim otomatis saat tersambung.");
+            afterSave();
         } finally {
             $("saveBtn").disabled = false;
             $("saveBtn").textContent = "Simpan Pelanggaran";
@@ -279,6 +370,24 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
     async function load(silent) {
         try {
             const res = await getJSON(CONFIG.API.PELANGGARAN);
+            try { localStorage.setItem(CKEY, JSON.stringify(res)); } catch (e) { /* abaikan */ }
+            applyData(res, silent);
+        } catch (e) {
+            if (e.status === 401) { AdminAuth.logout(); location.reload(); return; }
+            let cached = null;
+            try { cached = JSON.parse(localStorage.getItem(CKEY) || "null"); } catch (x) { /* abaikan */ }
+            if (cached && cached.data && !navigator.onLine) {
+                applyData(cached, silent);
+                $("adminMode").textContent = "Offline · data tersimpan di perangkat";
+                return;
+            }
+            $("adminAlert").innerHTML = `<div class="kd-card kd-error" role="alert"><strong>Data tidak dapat dimuat.</strong> <span>${esc(e.message)}</span> <button type="button" class="kd-btn kd-btn--sm" id="retry" style="margin-left:.5rem">Coba lagi</button></div>`;
+            const r = $("retry"); if (r) r.addEventListener("click", () => load());
+        }
+    }
+
+    function applyData(res, silent) {
+        {
             const d = res.data;
             Object.assign(state, { v: d.violations, siswa: d.siswa, tatib: d.tatib, tingkat: d.tingkat, hariIni: d.hariIni, canWrite: res.canWrite, sheetUrl: res.sheetUrl });
 
@@ -287,7 +396,7 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
             if (res.sheetUrl) { $("sheetLink").href = res.sheetUrl; $("sheetLink").classList.remove("kd-hidden"); }
 
             if (!silent) {
-                fillJenis(); fillFilters();
+                fillJenis(); fillFilters(); fillKelas();
                 $("fTanggal").value = state.hariIni; $("fTanggal").max = state.hariIni;
                 if (!res.canWrite) {
                     $("adminAlert").innerHTML = `<div class="kd-card" role="status"><strong>${res.mode === "demo" ? "Mode demo." : "Mode hanya baca."}</strong>
@@ -300,17 +409,19 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
                     $("adminAlert").insertAdjacentHTML("beforeend", `<div class="kd-card" role="alert" style="margin-top:1rem;border-color:rgba(255,201,60,.6)">⚠️ Server masih memakai kredensial & kunci sesi bawaan dari kode publik. Atur <code>ADMIN_PASSWORD</code> dan <code>ADMIN_SESSION_SECRET</code> di Vercel.</div>`);
                 }
             } else {
-                fillFilters();
+                fillFilters(); fillKelas();
             }
             renderData(); renderPembinaan();
-        } catch (e) {
-            if (e.status === 401) { AdminAuth.logout(); location.reload(); return; }
-            $("adminAlert").innerHTML = `<div class="kd-card kd-error" role="alert"><strong>Data tidak dapat dimuat.</strong> <span>${esc(e.message)}</span> <button type="button" class="kd-btn kd-btn--sm" id="retry" style="margin-left:.5rem">Coba lagi</button></div>`;
-            const r = $("retry"); if (r) r.addEventListener("click", () => load());
         }
     }
 
+    // Hapus cache data siswa dari perangkat saat admin keluar.
+    const _logout = AdminAuth.logout;
+    AdminAuth.logout = function () { try { localStorage.removeItem(CKEY); } catch (e) { /* abaikan */ } return _logout.apply(this, arguments); };
+
+    renderQueue();
     showTab(location.hash.slice(1));
-    load();
+    // Tanpa sesi admin, halaman tertutup overlay login (js/admin-auth.js) dan login memuat ulang halaman.
+    if (AdminAuth.isLoggedIn()) load().then(syncQueue);
 
 })();

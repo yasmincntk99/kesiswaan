@@ -2,8 +2,9 @@
 ==========================================================
 /api/pelanggaran  (KHUSUS ADMIN -- header Authorization: Bearer)
 GET  -> { violations, siswa, tatib, tingkat, mode, canWrite, sheetUrl }
-POST -> catat pelanggaran baru ke tab PELANGGARAN
-        body: { nis, kode, tanggal?, catatan?, sanksi? }
+POST -> catat pelanggaran baru ke tab Input_Pelanggaran
+        body: { nis, kode, tanggal?, catatan?, sanksi?, clientId? }
+        clientId (dari antrean offline) mencegah baris ganda saat sinkron ulang.
 Nama, kelas, jenis, kategori, dan poin diambil SERVER dari data
 siswa & tata tertib -- nilai dari browser tidak dipercaya.
 ==========================================================
@@ -76,19 +77,21 @@ module.exports = async (req, res) => {
             if (!s) return res.status(400).json({ success: false, message: "Siswa dengan NIS/NISN itu tidak ditemukan." });
             if (!t) return res.status(400).json({ success: false, message: "Jenis pelanggaran tidak dikenal." });
 
-            // ID berurutan: V0001, V0002, ...
-            const maxId = violations.reduce((m, v) => {
-                const n = Number(String(v.id).replace(/\D/g, ""));
-                return n > m ? n : m;
-            }, 0);
-            const id = "V" + String(maxId + 1).padStart(4, "0");
+            const clientId = clip(body.clientId, 64).replace(/[^A-Za-z0-9_-]/g, "");
+            const dup = clientId && violations.find((v) => v.clientId === clientId);
+            if (dup) {
+                return res.status(200).json({ success: true, duplicate: true, data: { id: dup.id, nama: dup.nama, kelas: dup.kelas, jenis: dup.jenis, poin: dup.poin, tanggal: dup.tanggal } });
+            }
 
+            const id = "V" + String(violations.length + 1).padStart(4, "0");
+            const jam = new Date().toLocaleTimeString("en-GB", { timeZone: "Asia/Jakarta" }); // HH:mm:ss
             const sanksi = clip(body.sanksi, 200);
             const catatan = clip(body.catatan, 500);
 
-            await sheets.appendRow("PELANGGARAN", [
-                id, tanggal, s.nis, safeCell(s.nama), s.kelas, t.kode, safeCell(t.jenis), t.kategori, t.poin,
-                safeCell(sanksi), auth.username || "admin", safeCell(catatan)
+            // Urutan kolom = Input_Pelanggaran (7 kolom pertama sama dengan Apps Script lama).
+            await sheets.appendRow("Input_Pelanggaran", [
+                `${tanggal} ${jam}`, s.nis, safeCell(s.nama), s.kelas, safeCell(t.jenis), t.poin, (catatan ? safeCell(catatan) : "-"),
+                t.kode, safeCell(sanksi), auth.username || "admin", clientId
             ]);
 
             return res.status(201).json({ success: true, data: { id, nama: s.nama, kelas: s.kelas, jenis: t.jenis, poin: t.poin, tanggal } });
