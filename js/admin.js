@@ -62,6 +62,7 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
             $("panel-" + t).classList.toggle("kd-hidden", !sel);
         });
         if (focus) $("tab-" + name).focus();
+        document.dispatchEvent(new CustomEvent("kd:tab", { detail: { tab: name } }));   // sidebar menyorot menu aktif
         if (name === "data") renderData();
         if (name === "pembinaan") renderPembinaan();
     }
@@ -226,6 +227,7 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
     function renderQueue() {
         const n = getQueue().length;
         $("queueBanner").classList.toggle("kd-hidden", n === 0);
+        document.dispatchEvent(new CustomEvent("kd:queue"));   // lencana antrean di sidebar
         $("queueCountText").textContent = `Ada ${n} data antrean offline belum terkirim.`;
     }
     const newId = () => "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -394,6 +396,7 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
             $("adminMode").textContent = res.mode === "demo" ? "Mode demo (data contoh)" : res.canWrite ? "Terhubung · bisa menyimpan" : "Terhubung · hanya baca";
             $("adminMode").className = "kd-chip " + (res.mode === "demo" ? "kd-chip--demo" : "kd-chip--live");
             if (res.sheetUrl) { $("sheetLink").href = res.sheetUrl; $("sheetLink").classList.remove("kd-hidden"); }
+            document.dispatchEvent(new CustomEvent("kd:sheet", { detail: { url: res.sheetUrl || "" } }));
 
             if (!silent) {
                 fillJenis(); fillFilters(); fillKelas();

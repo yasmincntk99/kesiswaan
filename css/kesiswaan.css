@@ -480,6 +480,12 @@ body.kd-lock{overflow:hidden}
 .kd-subtitle{margin:var(--space-md) 0 .5rem;font-size:var(--font-md);font-weight:var(--weight-bold);color:var(--secondary-light)}
 .kd-poinrow{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.7rem 1rem;border-radius:var(--radius-md);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);font-size:var(--font-sm)}
 .kd-poinbadge{padding:.3rem .9rem;border-radius:var(--radius-pill);background:rgba(239,68,68,.85);font-weight:var(--weight-bold)}
+.gds-steps{list-style:none;margin:0;padding:0;display:grid;gap:var(--space-md);counter-reset:gds}
+.gds-steps li{counter-increment:gds;display:grid;grid-template-columns:auto minmax(0,1fr);gap:.2rem .9rem;align-items:start}
+.gds-steps li::before{content:counter(gds);grid-row:1 / span 2;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--secondary);color:#1b2433;font-weight:var(--weight-extrabold)}
+.gds-steps strong{font-size:var(--font-md)}
+.gds-steps span{font-size:var(--font-sm);color:rgba(255,255,255,.85);line-height:1.5}
+.gds-steps a{color:var(--secondary-light);font-weight:var(--weight-bold)}
 .kd-hidden{display:none !important}
 
 /* ==========================================

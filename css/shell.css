@@ -655,6 +655,306 @@ body.sidebar-open .app-sidebar{
 
 }
 
+
+/* ==========================================
+   IDENTITAS KESISWAAN & GERAKAN DISIPLIN SEKOLAH
+   (navbar dua baris, kartu sidebar, mode admin)
+========================================== */
+
+.app-navbar-text{
+
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+    line-height:1.2;
+
+}
+
+.app-navbar-text small{
+
+    font-size:.68rem;
+    letter-spacing:.02em;
+    color:var(--secondary-light);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+
+}
+
+.app-sidebar-body{
+
+    display:contents;
+
+}
+
+.app-sidebar-body > *{
+
+    position:relative;
+    z-index:2;
+
+}
+
+.gds-card{
+
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr);
+    align-items:center;
+    gap:.35rem .7rem;
+
+    margin:0 0 var(--space-lg);
+    padding:.85rem .9rem;
+
+    border-radius:var(--radius-md);
+    border-left:4px solid var(--secondary);
+
+    background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+    color:var(--text-white);
+    text-decoration:none;
+
+    box-shadow:var(--shadow-sm);
+
+    transition:transform var(--transition-fast),box-shadow var(--transition-fast);
+
+}
+
+a.gds-card:hover{
+
+    transform:translateY(-1px);
+    box-shadow:var(--shadow-md);
+
+}
+
+.gds-shield{
+
+    width:38px;
+    height:38px;
+    border-radius:50%;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:rgba(255,255,255,.16);
+    color:var(--secondary-light);
+
+}
+
+.gds-text{
+
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+
+}
+
+.gds-text small{
+
+    font-size:.68rem;
+    opacity:.85;
+    line-height:1.2;
+
+}
+
+.gds-text strong{
+
+    font-size:var(--font-md);
+    font-weight:var(--weight-extrabold);
+    line-height:1.15;
+    letter-spacing:-.005em;
+
+}
+
+.gds-motto{
+
+    grid-column:1 / -1;
+
+    padding-top:.4rem;
+    border-top:1px dashed rgba(255,255,255,.3);
+
+    font-size:.68rem;
+    font-weight:var(--weight-bold);
+    letter-spacing:.07em;
+    text-transform:uppercase;
+    color:var(--secondary-light);
+
+}
+
+.gds-user{
+
+    grid-column:1 / -1;
+
+    display:flex;
+    align-items:center;
+    gap:.45rem;
+
+    padding-top:.4rem;
+    border-top:1px dashed rgba(255,255,255,.3);
+
+    font-size:var(--font-xs);
+
+}
+
+.gds-user span:nth-child(2){
+
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-weight:var(--weight-semibold);
+
+}
+
+.gds-user em{
+
+    margin-left:auto;
+    padding:.1rem .5rem;
+    border-radius:var(--radius-pill);
+    background:var(--secondary);
+    color:#1b2433;
+    font-style:normal;
+    font-weight:var(--weight-bold);
+
+}
+
+.gds-dot{
+
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:var(--success);
+    box-shadow:0 0 0 3px rgba(34,197,94,.25);
+    flex-shrink:0;
+
+}
+
+/* Menu sorotan (Gerakan Disiplin) */
+.app-sidebar nav a.is-highlight{
+
+    border-left:3px solid var(--secondary);
+    background:color-mix(in srgb, var(--secondary) 16%, transparent);
+    font-weight:var(--weight-semibold);
+
+}
+
+.gds-count{
+
+    margin-left:auto;
+    min-width:20px;
+    padding:0 .4rem;
+
+    border-radius:var(--radius-pill);
+    background:var(--secondary);
+    color:#1b2433;
+
+    font-size:.7rem;
+    font-weight:var(--weight-bold);
+    text-align:center;
+    line-height:20px;
+
+}
+
+/* Tombol Keluar: tampil seperti item menu */
+.app-sidebar nav button.gds-logout{
+
+    display:flex;
+    align-items:center;
+    gap:.6rem;
+
+    width:100%;
+    padding:.6rem;
+
+    border:0;
+    border-radius:var(--radius-sm);
+    background:transparent;
+
+    font:inherit;
+    font-size:var(--font-sm);
+    color:var(--danger);
+    text-align:left;
+    cursor:pointer;
+
+}
+
+.app-sidebar nav button.gds-logout:hover{
+
+    background:color-mix(in srgb, var(--danger) 12%, transparent);
+
+}
+
+.app-sidebar nav button.gds-logout .icon{
+
+    width:20px;
+    text-align:center;
+    flex-shrink:0;
+
+}
+
+/* Mode admin: aksen emas di tepi sidebar + kartu identitas lebih gelap */
+body.is-admin-mode .app-sidebar{
+
+    box-shadow:inset 4px 0 0 var(--secondary);
+
+}
+
+body.is-admin-mode .gds-card--admin{
+
+    background:linear-gradient(135deg,#0a355b,#0b2440);
+
+}
+
+@media screen and (min-width:1024px){
+
+    body.sidebar-collapsed .gds-text,
+    body.sidebar-collapsed .gds-motto,
+    body.sidebar-collapsed .gds-user span,
+    body.sidebar-collapsed .gds-user em,
+    body.sidebar-collapsed .gds-count{
+
+        display:none;
+
+    }
+
+    body.sidebar-collapsed .gds-card{
+
+        grid-template-columns:1fr;
+        justify-items:center;
+        padding:.5rem .25rem;
+        border-left-width:0;
+
+    }
+
+    body.sidebar-collapsed .gds-user{
+
+        justify-content:center;
+        border-top:0;
+        padding-top:0;
+
+    }
+
+    body.sidebar-collapsed .app-sidebar nav button.gds-logout{
+
+        justify-content:center;
+
+    }
+
+    body.sidebar-collapsed .app-sidebar nav button.gds-logout .label{
+
+        display:none;
+
+    }
+
+}
+
+@media screen and (max-width:480px){
+
+    .app-navbar-text small{
+
+        display:none;
+
+    }
+
+}
+
 /* ==========================================
    FOOTER (dipakai lewat #shellFooter)
 ========================================== */
@@ -738,5 +1038,12 @@ body.sidebar-open .app-sidebar{
         width:100% !important;
 
     }
+
+}
+
+/* Atribut hidden harus menang atas display:flex milik .app-sidebar nav a */
+.app-sidebar [hidden]{
+
+    display:none !important;
 
 }

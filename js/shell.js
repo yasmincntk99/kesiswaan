@@ -34,12 +34,57 @@ window.Shell = (() => {
        (satu-satunya tempat menambah menu baru)
     ========================================== */
 
+    // Sidebar PUBLIK (belum login admin).
     const NAV_LINKS = [
         { key: "home", label: "Dashboard", href: "/index.html", icon: "📊" },
+        { key: "gerakan", label: "Gerakan Disiplin", href: "/pages/gerakan-disiplin.html", icon: "🎯", highlight: true },
         { key: "cek-poin", label: "Cek Poin Siswa", href: "/pages/cek-poin.html", icon: "🔎" },
         { key: "tata-tertib", label: "Tata Tertib", href: "/pages/tata-tertib.html", icon: "📘" },
         { key: "about", label: "Tentang Portal", href: "/pages/about.html", icon: "ℹ️" }
     ];
+
+    // Sidebar ADMIN (sesi admin aktif): dikelompokkan menurut pekerjaan.
+    // "tab" = tab di /pages/admin.html (aktif mengikuti event kd:tab).
+    const ADMIN_GROUPS = [
+        {
+            title: "Kerja harian",
+            links: [
+                { key: "admin-input", tab: "input", label: "Catat Pelanggaran", href: "/pages/admin.html#input", icon: "✍️", queue: true },
+                { key: "admin-data", tab: "data", label: "Data Pelanggaran", href: "/pages/admin.html#data", icon: "🗂️" },
+                { key: "admin-pembinaan", tab: "pembinaan", label: "Perlu Pembinaan", href: "/pages/admin.html#pembinaan", icon: "🛡️" }
+            ]
+        },
+        {
+            title: "Pantau & rujukan",
+            links: [
+                { key: "home", label: "Dashboard", href: "/index.html", icon: "📊" },
+                { key: "tata-tertib", label: "Tata Tertib & Sanksi", href: "/pages/tata-tertib.html", icon: "📘" },
+                { key: "cek-poin", label: "Cek Poin (tampilan siswa)", href: "/pages/cek-poin.html", icon: "🔎" },
+                { key: "gerakan", label: "Gerakan Disiplin", href: "/pages/gerakan-disiplin.html", icon: "🎯" }
+            ]
+        }
+    ];
+
+    // Salinan logika sesi js/admin-auth.js (sessionStorage) supaya sidebar
+    // langsung benar sebelum modul itu selesai dimuat. Keabsahan token tetap
+    // diperiksa server pada setiap panggilan /api/pelanggaran.
+    const SESSION_KEY = "kesiswaan-admin-session";
+    const QUEUE_KEY = "kd-pelanggaran-queue";
+
+    function adminSession() {
+        try {
+            const s = JSON.parse(sessionStorage.getItem(SESSION_KEY) || "null");
+            return s && s.token && s.exp && Date.now() < s.exp * 1000 ? s : null;
+        } catch (e) { return null; }
+    }
+
+    function queueCount() {
+        try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]").length; } catch (e) { return 0; }
+    }
+
+    const esc = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+    let adminTab = "input";   // tab aktif di halaman admin
 
     // Ditambahkan di footer saja (tidak memenuhi navbar/sidebar utama).
     const FOOTER_EXTRA_LINKS = [
@@ -71,7 +116,10 @@ window.Shell = (() => {
 
                 <a href="/index.html" class="app-navbar-brand">
                     <img src="/assets/logo/logo.png" alt="Logo ${CONFIG.SCHOOL_NAME}">
-                    <strong>${CONFIG.SCHOOL_NAME}</strong>
+                    <span class="app-navbar-text">
+                        <strong>${CONFIG.SCHOOL_NAME}</strong>
+                        <small>${CONFIG.UNIT_NAME} &middot; ${CONFIG.PROGRAM_NAME}</small>
+                    </span>
                 </a>
 
             </div>
@@ -86,39 +134,101 @@ window.Shell = (() => {
        SIDEBAR
     ========================================== */
 
-    function sidebarHTML() {
+    function sidebarTitle() {
+
+        return adminSession() ? "Menu Admin" : "Menu Situs";
+
+    }
+
+    // Kartu identitas di puncak sidebar. Publik: sorotan Gerakan Disiplin
+    // Sekolah. Admin: identitas tim + akun yang sedang masuk.
+    function brandCardHTML(session) {
+
+        const shield = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6l7-3z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg>';
+
+        if (session) {
+
+            return `
+            <div class="gds-card gds-card--admin">
+                <span class="gds-shield">${shield}</span>
+                <div class="gds-text">
+                    <small>Tim ${CONFIG.PROGRAM_NAME}</small>
+                    <strong>${CONFIG.UNIT_NAME}</strong>
+                </div>
+                <div class="gds-user"><span class="gds-dot" aria-hidden="true"></span><span>${esc(session.username || "admin")}</span><em>Admin</em></div>
+            </div>`;
+
+        }
+
+        return `
+        <a class="gds-card" href="/pages/gerakan-disiplin.html" aria-label="${CONFIG.PROGRAM_NAME}">
+            <span class="gds-shield">${shield}</span>
+            <div class="gds-text">
+                <small>${CONFIG.SCHOOL_NAME}</small>
+                <strong>${CONFIG.PROGRAM_NAME}</strong>
+            </div>
+            <div class="gds-motto">${CONFIG.UNIT_NAME}</div>
+        </a>`;
+
+    }
+
+    function navLinkHTML(link, activeKey, session) {
+
+        const isActive = link.tab
+            ? (activeKey === "admin" && adminTab === link.tab)
+            : link.key === activeKey;
+
+        const badge = link.queue && queueCount() > 0
+            ? `<span class="gds-count" data-queue-badge title="Antrean offline belum terkirim">${queueCount()}</span>`
+            : (link.queue ? `<span class="gds-count" data-queue-badge hidden></span>` : "");
+
+        return `
+            <a href="${link.href}" data-key="${link.key}"${link.tab ? ` data-tab="${link.tab}"` : ""} class="${isActive ? "active" : ""}${link.highlight ? " is-highlight" : ""}" title="${link.label}"${isActive ? ' aria-current="page"' : ""}>
+                <span class="icon">${link.icon}</span> <span class="label">${link.label}</span>${badge}
+            </a>`;
+
+    }
+
+    function sidebarBodyHTML() {
 
         const activeKey = activePage();
+        const session = adminSession();
 
         const pageSections = Array.isArray(window.SHELL_PAGE_SECTIONS) ? window.SHELL_PAGE_SECTIONS : [];
         const externalLink = window.SHELL_EXTERNAL_LINK || null;
+        const sheetUrl = window.__kdSheetUrl || "";
+
+        let nav = "";
+
+        if (session) {
+
+            nav = ADMIN_GROUPS.map((g) => `
+                <p class="app-sidebar-title">${g.title}</p>
+                <nav>${g.links.map((l) => navLinkHTML(l, activeKey, session)).join("")}</nav>
+            `).join("");
+
+            nav += `
+                <p class="app-sidebar-title">Akun & data</p>
+                <nav>
+                    <a href="${esc(sheetUrl)}" id="sbSheetLink" target="_blank" rel="noopener" title="Buka Google Sheet"${sheetUrl ? "" : " hidden"}>
+                        <span class="icon">📄</span> <span class="label">Buka Google Sheet</span>
+                    </a>
+                    <button type="button" class="gds-logout" id="sbLogout" title="Keluar dari sesi admin">
+                        <span class="icon">🚪</span> <span class="label">Keluar</span>
+                    </button>
+                </nav>`;
+
+        } else {
+
+            nav = `<nav>${NAV_LINKS.map((l) => navLinkHTML(l, activeKey, null)).join("")}</nav>`;
+
+        }
 
         return `
 
-        <div class="app-sidebar-head">
+        ${brandCardHTML(session)}
 
-            <p class="app-sidebar-title">Menu Situs</p>
-
-            <button
-                type="button"
-                class="app-sidebar-collapse-btn"
-                id="appSidebarCollapseBtn"
-                aria-label="Perkecil sidebar (Ctrl+B)"
-                title="Perkecil / perbesar sidebar (Ctrl+B)">
-                &#10094;
-            </button>
-
-        </div>
-
-        <nav>
-
-            ${NAV_LINKS.map((link) => `
-                <a href="${link.href}" class="${link.key === activeKey ? "active" : ""}" title="${link.label}">
-                    <span class="icon">${link.icon}</span> <span class="label">${link.label}</span>
-                </a>
-            `).join("")}
-
-        </nav>
+        ${nav}
 
         ${pageSections.length ? `
 
@@ -146,6 +256,33 @@ window.Shell = (() => {
 
         ` : ""}
 
+        `;
+
+    }
+
+    function sidebarHTML() {
+
+        const externalLink = window.SHELL_EXTERNAL_LINK || null;
+
+        return `
+
+        <div class="app-sidebar-head">
+
+            <p class="app-sidebar-title" id="appSidebarTitle">${sidebarTitle()}</p>
+
+            <button
+                type="button"
+                class="app-sidebar-collapse-btn"
+                id="appSidebarCollapseBtn"
+                aria-label="Perkecil sidebar (Ctrl+B)"
+                title="Perkecil / perbesar sidebar (Ctrl+B)">
+                &#10094;
+            </button>
+
+        </div>
+
+        <div class="app-sidebar-body" id="appSidebarBody">${sidebarBodyHTML()}</div>
+
         <button
             type="button"
             class="app-sidebar-stats-toggle${externalLink ? "" : " app-sidebar-stats-toggle-pinned"}"
@@ -157,6 +294,95 @@ window.Shell = (() => {
         </button>
 
         `;
+
+    }
+
+    /* ==========================================
+       SIDEBAR DINAMIS: ganti isi saat status admin
+       berubah tanpa menyentuh tombol statistik
+       (yang sudah dipasangi handler stats-panel.js).
+    ========================================== */
+
+    function wireSidebarBody() {
+
+        const body = document.getElementById("appSidebarBody");
+
+        if (!body) return;
+
+        body.querySelectorAll("a").forEach((link) => {
+
+            link.addEventListener("click", () => {
+
+                document.body.classList.remove("sidebar-open");
+
+                const t = link.dataset.tab;
+
+                // Pindah tab tanpa muat ulang bila sudah di halaman admin.
+                if (t && activePage() === "admin") adminTab = t;
+
+            });
+
+        });
+
+        const out = document.getElementById("sbLogout");
+
+        if (out) {
+
+            out.addEventListener("click", () => {
+
+                if (window.AdminAuth) window.AdminAuth.logout();
+                else {
+                    try { sessionStorage.removeItem(SESSION_KEY); } catch (e) { /* abaikan */ }
+                    document.dispatchEvent(new CustomEvent("adminauth:change"));
+                }
+
+                // Halaman admin ditutup overlay login oleh js/admin-auth.js saat dimuat.
+                if (activePage() === "admin") location.reload();
+
+            });
+
+        }
+
+    }
+
+    function refreshSidebar() {
+
+        const body = document.getElementById("appSidebarBody");
+
+        if (!body) return;
+
+        const session = adminSession();
+
+        body.innerHTML = sidebarBodyHTML();
+
+        const title = document.getElementById("appSidebarTitle");
+        if (title) title.textContent = sidebarTitle();
+
+        document.body.classList.toggle("is-admin-mode", !!session);
+
+        wireSidebarBody();
+
+    }
+
+    function wireSidebarEvents() {
+
+        document.addEventListener("adminauth:change", refreshSidebar);
+
+        // Dikirim js/admin.js: tab aktif, antrean offline, dan URL Google Sheet.
+        document.addEventListener("kd:tab", (e) => {
+            adminTab = (e.detail && e.detail.tab) || "input";
+            refreshSidebar();
+        });
+
+        document.addEventListener("kd:queue", refreshSidebar);
+
+        document.addEventListener("kd:sheet", (e) => {
+            window.__kdSheetUrl = (e.detail && e.detail.url) || "";
+            refreshSidebar();
+        });
+
+        // Sesi bisa dihapus dari tab lain / kedaluwarsa.
+        window.addEventListener("storage", (e) => { if (e.key === QUEUE_KEY) refreshSidebar(); });
 
     }
 
@@ -464,7 +690,14 @@ window.Shell = (() => {
 
         renderFooter();
 
+        document.body.classList.toggle("is-admin-mode", !!adminSession());
+
+        // Tab awal di halaman admin mengikuti hash URL.
+        if (activePage() === "admin" && /^#(input|data|pembinaan)$/.test(location.hash)) adminTab = location.hash.slice(1);
+
         wireSidebarToggle(overlay, sidebar);
+        wireSidebarBody();
+        wireSidebarEvents();
         wireSidebarCollapse();
         wireScrollSpy();
 

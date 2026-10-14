@@ -12,6 +12,10 @@ window.CONFIG = {
 
     SCHOOL_NAME: "SMAN 1 Sooko Mojokerto",
 
+    // Identitas unit & program (tampil di navbar dan sidebar)
+    UNIT_NAME: "Kesiswaan & Kedisiplinan",
+    PROGRAM_NAME: "Gerakan Disiplin Sekolah",
+
     ACADEMIC_YEAR: "2026/2027",
 
     // Poin kumulatif per tahun ajaran (reset tiap 1 Juli).
