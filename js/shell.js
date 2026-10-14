@@ -167,7 +167,7 @@ window.Shell = (() => {
                 <small>${CONFIG.SCHOOL_NAME}</small>
                 <strong>${CONFIG.PROGRAM_NAME}</strong>
             </div>
-            <div class="gds-motto">${CONFIG.UNIT_NAME}</div>
+            <div class="gds-motto">${CONFIG.PROGRAM_SLOGAN}</div>
         </a>`;
 
     }

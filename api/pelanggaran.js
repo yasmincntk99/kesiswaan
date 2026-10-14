@@ -71,10 +71,10 @@ module.exports = async (req, res) => {
             }
 
             const [siswa, tatib, violations] = await Promise.all([K.loadSiswa(), K.loadTatib(), K.loadPelanggaran()]);
-            const s = siswa.find((x) => x.nis === nis || x.nisn === nis);
+            const s = siswa.find((x) => x.nis === nis);
             const t = tatib.find((x) => x.kode === kode);
 
-            if (!s) return res.status(400).json({ success: false, message: "Siswa dengan NIS/NISN itu tidak ditemukan." });
+            if (!s) return res.status(400).json({ success: false, message: "Siswa dengan NIS itu tidak ditemukan." });
             if (!t) return res.status(400).json({ success: false, message: "Jenis pelanggaran tidak dikenal." });
 
             const clientId = clip(body.clientId, 64).replace(/[^A-Za-z0-9_-]/g, "");

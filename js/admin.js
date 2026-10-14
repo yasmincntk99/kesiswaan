@@ -134,7 +134,7 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
         const rw = riwayatOf(s.nis), total = rw.reduce((a, x) => a + x.poin, 0), tier = tierOf(total);
         $("pNama").textContent = s.nama;
         $("pKelas").textContent = s.kelas;
-        $("pNis").textContent = s.nisn ? `${s.nis} / ${s.nisn}` : s.nis;
+        $("pNis").textContent = s.nis;
         $("pPoin").textContent = fmt(total);
         $("pTier").textContent = tier ? tier.label : "";
         const img = $("pFoto");

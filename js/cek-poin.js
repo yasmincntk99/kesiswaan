@@ -69,7 +69,7 @@
         const key = input.value.trim();
 
         if (key.length < 4) {
-            out.innerHTML = `<div class="kd-card kd-error" role="alert"><p>Masukkan NIS atau NISN minimal 4 digit.</p></div>`;
+            out.innerHTML = `<div class="kd-card kd-error" role="alert"><p>Masukkan NIS minimal 4 digit.</p></div>`;
             input.focus();
             return;
         }

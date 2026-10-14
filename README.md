@@ -4,7 +4,7 @@ Portal kesiswaan & kedisiplinan siswa SMAN 1 Sooko Mojokerto. Memakai shell, tem
 
 ## Fitur
 - **Dashboard pelanggaran** (beranda): KPI, tren bulanan, komposisi kategori, jenis pelanggaran teratas, kelas terbanyak, status pembinaan, aktivitas terbaru (tanpa nama siswa).
-- **Cek Poin Siswa**: lihat poin & riwayat dengan NIS/NISN.
+- **Cek Poin Siswa**: lihat poin & riwayat dengan NIS.
 - **Tata Tertib & Sanksi**: daftar pelanggaran, poin, tingkat pembinaan.
 - **Floating badge "Admin"** di semua halaman → panel login admin, menu admin, dan toggle mode gelap/terang.
 - **Panel Admin** (`/pages/admin`): alur Kelas → Siswa → profil (foto, poin, riwayat) → input pelanggaran, rekap per kelas, antrean offline (kirim otomatis saat online, tanpa data ganda), data pelanggaran (filter + CSV), siswa perlu pembinaan.
@@ -20,7 +20,7 @@ Sama dengan skema Apps Script sebelumnya (dibaca per posisi kolom, baris 1 = hea
 
 | Tab | Kolom |
 |-----|-------|
-| `Data_Siswa` | NIS \| Nama \| Kelas \| Foto (https / link Drive) \| NISN (opsional) |
+| `Data_Siswa` | NIS \| Nama \| Kelas \| Foto (https / link Drive) |
 | `Master_Pelanggaran` | Kode \| Nama \| Poin \| Kategori (opsional) |
 | `Input_Pelanggaran` | Timestamp \| NIS \| Nama \| Kelas \| Jenis \| Poin \| Keterangan \| Kode \| Sanksi \| Pencatat \| ClientID |
 

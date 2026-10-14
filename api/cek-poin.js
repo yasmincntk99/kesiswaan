@@ -1,8 +1,8 @@
 /*
 ==========================================================
-GET /api/cek-poin?nis=<NIS atau NISN>
+GET /api/cek-poin?nis=<NIS>
 Siswa melihat poin & riwayat pelanggarannya sendiri.
-Pencarian harus cocok persis dengan NIS atau NISN.
+Pencarian harus cocok persis dengan NIS.
 ==========================================================
 */
 const K = require("./_lib/kesiswaan");
@@ -20,13 +20,13 @@ module.exports = async (req, res) => {
     const key = K.cleanNIS(req.query.nis);
 
     if (key.length < 4) {
-        return res.status(400).json({ success: false, message: "Masukkan NIS atau NISN minimal 4 digit." });
+        return res.status(400).json({ success: false, message: "Masukkan NIS minimal 4 digit." });
     }
 
     try {
         const [violations, siswa] = await Promise.all([K.loadPelanggaran(), K.loadSiswa()]);
 
-        const found = siswa.find((s) => s.nis === key || s.nisn === key);
+        const found = siswa.find((s) => s.nis === key);
 
         if (!found) {
             return res.status(404).json({ success: false, message: "Data siswa tidak ditemukan." });

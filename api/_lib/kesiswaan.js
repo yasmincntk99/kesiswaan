@@ -5,7 +5,7 @@ Shared Library: model data + agregasi kedisiplinan
 ==========================================================
 Tab spreadsheet (sama dengan skema Apps Script lama; dibaca per POSISI
 kolom, baris 1 = header):
-  Data_Siswa         NIS | Nama | Kelas | Foto (URL/Drive) | NISN (opsional)
+  Data_Siswa         NIS | Nama | Kelas | Foto (URL/Drive)
   Master_Pelanggaran Kode | Nama | Poin | Kategori (opsional)
   Input_Pelanggaran  Timestamp | NIS | Nama | Kelas | Jenis | Poin | Keterangan
                      | Kode | Sanksi | Pencatat | ClientID   (kolom 8-11 opsional,
@@ -97,7 +97,6 @@ async function loadSiswa() {
     return bodyRows(await sheets.readTab("Data_Siswa"))
         .map(({ cells, row }) => ({
             nis: cleanNIS(cell(cells, 0)) || `TANPA-NIS-${row}`,
-            nisn: cleanNIS(cell(cells, 4)),
             nama: cell(cells, 1) || "(Belum ada nama)",
             kelas: cell(cells, 2),
             foto: fotoUrl(cell(cells, 3))

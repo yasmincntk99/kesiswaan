@@ -15,6 +15,7 @@ window.CONFIG = {
     // Identitas unit & program (tampil di navbar dan sidebar)
     UNIT_NAME: "Kesiswaan & Kedisiplinan",
     PROGRAM_NAME: "Gerakan Disiplin Sekolah",
+    PROGRAM_SLOGAN: "Bersama, Berkreasi, dan Berprestasi",
 
     ACADEMIC_YEAR: "2026/2027",
 
