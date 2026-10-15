@@ -25,6 +25,15 @@ Dimuat SETELAH shell.css.
     color:#fff;
 }
 
+.kd-wrap > #dash,
+.kd-wrap > #cpResult{
+    /* Konten dirender JS ke dalam satu wadah; tanpa ini blok-blok di dalamnya
+       menempel tanpa jarak (gap .kd-wrap hanya berlaku untuk anak langsung). */
+    display:flex;
+    flex-direction:column;
+    gap:var(--space-lg);
+}
+
 .kd-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 /* ==========================================
@@ -69,7 +78,8 @@ Dimuat SETELAH shell.css.
 .kd-grid--1-1{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
 .kd-grid--cta{grid-template-columns:repeat(2,minmax(0,1fr))}
 
-@media (max-width:1100px){ .kd-grid--kpi{grid-template-columns:repeat(2,minmax(0,1fr))} }
+/* Sidebar tetap (250px) di >=1024px membuat 4 kartu terlalu sempit di bawah ~1340px. */
+@media (max-width:1339px){ .kd-grid--kpi{grid-template-columns:repeat(2,minmax(0,1fr))} }
 @media (max-width:900px){
     .kd-grid--2-1,.kd-grid--1-1,.kd-grid--cta{grid-template-columns:minmax(0,1fr)}
 }
@@ -121,7 +131,7 @@ Dimuat SETELAH shell.css.
    KPI
 ========================================== */
 .kd-kpi{display:flex;flex-direction:column;gap:.25rem;min-height:132px}
-.kd-kpi-label{font-size:var(--font-xs);text-transform:uppercase;letter-spacing:.06em;font-weight:var(--weight-bold);color:rgba(255,255,255,.75)}
+.kd-kpi-label{padding-right:2.4rem;/* ruang untuk ikon di pojok kanan atas */font-size:var(--font-xs);text-transform:uppercase;letter-spacing:.05em;font-weight:var(--weight-bold);color:rgba(255,255,255,.75)}
 .kd-kpi-value{font-size:clamp(2rem,4vw,2.6rem);font-weight:var(--weight-extrabold);letter-spacing:-.03em;line-height:1.1;font-variant-numeric:tabular-nums}
 .kd-kpi-foot{margin-top:auto;font-size:var(--font-xs);color:rgba(255,255,255,.78);display:flex;gap:.4rem;align-items:center;flex-wrap:wrap}
 .kd-kpi-ico{position:absolute;right:var(--space-md);top:var(--space-md);font-size:1.4rem;opacity:.85}
