@@ -196,7 +196,6 @@ window.Shell = (() => {
 
         const pageSections = Array.isArray(window.SHELL_PAGE_SECTIONS) ? window.SHELL_PAGE_SECTIONS : [];
         const externalLink = window.SHELL_EXTERNAL_LINK || null;
-        const sheetUrl = window.__kdSheetUrl || "";
 
         let nav = "";
 
@@ -210,9 +209,6 @@ window.Shell = (() => {
             nav += `
                 <p class="app-sidebar-title">Akun & data</p>
                 <nav>
-                    <a href="${esc(sheetUrl)}" id="sbSheetLink" target="_blank" rel="noopener" title="Buka Google Sheet"${sheetUrl ? "" : " hidden"}>
-                        <span class="icon">📄</span> <span class="label">Buka Google Sheet</span>
-                    </a>
                     <button type="button" class="gds-logout" id="sbLogout" title="Keluar dari sesi Komisi Disiplin">
                         <span class="icon">🚪</span> <span class="label">Keluar</span>
                     </button>
@@ -375,11 +371,6 @@ window.Shell = (() => {
         });
 
         document.addEventListener("kd:queue", refreshSidebar);
-
-        document.addEventListener("kd:sheet", (e) => {
-            window.__kdSheetUrl = (e.detail && e.detail.url) || "";
-            refreshSidebar();
-        });
 
         // Sesi bisa dihapus dari tab lain / kedaluwarsa.
         window.addEventListener("storage", (e) => { if (e.key === QUEUE_KEY) refreshSidebar(); });

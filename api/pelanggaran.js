@@ -1,7 +1,7 @@
 /*
 ==========================================================
 /api/pelanggaran  (KHUSUS ADMIN -- header Authorization: Bearer)
-GET  -> { violations, siswa, tatib, tingkat, mode, canWrite, sheetUrl }
+GET  -> { violations, siswa, tatib, tingkat, mode, canWrite }
 POST -> catat pelanggaran baru ke tab Input_Pelanggaran
         satu siswa : { nis, kode, tanggal?, catatan?, sanksi?, clientId? }
         banyak     : { items: [{ nis, sanksi?, clientId? }], kode, tanggal?, catatan? }  (maks. 60 siswa,
@@ -48,7 +48,6 @@ module.exports = async (req, res) => {
                 success: true,
                 mode: sheets.mode(),
                 canWrite: sheets.canWrite(),
-                sheetUrl: sheets.sheetUrl(),
                 data: { violations, siswa, tatib, tingkat: K.tatib.tingkat, hariIni: K.todayWIB() }
             });
         }
@@ -61,8 +60,7 @@ module.exports = async (req, res) => {
                     code: "READ_ONLY",
                     message: sheets.mode() === "demo"
                         ? "Mode demo: GOOGLE_SHEET_ID belum diatur, data tidak dapat disimpan."
-                        : "Service account belum diatur, portal hanya bisa membaca. Isi baris langsung di Google Sheet atau atur GOOGLE_SERVICE_ACCOUNT_*.",
-                    sheetUrl: sheets.sheetUrl()
+                        : "Service account belum diatur, portal hanya bisa membaca. Isi baris langsung di Google Sheet atau atur GOOGLE_SERVICE_ACCOUNT_*."
                 });
             }
 

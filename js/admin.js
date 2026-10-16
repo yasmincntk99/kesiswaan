@@ -552,8 +552,6 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
 
             $("adminMode").textContent = res.mode === "demo" ? "Mode demo (data contoh)" : res.canWrite ? "Terhubung · bisa menyimpan" : "Terhubung · hanya baca";
             $("adminMode").className = "kd-chip " + (res.mode === "demo" ? "kd-chip--demo" : "kd-chip--live");
-            if (res.sheetUrl) { $("sheetLink").href = res.sheetUrl; $("sheetLink").classList.remove("kd-hidden"); }
-            document.dispatchEvent(new CustomEvent("kd:sheet", { detail: { url: res.sheetUrl || "" } }));
 
             if (!silent) {
                 fillJenis(); fillFilters(); fillKelas();
