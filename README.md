@@ -7,7 +7,7 @@ Portal Gerakan Disiplin Sekolah (GDS) — kesiswaan & kedisiplinan siswa SMAN 1 
 - **Cek Poin Siswa**: lihat poin & riwayat dengan NIS.
 - **Tata Tertib & Sanksi**: daftar pelanggaran, poin, tingkat pembinaan.
 - **Floating badge "Komisi Disiplin"** di semua halaman → panel masuk Komisi Disiplin Sekolah, menu kerja, dan toggle mode gelap/terang.
-- **Panel Komisi Disiplin** (`/pages/admin`): alur Kelas → Siswa → profil (foto, poin, riwayat) → input pelanggaran, rekap per kelas, **catat massal** (satu pelanggaran untuk beberapa siswa sekaligus, maks 60, satu kali tulis tanpa data setengah masuk), antrean offline (kirim otomatis saat online, tanpa data ganda), data pelanggaran (filter + CSV), siswa perlu pembinaan.
+- **Panel Komisi Disiplin** (`/pages/admin`): alur Kelas → Siswa → profil (foto, poin, riwayat) → input pelanggaran, rekap per kelas, **catat massal** (satu pelanggaran untuk beberapa siswa sekaligus, maks 60, satu kali tulis tanpa data setengah masuk), antrean offline (kirim otomatis saat online, tanpa data ganda), data pelanggaran (filter + CSV), siswa perlu pembinaan dengan **status tindak lanjut** (Belum → Dipanggil → Selesai, lengkap dengan catatan dan nama guru). Status berlaku per tingkat: siswa yang naik tingkat muncul lagi sebagai "Belum". Daftar bawaan menyembunyikan yang sudah Selesai.
 
 ## Menjalankan lokal
 ```bash
@@ -23,6 +23,7 @@ Sama dengan skema Apps Script sebelumnya (dibaca per posisi kolom, baris 1 = hea
 | `Data_Siswa` | NIS \| Nama \| Kelas \| Foto (https / link Drive) |
 | `Master_Pelanggaran` | Kode \| Nama \| Poin \| Kategori (opsional) |
 | `Pengguna` | Username \| Nama \| Password \| Aktif \| Peran (akun per guru; opsional) |
+| `Pembinaan` | Timestamp \| NIS \| Nama \| Kelas \| Tingkat \| Status \| Catatan \| Penangani \| ClientID (tindak lanjut pembinaan; opsional) |
 | `Input_Pelanggaran` | Timestamp \| NIS \| Nama \| Kelas \| Jenis \| Poin \| Keterangan \| Kode \| Sanksi \| Pencatat \| ClientID |
 
 Kolom A–G `Input_Pelanggaran` kompatibel dengan Apps Script lama; H–K ditambahkan portal. Atur *Locale* spreadsheet ke Indonesia (dd/mm/yyyy).

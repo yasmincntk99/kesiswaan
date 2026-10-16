@@ -27,6 +27,7 @@ window.CONFIG = {
         CEK_POIN: "/api/cek-poin",
         TATA_TERTIB: "/api/tata-tertib",
         PELANGGARAN: "/api/pelanggaran",
+        PEMBINAAN: "/api/pembinaan",
         ADMIN_AUTH: "/api/admin-auth"
     },
 

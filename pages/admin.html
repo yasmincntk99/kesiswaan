@@ -230,12 +230,13 @@
         <section class="kd-card kd-hidden" id="panel-pembinaan" aria-labelledby="pembinaanTitle">
             <h2 class="kd-card-title" id="pembinaanTitle">Siswa Perlu Pembinaan</h2>
             <p class="kd-card-sub" id="pembinaanSub">Poin kumulatif tahun ajaran berjalan.</p>
-            <div class="kd-filters" style="grid-template-columns:1fr 1fr">
+            <div class="kd-filters">
                 <div class="kd-field"><label class="kd-field-label" for="minTier">Tampilkan mulai tingkat</label><select class="kd-select" id="minTier"></select></div>
+                <div class="kd-field"><label class="kd-field-label" for="pbStatus">Status tindak lanjut</label><select class="kd-select" id="pbStatus"><option value="open" selected>Belum selesai</option><option value="Belum">Belum ditangani</option><option value="Dipanggil">Dipanggil</option><option value="Selesai">Selesai</option><option value="all">Semua</option></select></div>
                 <div class="kd-field" style="justify-content:flex-end"><button type="button" class="kd-btn kd-btn--sm" id="csvPembinaan">Unduh CSV</button></div>
             </div>
-            <div class="kd-table-wrap"><table class="kd-table" style="min-width:760px">
-                <thead><tr><th scope="col">Siswa</th><th scope="col">Kelas</th><th scope="col" class="num">Poin</th><th scope="col" class="num">Kasus</th><th scope="col">Tingkat &amp; tindak lanjut</th></tr></thead>
+            <div class="kd-table-wrap"><table class="kd-table" style="min-width:900px">
+                <thead><tr><th scope="col">Siswa</th><th scope="col">Kelas</th><th scope="col" class="num">Poin</th><th scope="col" class="num">Kasus</th><th scope="col">Tingkat &amp; tindak lanjut</th><th scope="col">Status</th></tr></thead>
                 <tbody id="pembinaanBody"></tbody>
             </table></div>
         </section>

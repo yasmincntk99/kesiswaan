@@ -259,3 +259,29 @@ module.exports = {
     tingkatFor, aggregate, tatib: tatibFile,
     academicYearStart, academicYearLabel, periodRange
 };
+
+/**
+ * Catatan tindak lanjut pembinaan (tab "Pembinaan"):
+ * Timestamp | NIS | Nama | Kelas | Tingkat | Status | Catatan | Penangani | ClientID
+ * Tab belum dibuat / kosong -> daftar kosong (fitur tetap berjalan tanpa catatan).
+ */
+async function loadPembinaan() {
+    if (sheets.mode() === "demo") return [];
+    let raw;
+    try { raw = await sheets.readTab("Pembinaan"); } catch (e) { console.warn("Tab Pembinaan tidak terbaca:", e.message); return []; }
+    return bodyRows(raw)
+        .map(({ cells }) => ({
+            tanggal: normDate(cell(cells, 0)),
+            waktu: cell(cells, 0),
+            nis: cleanNIS(cell(cells, 1)),
+            nama: cell(cells, 2),
+            kelas: cell(cells, 3),
+            tingkat: cell(cells, 4),
+            status: cell(cells, 5),
+            catatan: cell(cells, 6),
+            penangani: cell(cells, 7),
+            clientId: cell(cells, 8)
+        }))
+        .filter((r) => r.tanggal && r.nis);
+}
+module.exports.loadPembinaan = loadPembinaan;

@@ -10,7 +10,7 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
     const { esc, fmt, fmtDate, getJSON } = KD;
     const $ = (id) => document.getElementById(id);
 
-    const state = { v: [], siswa: [], tatib: [], tingkat: [], canWrite: false, sheetUrl: "", hariIni: "", picked: null, mode: "one", batch: new Set() };
+    const state = { v: [], siswa: [], tatib: [], tingkat: [], canWrite: false, sheetUrl: "", hariIni: "", pb: [], picked: null, mode: "one", batch: new Set() };
     const PAGE = 25;
     let page = 1;
 
@@ -506,22 +506,66 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
             e.poin += x.poin; e.kasus++; map.set(x.nis, e);
         });
         const min = state.tingkat[Number($("minTier").value) || 0].min;
-        return [...map.values()].filter((e) => e.poin >= min).sort((a, b) => b.poin - a.poin);
+        const want = $("pbStatus").value;
+        return [...map.values()].filter((e) => e.poin >= min).map((e) => {
+            // Status = catatan terbaru untuk tingkat yang sedang berlaku (naik tingkat = kembali "Belum").
+            const t = tierOf(e.poin);
+            const logs = state.pb.filter((x) => x.nis === e.nis && x.tingkat === t.label && x.tanggal >= r.from && x.tanggal <= r.to);
+            const last = logs[logs.length - 1];
+            return Object.assign(e, { t, needs: state.tingkat.indexOf(t) >= 1, status: last ? last.status : "Belum", last });
+        }).filter((e) => want === "all" || (want === "open" ? e.status !== "Selesai" : e.status === want))
+          .sort((a, b) => b.poin - a.poin);
+    }
+
+    function pbCell(e) {
+        if (!e.needs) return `<span class="kd-card-sub">Tidak perlu</span>`;
+        const who = e.last ? `<br><small style="opacity:.75">${esc(fmtDate(e.last.tanggal))} · ${esc(e.last.penangani || "-")}${e.last.catatan && e.last.catatan !== "-" ? " · " + esc(e.last.catatan) : ""}</small>` : "";
+        const btn = (st, label) => `<button type="button" class="kd-btn kd-btn--sm" data-pb="${esc(e.nis)}" data-st="${st}"${state.canWrite ? "" : " disabled"}>${label}</button>`;
+        if (e.status === "Selesai") return `<strong>✔ Selesai</strong>${who}`;
+        if (e.status === "Dipanggil") return `<strong>Dipanggil</strong> ${btn("Selesai", "Tandai selesai")}${who}`;
+        return `<span style="opacity:.8">Belum</span> ${btn("Dipanggil", "Tandai dipanggil")} ${btn("Selesai", "Selesai")}`;
     }
 
     function renderPembinaan() {
+        if (!state.tingkat.length) return;   // data belum dimuat
         const rows = pembinaanRows();
         $("pembinaanSub").textContent = `Poin kumulatif tahun ajaran ${ayRange().label} · ${fmt(rows.length)} siswa`;
-        $("pembinaanBody").innerHTML = rows.length ? rows.map((e) => { const t = tierOf(e.poin); return `
+        $("pembinaanBody").innerHTML = rows.length ? rows.map((e) => { const t = e.t; return `
             <tr><td>${esc(e.nama)}<br><small style="opacity:.7">${esc(e.nis)}</small></td><td>${esc(e.kelas)}</td><td class="num"><strong>${fmt(e.poin)}</strong></td><td class="num">${fmt(e.kasus)}</td>
-            <td><span class="kd-tier" data-w="${esc(t.warna)}" style="margin:0 0 .3rem">${esc(t.label)}</span><br><small>${esc(t.tindakan)}</small></td></tr>`; }).join("")
-            : `<tr><td colspan="5" class="kd-empty">Tidak ada siswa pada tingkat ini.</td></tr>`;
+            <td><span class="kd-tier" data-w="${esc(t.warna)}" style="margin:0 0 .3rem">${esc(t.label)}</span><br><small>${esc(t.tindakan)}</small></td>
+            <td>${pbCell(e)}</td></tr>`; }).join("")
+            : `<tr><td colspan="6" class="kd-empty">Tidak ada siswa pada filter ini.</td></tr>`;
     }
 
     $("minTier").addEventListener("change", renderPembinaan);
+    $("pbStatus").addEventListener("change", renderPembinaan);
     $("csvPembinaan").addEventListener("click", () => downloadCSV(`perlu-pembinaan-${state.hariIni}.csv`,
-        ["NIS", "Nama", "Kelas", "Poin", "Kasus", "Tingkat", "Tindak lanjut"],
-        pembinaanRows().map((e) => { const t = tierOf(e.poin); return [e.nis, e.nama, e.kelas, e.poin, e.kasus, t.label, t.tindakan]; })));
+        ["NIS", "Nama", "Kelas", "Poin", "Kasus", "Tingkat", "Tindak lanjut", "Status", "Penangani", "Catatan"],
+        pembinaanRows().map((e) => [e.nis, e.nama, e.kelas, e.poin, e.kasus, e.t.label, e.t.tindakan, e.needs ? e.status : "-", e.last ? e.last.penangani : "", e.last ? e.last.catatan : ""])));
+
+    $("pembinaanBody").addEventListener("click", async (ev) => {
+        const b = ev.target.closest("button[data-pb]");
+        if (!b || b.disabled) return;
+        const catatan = window.prompt(b.dataset.st === "Selesai" ? "Catatan hasil pembinaan (boleh kosong):" : "Catatan pemanggilan (boleh kosong):", "");
+        if (catatan === null) return;      // dibatalkan
+        b.disabled = true;
+        try {
+            const r = await fetch(CONFIG.API.PEMBINAAN, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nis: b.dataset.pb, status: b.dataset.st, catatan, clientId: newId() }) });
+            const body = await r.json().catch(() => ({}));
+            if (r.status === 401) { AdminAuth.logout(); location.reload(); return; }
+            if (!r.ok || body.success === false) throw new Error(body.message || `Gagal menyimpan (HTTP ${r.status}).`);
+            await loadPembinaan();
+        } catch (e) {
+            b.disabled = false;
+            $("adminAlert").innerHTML = `<div class="kd-card kd-error" role="alert"><strong>Tindak lanjut belum tersimpan.</strong> ${esc(e.message)}</div>`;
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+    });
+
+    async function loadPembinaan() {
+        try { const res = await getJSON(CONFIG.API.PEMBINAAN); state.pb = res.pembinaan || []; } catch (e) { /* tab belum ada / offline: tanpa status */ }
+        renderPembinaan();
+    }
 
     /* ---------- load ---------- */
 
@@ -530,6 +574,7 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
             const res = await getJSON(CONFIG.API.PELANGGARAN);
             try { localStorage.setItem(CKEY, JSON.stringify(res)); } catch (e) { /* abaikan */ }
             applyData(res, silent);
+            loadPembinaan();
         } catch (e) {
             if (e.status === 401) { AdminAuth.logout(); location.reload(); return; }
             let cached = null;
