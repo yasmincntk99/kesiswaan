@@ -79,18 +79,32 @@
                 <button type="button" class="kd-btn kd-btn--sm kd-btn--primary" id="syncBtn">Kirim sekarang</button>
             </div>
 
+            <!-- Konfirmasi setelah simpan: siswa berikutnya langsung bisa dipilih, tanpa menggulir. -->
+            <div class="kd-form-ok kd-hidden" id="saveBanner" role="status" aria-live="polite">
+                <span id="saveBannerText"></span>
+                <div class="kd-actions" style="margin-top:.6rem">
+                    <button type="button" class="kd-btn kd-btn--sm" id="againBtn">Catat lagi untuk siswa ini</button>
+                    <button type="button" class="kd-btn kd-btn--sm" id="closeBannerBtn">Tutup</button>
+                </div>
+            </div>
+
             <div class="kd-card" id="sectionPilih">
                 <div class="kd-toolbar" style="margin-bottom:.75rem">
                     <h2 class="kd-card-title" style="margin:0">Langkah 1: Pilih Siswa</h2>
                     <button type="button" class="kd-btn kd-btn--sm kd-hidden" id="rekapBtn">Lihat rekap kelas</button>
                 </div>
                 <div class="kd-form-grid">
+                    <div class="kd-field full kd-find-wrap">
+                        <label class="kd-field-label" for="qSiswa">Cari cepat: ketik nama atau NIS siswa</label>
+                        <input class="kd-input" id="qSiswa" type="search" autocomplete="off" placeholder="mis. 18088 atau Shane" aria-controls="qSiswaList">
+                        <ul class="kd-find kd-hidden" id="qSiswaList" aria-label="Hasil pencarian siswa"></ul>
+                    </div>
                     <div class="kd-field">
-                        <label class="kd-field-label" for="selKelas">1. Kelas</label>
+                        <label class="kd-field-label" for="selKelas">Atau pilih lewat kelas</label>
                         <select class="kd-select" id="selKelas"><option value="">Memuat…</option></select>
                     </div>
                     <div class="kd-field">
-                        <label class="kd-field-label" for="selSiswa">2. Nama / NIS siswa</label>
+                        <label class="kd-field-label" for="selSiswa">Nama / NIS siswa</label>
                         <select class="kd-select" id="selSiswa" disabled><option value="">— pilih kelas dulu —</option></select>
                     </div>
                 </div>

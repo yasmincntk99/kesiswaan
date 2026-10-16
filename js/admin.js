@@ -133,9 +133,10 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
             : `<tr><td colspan="3" class="kd-empty">Belum ada catatan pelanggaran.</td></tr>`;
     }
 
-    function pick(nis) {
+    function pick(nis, scroll) {
         const s = state.siswa.find((x) => x.nis === nis);
         if (!s) return hideSiswa();
+        hideBanner();
         $("selKelas").value = s.kelas;
         if ($("selSiswa").value !== nis) { onKelas(); $("selSiswa").value = nis; }
         state.picked = s;
@@ -143,7 +144,50 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
         $("sectionProfil").classList.remove("kd-hidden");
         $("sectionForm").classList.remove("kd-hidden");
         updatePreview();
+        // Di layar kecil, profil + form ada di bawah: langsung bawa ke profil siswa.
+        if (scroll) $("sectionProfil").scrollIntoView({ behavior: "smooth", block: "start" });
     }
+
+    /* ---- pencarian cepat (nama / NIS, semua kelas) ---- */
+
+    function renderSuggest() {
+        const ul = $("qSiswaList"), q = $("qSiswa").value.trim().toLowerCase();
+        if (q.length < 2) { ul.classList.add("kd-hidden"); ul.innerHTML = ""; return; }
+        const words = q.split(/\s+/);
+        const hits = state.siswa.filter((s) => { const h = (s.nama + " " + s.nis).toLowerCase(); return words.every((w) => h.includes(w)); });
+        ul.innerHTML = hits.length
+            ? hits.slice(0, 8).map((s) => `<li><button type="button" data-nis="${esc(s.nis)}"><strong>${esc(s.nama)}</strong><small>${esc(s.kelas)} · NIS ${esc(s.nis)}</small></button></li>`).join("")
+              + (hits.length > 8 ? `<li class="kd-empty">${fmt(hits.length)} siswa cocok. Ketik lebih lengkap untuk mempersempit.</li>` : "")
+            : `<li class="kd-empty">Tidak ada siswa yang cocok.</li>`;
+        ul.classList.remove("kd-hidden");
+    }
+    function closeSuggest() { $("qSiswaList").classList.add("kd-hidden"); }
+    function pickFromSearch(nis) { $("qSiswa").value = ""; closeSuggest(); pick(nis, true); }
+
+    $("qSiswa").addEventListener("input", renderSuggest);
+    $("qSiswa").addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeSuggest();
+        if (e.key === "Enter") { e.preventDefault(); const b = $("qSiswaList").querySelector("button[data-nis]"); if (b) pickFromSearch(b.dataset.nis); }
+    });
+    $("qSiswaList").addEventListener("click", (e) => { const b = e.target.closest("button[data-nis]"); if (b) pickFromSearch(b.dataset.nis); });
+    document.addEventListener("click", (e) => { if (!e.target.closest(".kd-find-wrap")) closeSuggest(); });
+
+    /* ---- konfirmasi setelah simpan ---- */
+
+    function hideBanner() { $("saveBanner").classList.add("kd-hidden"); }
+    function showSaved(text, nis) {
+        $("saveBannerText").textContent = text;
+        $("saveBanner").dataset.nis = nis || "";
+        $("againBtn").classList.toggle("kd-hidden", !nis);
+        $("saveBanner").classList.remove("kd-hidden");
+        // Siap untuk siswa berikutnya: kelas tetap, pilihan siswa dikosongkan, kursor ke kolom cari.
+        $("selSiswa").value = "";
+        hideSiswa();
+        $("saveBanner").scrollIntoView({ behavior: "smooth", block: "start" });
+        $("qSiswa").focus({ preventScroll: true });
+    }
+    $("againBtn").addEventListener("click", () => { const n = $("saveBanner").dataset.nis; if (n) pick(n, true); });
+    $("closeBannerBtn").addEventListener("click", hideBanner);
 
     function currentTatib() { return state.tatib.find((t) => t.kode === $("fKode").value) || null; }
 
@@ -188,10 +232,10 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
     $("rekapClose").addEventListener("click", closeRekap);
     $("rekapModal").addEventListener("click", (e) => { if (e.target === $("rekapModal")) closeRekap(); });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("rekapModal").classList.contains("kd-hidden")) closeRekap(); });
-    $("rekapBody").addEventListener("click", (e) => { const b = e.target.closest("button[data-nis]"); if (b) { closeRekap(); pick(b.dataset.nis); } });
+    $("rekapBody").addEventListener("click", (e) => { const b = e.target.closest("button[data-nis]"); if (b) { closeRekap(); pick(b.dataset.nis, true); } });
 
     $("selKelas").addEventListener("change", onKelas);
-    $("selSiswa").addEventListener("change", () => pick($("selSiswa").value));
+    $("selSiswa").addEventListener("change", () => pick($("selSiswa").value, true));
     $("gantiBtn").addEventListener("click", () => { $("selSiswa").value = ""; hideSiswa(); $("selSiswa").focus(); });
     $("fKode").addEventListener("change", updatePreview);
     $("fSanksi").addEventListener("input", () => { $("fSanksi").dataset.auto = "0"; });
@@ -270,16 +314,16 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
                 if (body.code === "READ_ONLY") $("copyBtn").classList.remove("kd-hidden");
                 return;
             }
-            setMsg($("formOk"), `Tersimpan: ${body.data.nama} (${body.data.kelas}) · ${body.data.jenis} +${body.data.poin} poin · ${body.data.id}`);
             $("copyBtn").classList.add("kd-hidden");
             await load(true);
-            renderProfil();
+            const total = pointsOf(item.nis), tier = tierOf(total);
             afterSave();
+            showSaved(`✔ Tersimpan: ${body.data.nama} (${body.data.kelas}) · ${body.data.jenis} +${body.data.poin} poin. Total kini ${fmt(total)} poin${tier ? " · " + tier.label : ""}.`, item.nis);
         } catch (err) {
             // Jaringan/server bermasalah: simpan di antrean, kirim otomatis nanti (clientId mencegah dobel).
             setQueue([...getQueue(), item]);
-            setMsg($("formOk"), "Koneksi bermasalah. Data disimpan di perangkat ini dan dikirim otomatis saat tersambung.");
             afterSave();
+            showSaved("Koneksi bermasalah. Data disimpan di perangkat ini dan dikirim otomatis saat tersambung.", "");
         } finally {
             $("saveBtn").disabled = false;
             $("saveBtn").textContent = "Simpan Pelanggaran";
