@@ -35,7 +35,7 @@ window.AdminBadge = (() => {
         const logged = !!(auth && auth.isLoggedIn());
 
         badge.classList.toggle("is-active", logged);
-        badge.querySelector(".kd-badge-label").textContent = logged ? "Admin aktif" : "Admin";
+        badge.querySelector(".kd-badge-label").textContent = logged ? "Komisi aktif" : "Komisi Disiplin";
 
         let html = "";
 
@@ -44,8 +44,8 @@ window.AdminBadge = (() => {
         } else if (!logged) {
             html += `
             <div class="kd-panel-section">
-                <h3 class="kd-panel-h">Masuk sebagai Admin</h3>
-                <p class="kd-panel-note">Khusus pengelola kesiswaan untuk mencatat dan melihat data pelanggaran siswa.</p>
+                <h3 class="kd-panel-h">Masuk Komisi Disiplin</h3>
+                <p class="kd-panel-note">Khusus anggota Komisi Disiplin Sekolah (Gerakan Disiplin Sekolah) untuk mencatat dan melihat data pelanggaran siswa.</p>
                 <div id="kdPanelLogin"></div>
             </div>`;
         } else {
@@ -133,16 +133,16 @@ window.AdminBadge = (() => {
         const wrap = document.createElement("div");
         wrap.innerHTML = `
         <div class="kd-badge-backdrop" id="kdBadgeBackdrop"></div>
-        <aside class="kd-panel" id="kdPanel" role="dialog" aria-label="Panel admin kesiswaan" aria-hidden="true">
+        <aside class="kd-panel" id="kdPanel" role="dialog" aria-label="Panel Komisi Disiplin Sekolah" aria-hidden="true">
             <header class="kd-panel-head">
-                <strong>Panel Admin</strong>
+                <strong>Komisi Disiplin Sekolah</strong>
                 <button type="button" class="kd-panel-close" id="kdPanelClose" aria-label="Tutup panel">&times;</button>
             </header>
             <div class="kd-panel-body" id="kdPanelBody"></div>
         </aside>
-        <button type="button" class="kd-badge" id="kdBadge" aria-haspopup="dialog" aria-expanded="false" aria-controls="kdPanel" title="Panel Admin Kesiswaan">
+        <button type="button" class="kd-badge" id="kdBadge" aria-haspopup="dialog" aria-expanded="false" aria-controls="kdPanel" title="Panel Komisi Disiplin Sekolah">
             <span class="kd-badge-ico">${SHIELD}</span>
-            <span class="kd-badge-label">Admin</span>
+            <span class="kd-badge-label">Komisi Disiplin</span>
             <span class="kd-badge-dot" aria-hidden="true"></span>
         </button>`;
         while (wrap.firstChild) document.body.appendChild(wrap.firstChild);
@@ -161,7 +161,7 @@ window.AdminBadge = (() => {
         // status awal badge (tanpa membuka panel)
         const logged = !!(window.AdminAuth && AdminAuth.isLoggedIn());
         badge.classList.toggle("is-active", logged);
-        badge.querySelector(".kd-badge-label").textContent = logged ? "Admin aktif" : "Admin";
+        badge.querySelector(".kd-badge-label").textContent = logged ? "Komisi aktif" : "Komisi Disiplin";
 
         // tautan #input/#data/#pembinaan di halaman admin: tutup panel saat dipilih
         body.addEventListener("click", (e) => { if (e.target.closest(".kd-menu-item")) close(); });

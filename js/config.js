@@ -6,7 +6,7 @@ Konfigurasi aplikasi (dibaca js/shell.js dan halaman)
 */
 window.CONFIG = {
 
-    APP_NAME: "SMANSASOO Kesiswaan Portal",
+    APP_NAME: "Portal Gerakan Disiplin Sekolah",
 
     VERSION: "1.0.0",
 
@@ -15,6 +15,7 @@ window.CONFIG = {
     // Identitas unit & program (tampil di navbar dan sidebar)
     UNIT_NAME: "Kesiswaan & Kedisiplinan",
     PROGRAM_NAME: "Gerakan Disiplin Sekolah",
+    COMMITTEE_NAME: "Komisi Disiplin Sekolah",
     PROGRAM_SLOGAN: "Bersama, Berkreasi, dan Berprestasi",
 
     ACADEMIC_YEAR: "2026/2027",

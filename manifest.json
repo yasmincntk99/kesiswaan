@@ -1,7 +1,7 @@
 {
-    "name": "SMANSASOO Kesiswaan Portal",
-    "short_name": "Kesiswaan",
-    "description": "Portal kesiswaan dan kedisiplinan siswa SMAN 1 Sooko Mojokerto",
+    "name": "Gerakan Disiplin Sekolah · SMAN 1 Sooko",
+    "short_name": "GDS Sooko",
+    "description": "Portal Gerakan Disiplin Sekolah (kesiswaan dan kedisiplinan siswa) SMAN 1 Sooko Mojokerto",
     "start_url": "/",
     "scope": "/",
     "display": "standalone",

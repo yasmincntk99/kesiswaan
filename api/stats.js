@@ -44,7 +44,7 @@ const KNOWN_PAGES = {
     home: "Dashboard",
     "cek-poin": "Cek Poin Siswa",
     "tata-tertib": "Tata Tertib",
-    admin: "Panel Admin",
+    admin: "Panel Komisi Disiplin",
     about: "Tentang",
     privacy: "Privasi"
 };

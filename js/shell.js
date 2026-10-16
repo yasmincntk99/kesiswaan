@@ -136,7 +136,7 @@ window.Shell = (() => {
 
     function sidebarTitle() {
 
-        return adminSession() ? "Menu Admin" : "Menu Situs";
+        return adminSession() ? "Menu Komisi Disiplin" : "Menu Situs";
 
     }
 
@@ -152,10 +152,10 @@ window.Shell = (() => {
             <div class="gds-card gds-card--admin">
                 <span class="gds-shield">${shield}</span>
                 <div class="gds-text">
-                    <small>Tim ${CONFIG.PROGRAM_NAME}</small>
-                    <strong>${CONFIG.UNIT_NAME}</strong>
+                    <small>${CONFIG.PROGRAM_NAME}</small>
+                    <strong>${CONFIG.COMMITTEE_NAME}</strong>
                 </div>
-                <div class="gds-user"><span class="gds-dot" aria-hidden="true"></span><span>${esc(session.username || "admin")}</span><em>Admin</em></div>
+                <div class="gds-user"><span class="gds-dot" aria-hidden="true"></span><span>${esc(session.username || "admin")}</span><em>Komisi</em></div>
             </div>`;
 
         }
@@ -213,7 +213,7 @@ window.Shell = (() => {
                     <a href="${esc(sheetUrl)}" id="sbSheetLink" target="_blank" rel="noopener" title="Buka Google Sheet"${sheetUrl ? "" : " hidden"}>
                         <span class="icon">📄</span> <span class="label">Buka Google Sheet</span>
                     </a>
-                    <button type="button" class="gds-logout" id="sbLogout" title="Keluar dari sesi admin">
+                    <button type="button" class="gds-logout" id="sbLogout" title="Keluar dari sesi Komisi Disiplin">
                         <span class="icon">🚪</span> <span class="label">Keluar</span>
                     </button>
                 </nav>`;

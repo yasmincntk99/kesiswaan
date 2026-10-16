@@ -31,7 +31,7 @@ module.exports = async (req, res) => {
     const auth = verifyAdmin(req);
 
     if (!auth.ok) {
-        return res.status(401).json({ success: false, message: "Sesi admin tidak valid. Silakan masuk lagi." });
+        return res.status(401).json({ success: false, message: "Sesi Komisi Disiplin tidak valid. Silakan masuk lagi." });
     }
 
     try {

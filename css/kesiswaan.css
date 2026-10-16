@@ -554,7 +554,7 @@ body.kd-lock{overflow:hidden}
 .kd-prose code{background:rgba(255,255,255,.14);padding:.05rem .35rem;border-radius:6px;font-size:.9em}
 
 .header .kd-eyebrow{
-    display:inline-block;margin-bottom:.9rem;padding:.35rem 1rem;border-radius:var(--radius-pill);
+    display:inline-block;max-width:100%;text-align:center;line-height:1.4;margin-bottom:.9rem;padding:.35rem 1rem;border-radius:var(--radius-pill);
     font-size:var(--font-xs);font-weight:var(--weight-bold);letter-spacing:.08em;text-transform:uppercase;color:#fff;
     background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.35);
 }

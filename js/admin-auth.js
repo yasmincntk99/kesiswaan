@@ -220,10 +220,10 @@ Fetch ke /api/pelanggaran otomatis membawa token itu.
             card.setAttribute("aria-modal", "true");
             card.setAttribute("aria-labelledby", "kdLoginTitle");
 
-            const title = el("h2", "kd-modal-title", "Masuk Admin Kesiswaan");
+            const title = el("h2", "kd-modal-title", "Masuk Komisi Disiplin Sekolah");
             title.id = "kdLoginTitle";
             card.appendChild(title);
-            card.appendChild(el("p", "kd-modal-sub", "Halaman ini khusus admin kesiswaan. Masukkan username dan password."));
+            card.appendChild(el("p", "kd-modal-sub", "Halaman ini khusus Komisi Disiplin Sekolah. Masukkan username dan password."));
 
             function finish(ok) {
                 document.removeEventListener("keydown", onKey, true);
