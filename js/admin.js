@@ -63,7 +63,7 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
         document.dispatchEvent(new CustomEvent("kd:tab", { detail: { tab: name } }));   // sidebar menyorot menu aktif
         if (name === "data") renderData();
         if (name === "pembinaan") renderPembinaan();
-        if (scroll) $("adminSection").scrollIntoView({ block: "start", behavior: "smooth" });
+        if (scroll) document.querySelector("main").scrollIntoView({ block: "start", behavior: "smooth" });
     }
 
     window.addEventListener("hashchange", () => showTab(location.hash.slice(1), true));
@@ -537,6 +537,7 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
             if (cached && cached.data && !navigator.onLine) {
                 applyData(cached, silent);
                 $("adminMode").textContent = "Offline · data tersimpan di perangkat";
+                $("adminAlert").innerHTML = `<div class="kd-card" role="status"><strong>Offline.</strong> Menampilkan data tersimpan di perangkat.</div>`;
                 return;
             }
             $("adminAlert").innerHTML = `<div class="kd-card kd-error" role="alert"><strong>Data tidak dapat dimuat.</strong> <span>${esc(e.message)}</span>${e.detail ? `<br><small>Alasan Google: <code>${esc([e.detail.status, e.detail.reason].filter(Boolean).join(" · "))}</code> ${esc(e.detail.message || "")}<br>Sheet yang dibaca server: <code>${esc(e.detail.sheet || "-")}</code> · Akun: <code>${esc(e.detail.account || "-")}</code></small>` : ""} <button type="button" class="kd-btn kd-btn--sm" id="retry" style="margin-left:.5rem">Coba lagi</button></div>`;
