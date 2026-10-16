@@ -521,9 +521,10 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
         if (!e.needs) return `<span class="kd-card-sub">Tidak perlu</span>`;
         const who = e.last ? `<br><small style="opacity:.75">${esc(fmtDate(e.last.tanggal))} · ${esc(e.last.penangani || "-")}${e.last.catatan && e.last.catatan !== "-" ? " · " + esc(e.last.catatan) : ""}</small>` : "";
         const btn = (st, label) => `<button type="button" class="kd-btn kd-btn--sm" data-pb="${esc(e.nis)}" data-st="${st}"${state.canWrite ? "" : " disabled"}>${label}</button>`;
-        if (e.status === "Selesai") return `<strong>✔ Selesai</strong>${who}`;
-        if (e.status === "Dipanggil") return `<strong>Dipanggil</strong> ${btn("Selesai", "Tandai selesai")}${who}`;
-        return `<span style="opacity:.8">Belum</span> ${btn("Dipanggil", "Tandai dipanggil")} ${btn("Selesai", "Selesai")}`;
+        const print = `<button type="button" class="kd-btn kd-btn--sm" data-print="${esc(e.nis)}" title="Cetak surat untuk orang tua / wali">🖨️ Cetak surat</button>`;
+        if (e.status === "Selesai") return `<strong>✔ Selesai</strong> ${print}${who}`;
+        if (e.status === "Dipanggil") return `<strong>Dipanggil</strong> ${btn("Selesai", "Tandai selesai")} ${print}${who}`;
+        return `<span style="opacity:.8">Belum</span> ${btn("Dipanggil", "Tandai dipanggil")} ${btn("Selesai", "Selesai")} ${print}`;
     }
 
     function renderPembinaan() {
@@ -560,6 +561,69 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
             $("adminAlert").innerHTML = `<div class="kd-card kd-error" role="alert"><strong>Tindak lanjut belum tersimpan.</strong> ${esc(e.message)}</div>`;
             window.scrollTo({ top: 0, behavior: "smooth" });
         }
+    });
+
+
+    /* ---------- SURAT PANGGILAN / PERINGATAN (cetak) ---------- */
+
+    const BULAN_PANJANG = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const tglPanjang = (iso) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ""); return m ? `${Number(m[3])} ${BULAN_PANJANG[Number(m[2]) - 1]} ${m[1]}` : ""; };
+
+    function letterHTML(nis) {
+        const r = ayRange();
+        const rows = state.v.filter((x) => x.nis === nis && x.tanggal >= r.from && x.tanggal <= r.to).sort((a, b) => a.tanggal.localeCompare(b.tanggal));
+        if (!rows.length) return "";
+        const poin = rows.reduce((t, x) => t + x.poin, 0);
+        const t = tierOf(poin);
+        const head = rows[rows.length - 1];
+        const isSP = /^Surat Peringatan/.test(t.label);
+        const judul = isSP ? t.label.toUpperCase() : "PANGGILAN ORANG TUA / WALI";
+        const isi = {
+            "Surat Peringatan 1": "Berdasarkan catatan Komisi Disiplin Sekolah, putra/putri Bapak/Ibu telah melakukan beberapa pelanggaran tata tertib sekolah sebagaimana tercantum di bawah ini. Sehubungan dengan itu, sekolah menerbitkan Surat Peringatan 1 dan siswa dipanggil oleh Guru BK untuk mendapat pembinaan.",
+            "Surat Peringatan 2": "Berdasarkan catatan Komisi Disiplin Sekolah, jumlah poin pelanggaran putra/putri Bapak/Ibu telah mencapai tingkat Surat Peringatan 2. Sekolah menerbitkan Surat Peringatan 2 dan memohon kehadiran Bapak/Ibu untuk pembinaan bersama pihak sekolah.",
+            "Surat Peringatan 3": "Berdasarkan catatan Komisi Disiplin Sekolah, jumlah poin pelanggaran putra/putri Bapak/Ibu telah mencapai tingkat Surat Peringatan 3. Sekolah menerbitkan Surat Peringatan 3 dan memohon kehadiran Bapak/Ibu untuk pembinaan intensif serta pembuatan pernyataan tertulis bermaterai.",
+            "Pembinaan Khusus": "Berdasarkan catatan Komisi Disiplin Sekolah, jumlah poin pelanggaran putra/putri Bapak/Ibu telah mencapai tingkat Pembinaan Khusus. Sekolah memohon kehadiran Bapak/Ibu untuk pembahasan tindak lanjut bersama pihak sekolah."
+        }[t.label] || "Berdasarkan catatan Komisi Disiplin Sekolah, putra/putri Bapak/Ibu memerlukan pembinaan terkait pelanggaran tata tertib sekolah.";
+        const body = rows.map((x, i) => `<tr><td class="c">${i + 1}</td><td style="white-space:nowrap">${esc(tglPanjang(x.tanggal))}</td><td>${esc(x.jenis)}</td><td class="c">${esc(x.poin)}</td></tr>`).join("");
+        return `<!doctype html><html lang="id"><head><meta charset="utf-8"><title>${esc(judul)} - ${esc(head.nama)}</title>
+<style>
+@page{size:A4;margin:14mm 18mm}
+*{box-sizing:border-box}body{font:11pt/1.4 "Times New Roman",serif;color:#000;margin:0}
+.kop{text-align:center;border-bottom:3px double #000;padding-bottom:8px;margin-bottom:14px}
+.kop b{display:block;font-size:15pt;letter-spacing:.5px}.kop span{font-size:11pt}
+h1{font-size:13pt;text-align:center;text-decoration:underline;margin:10px 0 2px}.no{text-align:center;margin:0 0 14px}
+table.i td{padding:1px 6px 1px 0;vertical-align:top}table.p{width:100%;border-collapse:collapse;margin:8px 0}
+table.p th,table.p td{border:1px solid #000;padding:3px 6px}table.p th{background:#eee}.c{text-align:center}
+.ttd{display:flex;justify-content:space-between;margin-top:22px;text-align:center}.ttd div{width:46%}.sp{height:56px}.ttd,.bawah,table.p tr{break-inside:avoid}
+.bawah{margin-top:18px;border-top:1px dashed #000;padding-top:8px;font-size:11pt}
+.noprint{position:fixed;top:8px;right:8px;font:14px sans-serif}.noprint button{padding:8px 14px;font-size:14px;cursor:pointer}
+@media print{.noprint{display:none}}
+</style></head><body>
+<div class="noprint"><button onclick="window.print()">Cetak</button></div>
+<div class="kop"><b>SMA NEGERI 1 SOOKO MOJOKERTO</b><span>Komisi Disiplin Sekolah · Gerakan Disiplin Sekolah</span></div>
+<h1>${esc(judul)}</h1>
+<p class="no">Nomor: ......... / ......... / ......... / ${esc(state.hariIni.slice(0, 4))}</p>
+<p>Kepada Yth.<br>Orang Tua / Wali dari <b>${esc(head.nama)}</b><br>di tempat</p>
+<table class="i"><tr><td>Nama</td><td>:</td><td>${esc(head.nama)}</td></tr><tr><td>NIS</td><td>:</td><td>${esc(nis)}</td></tr><tr><td>Kelas</td><td>:</td><td>${esc(head.kelas)}</td></tr><tr><td>Total poin</td><td>:</td><td>${esc(poin)} (tahun ajaran ${esc(r.label)}) — ${esc(t.label)}</td></tr></table>
+<p>Dengan hormat,<br>${esc(isi)}</p>
+<table class="p"><thead><tr><th class="c" style="width:32px">No</th><th style="width:150px;white-space:nowrap">Tanggal</th><th>Pelanggaran</th><th class="c" style="width:50px">Poin</th></tr></thead><tbody>${body}</tbody></table>
+<p>Tindak lanjut: ${esc(t.tindakan)}</p>
+<p>Waktu menghadap: hari ............................, tanggal ............................, pukul ............ WIB, di ruang ............................</p>
+<p>Demikian surat ini kami sampaikan. Atas perhatian dan kerja sama Bapak/Ibu, kami ucapkan terima kasih.</p>
+<div class="ttd"><div>Mengetahui,<br>Kepala Sekolah<div class="sp"></div>(............................)<br>NIP. ............................</div><div>Mojokerto, ${esc(tglPanjang(state.hariIni))}<br>Komisi Disiplin Sekolah<div class="sp"></div>(............................)</div></div>
+<div class="bawah"><b>Tanda terima orang tua / wali</b><br>Surat ini telah saya terima.<div class="ttd" style="margin-top:6px"><div></div><div>Mojokerto, ............................<br><div class="sp" style="height:50px"></div>(............................)</div></div></div>
+</body></html>`;
+    }
+
+    $("pembinaanBody").addEventListener("click", (ev) => {
+        const b = ev.target.closest("button[data-print]");
+        if (!b) return;
+        const html = letterHTML(b.dataset.print);
+        if (!html) return;
+        const w = window.open("", "_blank");
+        if (!w) { $("adminAlert").innerHTML = `<div class="kd-card kd-error" role="alert">Pop-up diblokir browser. Izinkan pop-up untuk situs ini lalu coba lagi.</div>`; return; }
+        w.document.open(); w.document.write(html); w.document.close();
+        w.focus();
     });
 
     async function loadPembinaan() {
