@@ -49,37 +49,24 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
         setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     }
 
-    /* ---------- tab ---------- */
+    /* ---------- bagian halaman (dipilih lewat sidebar) ---------- */
+    // Tidak ada tombol tab di halaman: menu "Catat Pelanggaran / Data Pelanggaran /
+    // Perlu Pembinaan" ada di sidebar (js/shell.js) dan memakai hash URL.
 
     const TABS = ["input", "data", "pembinaan"];
+    const TAB_LABEL = { input: "Catat Pelanggaran", data: "Data Pelanggaran", pembinaan: "Perlu Pembinaan" };
 
-    function showTab(name, focus) {
+    function showTab(name, scroll) {
         if (!TABS.includes(name)) name = "input";
-        TABS.forEach((t) => {
-            const sel = t === name;
-            $("tab-" + t).setAttribute("aria-selected", String(sel));
-            $("tab-" + t).tabIndex = sel ? 0 : -1;
-            $("panel-" + t).classList.toggle("kd-hidden", !sel);
-        });
-        if (focus) $("tab-" + name).focus();
+        TABS.forEach((t) => $("panel-" + t).classList.toggle("kd-hidden", t !== name));
+        $("adminSection").textContent = TAB_LABEL[name];
         document.dispatchEvent(new CustomEvent("kd:tab", { detail: { tab: name } }));   // sidebar menyorot menu aktif
         if (name === "data") renderData();
         if (name === "pembinaan") renderPembinaan();
+        if (scroll) $("adminSection").scrollIntoView({ block: "start", behavior: "smooth" });
     }
 
-    document.querySelectorAll(".kd-tab").forEach((b) => {
-        b.addEventListener("click", () => { history.replaceState(null, "", "#" + b.dataset.tab); showTab(b.dataset.tab); });
-        b.addEventListener("keydown", (e) => {
-            const i = TABS.indexOf(b.dataset.tab);
-            if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
-                e.preventDefault();
-                const n = TABS[(i + (e.key === "ArrowRight" ? 1 : TABS.length - 1)) % TABS.length];
-                history.replaceState(null, "", "#" + n);
-                showTab(n, true);
-            }
-        });
-    });
-    window.addEventListener("hashchange", () => showTab(location.hash.slice(1)));
+    window.addEventListener("hashchange", () => showTab(location.hash.slice(1), true));
 
     /* ---------- INPUT: kelas -> siswa -> profil -> form ---------- */
 

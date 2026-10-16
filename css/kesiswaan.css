@@ -483,13 +483,6 @@ body.kd-lock{overflow:hidden}
 /* ==========================================
    ADMIN
 ========================================== */
-.kd-tabs{display:flex;gap:.25rem;flex-wrap:wrap}
-.kd-tab{
-    border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:var(--font-sm);font-weight:var(--weight-bold);
-    padding:.55rem 1.1rem;border-radius:var(--radius-pill);cursor:pointer;min-height:44px;
-}
-.kd-tab[aria-selected="true"]{background:linear-gradient(135deg,var(--secondary-light),var(--secondary));color:var(--primary-dark);border-color:transparent}
-.kd-tab:focus-visible{outline:3px solid var(--secondary-light);outline-offset:2px}
 .kd-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 var(--space-lg)}
 .kd-form-grid .full{grid-column:1/-1}
 @media (max-width:760px){.kd-form-grid{grid-template-columns:minmax(0,1fr)}}
@@ -561,7 +554,10 @@ body.kd-lock{overflow:hidden}
 
 /* cetak */
 @media print{
-    .kd-badge,.kd-panel,.kd-badge-backdrop,.kd-toolbar,.kd-tabs,.kd-actions{display:none !important}
+    .kd-badge,.kd-panel,.kd-badge-backdrop,.kd-toolbar,.kd-actions{display:none !important}
     .kd-card{background:#fff !important;color:#000 !important;box-shadow:none !important;border:1px solid #bbb}
     .kd-wrap{color:#000}
 }
+
+/* Chip bagian aktif di panel admin: beri ruang di bawah navbar saat digulir otomatis */
+#adminSection{scroll-margin-top:96px}

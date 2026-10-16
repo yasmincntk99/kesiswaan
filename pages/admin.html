@@ -61,12 +61,9 @@
     <main class="kd-wrap">
 
         <div class="kd-toolbar">
-            <div class="kd-tabs" role="tablist" aria-label="Menu Komisi Disiplin">
-                <button class="kd-tab" role="tab" id="tab-input" aria-controls="panel-input" aria-selected="true" data-tab="input">Catat Pelanggaran</button>
-                <button class="kd-tab" role="tab" id="tab-data" aria-controls="panel-data" aria-selected="false" data-tab="data" tabindex="-1">Data Pelanggaran</button>
-                <button class="kd-tab" role="tab" id="tab-pembinaan" aria-controls="panel-pembinaan" aria-selected="false" data-tab="pembinaan" tabindex="-1">Perlu Pembinaan</button>
-            </div>
+            <!-- Navigasi antar bagian ada di sidebar; chip ini hanya menunjukkan bagian yang sedang dibuka. -->
             <div class="kd-chips">
+                <span class="kd-chip kd-chip--live" id="adminSection" aria-live="polite">Catat Pelanggaran</span>
                 <span class="kd-chip" id="adminMode">Memuat…</span>
                 <a class="kd-chip kd-hidden" id="sheetLink" href="#" target="_blank" rel="noopener">Buka Google Sheet ↗</a>
             </div>
@@ -75,7 +72,7 @@
         <div id="adminAlert" aria-live="polite"></div>
 
         <!-- INPUT (alur: pilih kelas -> siswa -> profil -> tambah pelanggaran) -->
-        <section id="panel-input" role="tabpanel" aria-labelledby="tab-input">
+        <section id="panel-input" aria-label="Catat Pelanggaran">
 
             <div class="kd-queue kd-hidden" id="queueBanner" role="status">
                 <span id="queueCountText">Ada 0 data antrean offline belum terkirim.</span>
@@ -179,8 +176,8 @@
         </section>
 
         <!-- DATA -->
-        <section class="kd-card kd-hidden" id="panel-data" role="tabpanel" aria-labelledby="tab-data">
-            <h2 class="kd-card-title">Data Pelanggaran</h2>
+        <section class="kd-card kd-hidden" id="panel-data" aria-labelledby="dataTitle">
+            <h2 class="kd-card-title" id="dataTitle">Data Pelanggaran</h2>
             <p class="kd-card-sub">Seluruh catatan, terbaru di atas.</p>
             <div class="kd-filters">
                 <div class="kd-field"><label class="kd-field-label" for="qText">Cari nama / NIS / jenis</label><input class="kd-input" id="qText" type="search" placeholder="Cari…"></div>
@@ -200,8 +197,8 @@
         </section>
 
         <!-- PEMBINAAN -->
-        <section class="kd-card kd-hidden" id="panel-pembinaan" role="tabpanel" aria-labelledby="tab-pembinaan">
-            <h2 class="kd-card-title">Siswa Perlu Pembinaan</h2>
+        <section class="kd-card kd-hidden" id="panel-pembinaan" aria-labelledby="pembinaanTitle">
+            <h2 class="kd-card-title" id="pembinaanTitle">Siswa Perlu Pembinaan</h2>
             <p class="kd-card-sub" id="pembinaanSub">Poin kumulatif tahun ajaran berjalan.</p>
             <div class="kd-filters" style="grid-template-columns:1fr 1fr">
                 <div class="kd-field"><label class="kd-field-label" for="minTier">Tampilkan mulai tingkat</label><select class="kd-select" id="minTier"></select></div>
