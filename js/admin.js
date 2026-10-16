@@ -10,7 +10,7 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
     const { esc, fmt, fmtDate, getJSON } = KD;
     const $ = (id) => document.getElementById(id);
 
-    const state = { v: [], siswa: [], tatib: [], tingkat: [], canWrite: false, sheetUrl: "", hariIni: "", picked: null };
+    const state = { v: [], siswa: [], tatib: [], tingkat: [], canWrite: false, sheetUrl: "", hariIni: "", picked: null, mode: "one", batch: new Set() };
     const PAGE = 25;
     let page = 1;
 
@@ -98,12 +98,14 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
             ? `<option value="">— pilih nama siswa —</option>` + siswaDiKelas(k).map((s) => `<option value="${esc(s.nis)}">${esc(s.nama)} (NIS ${esc(s.nis)})</option>`).join("")
             : `<option value="">— pilih kelas dulu —</option>`;
         $("rekapBtn").classList.toggle("kd-hidden", !k);
+        if (state.mode === "many") renderRoster();
         hideSiswa();
     }
 
     function hideSiswa() {
         state.picked = null;
         $("sectionProfil").classList.add("kd-hidden");
+        if (state.mode === "many") return renderBatch();   // form mengikuti pilihan centang
         $("sectionForm").classList.add("kd-hidden");
     }
 
@@ -162,7 +164,11 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
         ul.classList.remove("kd-hidden");
     }
     function closeSuggest() { $("qSiswaList").classList.add("kd-hidden"); }
-    function pickFromSearch(nis) { $("qSiswa").value = ""; closeSuggest(); pick(nis, true); }
+    function pickFromSearch(nis) {
+        $("qSiswa").value = ""; closeSuggest();
+        if (state.mode === "many") { addToBatch(nis); $("qSiswa").focus({ preventScroll: true }); return; }
+        pick(nis, true);
+    }
 
     $("qSiswa").addEventListener("input", renderSuggest);
     $("qSiswa").addEventListener("keydown", (e) => {
@@ -192,6 +198,7 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
     function currentTatib() { return state.tatib.find((t) => t.kode === $("fKode").value) || null; }
 
     function updatePreview() {
+        if (state.mode === "many") return renderBatchPreview();
         const box = $("preview");
         const t = currentTatib();
         $("previewPoin").textContent = `+${t ? t.poin : 0} poin`;
@@ -207,9 +214,9 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
         }
     }
 
-    function rowForSheet() {
-        const t = currentTatib(), s = state.picked;
-        return [`${$("fTanggal").value} ${new Date().toLocaleTimeString("en-GB", { timeZone: "Asia/Jakarta" })}`, s.nis, s.nama, s.kelas, t.jenis, t.poin, $("fCatatan").value || "-", t.kode, $("fSanksi").value, "admin", ""];
+    function rowForSheet(s) {
+        const t = currentTatib();
+        return [`${$("fTanggal").value} ${new Date().toLocaleTimeString("en-GB", { timeZone: "Asia/Jakarta" })}`, s.nis, s.nama, s.kelas, t.jenis, t.poin, $("fCatatan").value || "-", t.kode, $("fSanksi").value, AdminAuth.displayName() || "admin", ""];
     }
 
     function setMsg(el, text) { el.textContent = text || ""; el.hidden = !text; }
@@ -245,18 +252,114 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
     });
 
     $("copyBtn").addEventListener("click", async () => {
-        if (!state.picked || !currentTatib()) return setMsg($("formError"), "Pilih siswa dan jenis pelanggaran dulu.");
-        const text = rowForSheet().map((c) => String(c).replace(/[\t\r\n]+/g, " ")).join("\t");
-        try { await navigator.clipboard.writeText(text); setMsg($("formOk"), "Baris disalin. Tempel di baris kosong tab Input_Pelanggaran pada Google Sheet."); }
+        const many = state.mode === "many";
+        if (!currentTatib() || (many ? !state.batch.size : !state.picked)) return setMsg($("formError"), "Pilih siswa dan jenis pelanggaran dulu.");
+        const targets = many ? [...state.batch].map(siswaByNis).filter(Boolean) : [state.picked];
+        const text = targets.map((s) => rowForSheet(s).map((c) => String(c).replace(/[\t\r\n]+/g, " ")).join("\t")).join("\n");
+        try { await navigator.clipboard.writeText(text); setMsg($("formOk"), `${targets.length > 1 ? targets.length + " baris disalin" : "Baris disalin"}. Tempel di baris kosong tab Input_Pelanggaran pada Google Sheet.`); }
         catch (e) { setMsg($("formError"), "Tidak bisa menyalin otomatis. Salin manual: " + text); }
     });
+
+    /* ---- mode "Beberapa siswa": satu jenis pelanggaran untuk banyak siswa ---- */
+
+    const MAX_BATCH = 60;
+    const siswaByNis = (nis) => state.siswa.find((x) => x.nis === nis);
+
+    function setMode(mode) {
+        state.mode = mode;
+        const many = mode === "many";
+        $("modeOne").classList.toggle("is-active", !many);
+        $("modeMany").classList.toggle("is-active", many);
+        $("modeOne").setAttribute("aria-pressed", String(!many));
+        $("modeMany").setAttribute("aria-pressed", String(many));
+        $("fieldSiswa").classList.toggle("kd-hidden", many);
+        $("batchBox").classList.toggle("kd-hidden", !many);
+        $("formTitle").textContent = many ? "Langkah 2: Catat Pelanggaran untuk Siswa Terpilih" : "Langkah 2: Tambah Pelanggaran Baru";
+        $("fSanksi").placeholder = many ? "Kosongkan = otomatis sesuai tingkat tiap siswa" : "mis. Teguran lisan, Panggilan BK";
+        $("fSanksi").value = ""; $("fSanksi").dataset.auto = "";
+        setMsg($("formError")); setMsg($("formOk"));
+        hideBanner();
+        state.picked = null;
+        $("sectionProfil").classList.add("kd-hidden");
+        if (many) { renderRoster(); renderBatch(); }
+        else { state.batch.clear(); $("sectionForm").classList.add("kd-hidden"); onKelas(); }
+    }
+
+    function renderRoster() {
+        const k = $("selKelas").value, box = $("roster");
+        if (!k) { box.innerHTML = `<p class="kd-empty" style="padding:.75rem">Pilih kelas untuk menampilkan daftar siswa.</p>`; return; }
+        box.innerHTML = siswaDiKelas(k).map((s) => `
+            <label class="kd-rrow"><input type="checkbox" value="${esc(s.nis)}"${state.batch.has(s.nis) ? " checked" : ""}>
+                <span class="kd-rname">${esc(s.nama)}</span><small>NIS ${esc(s.nis)} · ${fmt(pointsOf(s.nis))} poin</small></label>`).join("")
+            || `<p class="kd-empty" style="padding:.75rem">Tidak ada siswa di kelas ini.</p>`;
+    }
+
+    function addToBatch(nis) {
+        if (!siswaByNis(nis)) return;
+        if (!state.batch.has(nis) && state.batch.size >= MAX_BATCH) return setMsg($("formError"), `Maksimal ${MAX_BATCH} siswa sekali catat.`);
+        setMsg($("formError"));
+        state.batch.add(nis);
+        renderRoster(); renderBatch();
+    }
+
+    function removeFromBatch(nis) { state.batch.delete(nis); renderRoster(); renderBatch(); }
+
+    function renderBatch() {
+        const n = state.batch.size;
+        $("batchChosen").innerHTML = n
+            ? `<div class="kd-chosen-head"><strong>${fmt(n)} siswa terpilih</strong></div>` + [...state.batch].map((nis) => {
+                const s = siswaByNis(nis);
+                return s ? `<span class="kd-pick"><span>${esc(s.nama)} <small>${esc(s.kelas)}</small></span><button type="button" data-nis="${esc(nis)}" aria-label="Hapus ${esc(s.nama)} dari pilihan">×</button></span>` : "";
+            }).join("")
+            : `<p class="kd-card-sub" style="margin:.5rem 0 0">Belum ada siswa terpilih.</p>`;
+        $("sectionForm").classList.toggle("kd-hidden", state.mode === "many" && n === 0);
+        if (state.mode === "many") updatePreview();
+    }
+
+    // Ringkasan sebelum simpan: poin sebelum → sesudah, tingkat naik ditandai.
+    function batchPlan() {
+        const t = currentTatib();
+        return [...state.batch].map(siswaByNis).filter(Boolean).map((s) => {
+            const before = pointsOf(s.nis), after = before + (t ? t.poin : 0);
+            const tb = tierOf(before), ta = tierOf(after);
+            return { s, before, after, tb, ta, naik: !!t && ta.label !== tb.label };
+        });
+    }
+
+    function renderBatchPreview() {
+        const box = $("preview"), t = currentTatib();
+        $("previewPoin").textContent = `+${t ? t.poin : 0} poin per siswa`;
+        if (!t || !state.batch.size) { box.classList.add("kd-hidden"); return; }
+        const plan = batchPlan().sort((a, z) => (z.naik - a.naik) || a.s.nama.localeCompare(z.s.nama));
+        const naik = plan.filter((p) => p.naik).length;
+        box.classList.remove("kd-hidden");
+        box.innerHTML = `<strong>${fmt(plan.length)} siswa</strong> × +${fmt(t.poin)} poin${naik ? ` · <strong>⚠️ ${fmt(naik)} siswa naik tingkat</strong>` : ""}`
+            + `<ul class="kd-plan">${plan.map((p) => `<li${p.naik ? ' class="up"' : ""}><span>${esc(p.s.nama)} <small>${esc(p.s.kelas)}</small></span><span>${fmt(p.before)} → <strong>${fmt(p.after)}</strong>${p.naik ? ` · ${esc(p.ta.label)}` : ""}</span></li>`).join("")}</ul>`;
+    }
+
+    $("modeOne").addEventListener("click", () => state.mode !== "one" && setMode("one"));
+    $("modeMany").addEventListener("click", () => state.mode !== "many" && setMode("many"));
+    $("roster").addEventListener("change", (e) => {
+        const c = e.target.closest("input[type=checkbox]");
+        if (!c) return;
+        if (c.checked) { addToBatch(c.value); if (!state.batch.has(c.value)) c.checked = false; } else removeFromBatch(c.value);
+    });
+    $("batchChosen").addEventListener("click", (e) => { const b = e.target.closest("button[data-nis]"); if (b) removeFromBatch(b.dataset.nis); });
+    $("rosterAll").addEventListener("click", () => {
+        const k = $("selKelas").value;
+        if (!k) return setMsg($("formError"), "Pilih kelas dulu.");
+        siswaDiKelas(k).forEach((s) => { if (state.batch.size < MAX_BATCH) state.batch.add(s.nis); });
+        if (siswaDiKelas(k).some((s) => !state.batch.has(s.nis))) setMsg($("formError"), `Maksimal ${MAX_BATCH} siswa sekali catat; sebagian tidak ikut terpilih.`); else setMsg($("formError"));
+        renderRoster(); renderBatch();
+    });
+    $("rosterNone").addEventListener("click", () => { state.batch.clear(); setMsg($("formError")); renderRoster(); renderBatch(); });
 
     /* ---- antrean offline (hanya NIS + kode + isian; tanpa nama siswa) ---- */
 
     function getQueue() { try { return JSON.parse(localStorage.getItem(QKEY) || "[]"); } catch (e) { return []; } }
     function setQueue(q) { try { localStorage.setItem(QKEY, JSON.stringify(q)); } catch (e) { /* penyimpanan tidak tersedia */ } renderQueue(); }
     function renderQueue() {
-        const n = getQueue().length;
+        const n = getQueue().reduce((a, q) => a + (Array.isArray(q.items) ? q.items.length : 1), 0);   // jumlah baris, bukan jumlah paket
         $("queueBanner").classList.toggle("kd-hidden", n === 0);
         document.dispatchEvent(new CustomEvent("kd:queue"));   // lencana antrean di sidebar
         $("queueCountText").textContent = `Ada ${n} data antrean offline belum terkirim.`;
@@ -293,13 +396,27 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
         e.preventDefault();
         setMsg($("formError")); setMsg($("formOk"));
         const t = currentTatib();
-        if (!state.picked) return setMsg($("formError"), "Pilih siswa terlebih dahulu.");
+        const many = state.mode === "many";
+        if (many && !state.batch.size) return setMsg($("formError"), "Centang minimal satu siswa.");
+        if (many && state.batch.size > MAX_BATCH) return setMsg($("formError"), `Maksimal ${MAX_BATCH} siswa sekali catat.`);
+        if (!many && !state.picked) return setMsg($("formError"), "Pilih siswa terlebih dahulu.");
         if (!t) return setMsg($("formError"), "Pilih jenis pelanggaran.");
         if (!$("fTanggal").value) return setMsg($("formError"), "Tanggal kejadian wajib diisi.");
         if ($("fTanggal").value > state.hariIni) return setMsg($("formError"), "Tanggal tidak boleh di masa depan.");
 
-        const item = { nis: state.picked.nis, kode: t.kode, tanggal: $("fTanggal").value, sanksi: $("fSanksi").value, catatan: $("fCatatan").value, clientId: newId() };
-        const afterSave = () => { $("inputForm").reset(); $("fTanggal").value = state.hariIni; $("fSanksi").dataset.auto = ""; updatePreview(); };
+        const plan = many ? batchPlan() : [];
+        const manualSanksi = $("fSanksi").value.trim();
+        const item = many
+            ? {
+                // Sanksi kosong = otomatis: tingkat baru tiap siswa (kecuali Pembinaan Ringan). clientId per siswa mencegah baris ganda saat kirim ulang.
+                items: plan.map((p) => ({ nis: p.s.nis, sanksi: manualSanksi || (p.ta.label !== "Pembinaan Ringan" ? p.ta.label : ""), clientId: newId() })),
+                kode: t.kode, tanggal: $("fTanggal").value, catatan: $("fCatatan").value
+            }
+            : { nis: state.picked.nis, kode: t.kode, tanggal: $("fTanggal").value, sanksi: $("fSanksi").value, catatan: $("fCatatan").value, clientId: newId() };
+        const afterSave = () => {
+            $("inputForm").reset(); $("fTanggal").value = state.hariIni; $("fSanksi").dataset.auto = "";
+            if (many) { state.batch.clear(); renderRoster(); renderBatch(); } else updatePreview();
+        };
 
         $("saveBtn").disabled = true;
         $("saveBtn").textContent = "Menyimpan…";
@@ -316,6 +433,14 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
             }
             $("copyBtn").classList.add("kd-hidden");
             await load(true);
+            if (many) {
+                const d = body.data, naik = plan.filter((p) => p.naik);
+                afterSave();
+                showSaved(`✔ ${fmt(d.count)} siswa tercatat: ${d.jenis} +${fmt(d.poin)} poin tiap siswa.`
+                    + (d.duplicates ? ` (${fmt(d.duplicates)} sudah tercatat sebelumnya, dilewati.)` : "")
+                    + (naik.length ? ` Perlu tindak lanjut: ${naik.slice(0, 6).map((p) => `${p.s.nama} (${p.ta.label})`).join(", ")}${naik.length > 6 ? ` dan ${naik.length - 6} lainnya` : ""}.` : ""), "");
+                return;
+            }
             const total = pointsOf(item.nis), tier = tierOf(total);
             afterSave();
             showSaved(`✔ Tersimpan: ${body.data.nama} (${body.data.kelas}) · ${body.data.jenis} +${body.data.poin} poin. Total kini ${fmt(total)} poin${tier ? " · " + tier.label : ""}.`, item.nis);
@@ -347,7 +472,7 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
         const slice = rows.slice((page - 1) * PAGE, page * PAGE);
         $("dataBody").innerHTML = slice.length ? slice.map((x) => `
             <tr><td>${esc(fmtDate(x.tanggal))}</td><td>${esc(x.nama)}<br><small style="opacity:.7">${esc(x.nis)}</small></td><td>${esc(x.kelas)}</td>
-            <td>${esc(x.jenis)}${x.catatan ? `<br><small style="opacity:.7">${esc(x.catatan)}</small>` : ""}</td>
+            <td>${esc(x.jenis)}${x.catatan && x.catatan !== "-" ? `<br><small style="opacity:.7">${esc(x.catatan)}</small>` : ""}${x.pencatat ? `<br><small style="opacity:.55">oleh ${esc(x.pencatat)}</small>` : ""}</td>
             <td><span class="kd-badge-cat" data-cat="${esc(x.kategori)}">${esc(x.kategori)}</span></td><td class="num">${fmt(x.poin)}</td></tr>`).join("")
             : `<tr><td colspan="6" class="kd-empty">Tidak ada data yang cocok.</td></tr>`;
         $("dataCount").textContent = `${fmt(rows.length)} catatan`;

@@ -79,7 +79,7 @@ window.Shell = (() => {
     }
 
     function queueCount() {
-        try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]").length; } catch (e) { return 0; }
+        try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]").reduce((n, q) => n + (Array.isArray(q.items) ? q.items.length : 1), 0); } catch (e) { return 0; }
     }
 
     const esc = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -155,7 +155,7 @@ window.Shell = (() => {
                     <small>${CONFIG.PROGRAM_NAME}</small>
                     <strong>${CONFIG.COMMITTEE_NAME}</strong>
                 </div>
-                <div class="gds-user"><span class="gds-dot" aria-hidden="true"></span><span>${esc(session.username || "admin")}</span><em>Komisi</em></div>
+                <div class="gds-user"><span class="gds-dot" aria-hidden="true"></span><span>${esc(session.nama || session.username || "admin")}</span><em>Komisi</em></div>
             </div>`;
 
         }

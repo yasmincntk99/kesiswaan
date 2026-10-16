@@ -53,7 +53,7 @@ window.AdminBadge = (() => {
             <div class="kd-panel-section">
                 <div class="kd-user-chip">
                     <span class="kd-user-dot" aria-hidden="true"></span>
-                    <span><strong>${escapeHtml(auth.username())}</strong><small>Sesi aktif sampai ${fmtTime(auth.expiresAt())}</small></span>
+                    <span><strong>${escapeHtml(auth.displayName())}</strong><small>Sesi aktif sampai ${fmtTime(auth.expiresAt())}</small></span>
                 </div>
                 ${auth.insecure() ? '<p class="kd-panel-warn">⚠️ Server masih memakai pengaman bawaan. Atur <code>ADMIN_PASSWORD</code> dan <code>ADMIN_SESSION_SECRET</code> di Vercel sebelum dipakai sungguhan.</p>' : ""}
                 <ul class="kd-menu">

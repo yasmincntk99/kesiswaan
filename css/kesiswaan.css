@@ -588,3 +588,35 @@ body[data-page="admin"] .header h1 span{display:inline}
 .kd-find small{color:rgba(255,255,255,.78);margin:0}
 .kd-find .kd-empty{padding:.6rem .75rem;font-size:var(--font-sm);color:rgba(255,255,255,.75)}
 #saveBanner{margin-bottom:1rem;scroll-margin-top:84px}
+
+/* ==========================================
+   CATAT BANYAK SISWA
+========================================== */
+.kd-modes{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:var(--space-md)}
+.kd-mode{
+    border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:var(--font-sm);font-weight:var(--weight-bold);
+    padding:.5rem 1rem;border-radius:var(--radius-pill);cursor:pointer;min-height:44px;
+}
+.kd-mode.is-active{background:linear-gradient(135deg,var(--secondary-light),var(--secondary));color:var(--primary-dark);border-color:transparent}
+.kd-mode:focus-visible{outline:3px solid var(--secondary-light);outline-offset:2px}
+
+.kd-roster{max-height:min(46vh,380px);overflow:auto;border:1px solid rgba(255,255,255,.22);border-radius:var(--radius-md);background:rgba(10,28,52,.35)}
+.kd-rrow{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.75rem;min-height:48px;padding:.4rem .8rem;border-bottom:1px solid rgba(255,255,255,.1);cursor:pointer}
+.kd-rrow:last-child{border-bottom:0}
+.kd-rrow:hover{background:rgba(255,255,255,.08)}
+.kd-rrow input{width:22px;height:22px;accent-color:var(--secondary)}
+.kd-rrow small{color:rgba(255,255,255,.72);white-space:nowrap}
+@media (max-width:520px){.kd-rrow{grid-template-columns:auto 1fr}.kd-rrow small{grid-column:2}}
+
+.kd-chosen{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.75rem}
+.kd-chosen-head{flex:1 0 100%}
+.kd-pick{display:inline-flex;align-items:center;gap:.4rem;padding:.15rem .2rem .15rem .75rem;border-radius:var(--radius-pill);background:rgba(50,215,75,.16);border:1px solid rgba(50,215,75,.4);font-size:var(--font-sm)}
+.kd-pick small{opacity:.75}
+.kd-pick button{width:32px;height:32px;border:0;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font:inherit;font-size:1.1rem;line-height:1;cursor:pointer}
+.kd-pick button:hover,.kd-pick button:focus-visible{background:rgba(255,105,97,.5);outline:none}
+
+.kd-plan{list-style:none;margin:.6rem 0 0;padding:0;max-height:240px;overflow:auto}
+.kd-plan li{display:flex;justify-content:space-between;gap:.75rem;padding:.35rem 0;border-bottom:1px solid rgba(255,255,255,.1);font-size:var(--font-sm)}
+.kd-plan li:last-child{border-bottom:0}
+.kd-plan li.up{color:#FFE08A}
+.kd-plan small{opacity:.7}

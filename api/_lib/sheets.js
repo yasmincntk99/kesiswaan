@@ -172,6 +172,12 @@ function rowsToObjects(rows) {
 
 /** Tambah satu baris di akhir tab. Nilai disimpan apa adanya (RAW). */
 async function appendRow(tab, values) {
+    return appendRows(tab, [values]);
+}
+
+/** Tambah banyak baris sekaligus (satu panggilan API). Nilai disimpan apa adanya (RAW). */
+async function appendRows(tab, rows) {
+    if (!rows.length) return;
     if (!canWrite()) throw Object.assign(new Error("Penulisan ke Google Sheet belum diaktifkan (service account belum diatur)."), { code: "READ_ONLY" });
 
     const token = await accessToken();
@@ -181,7 +187,7 @@ async function appendRow(tab, values) {
     const response = await fetch(url, {
         method: "POST",
         headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
-        body: JSON.stringify({ values: [values] })
+        body: JSON.stringify({ values: rows })
     });
 
     if (!response.ok) {
@@ -191,4 +197,4 @@ async function appendRow(tab, values) {
     }
 }
 
-module.exports = { mode, canWrite, sheetUrl, readTab, rowsToObjects, appendRow, diagnostics };
+module.exports = { mode, canWrite, sheetUrl, readTab, rowsToObjects, appendRow, appendRows, diagnostics };

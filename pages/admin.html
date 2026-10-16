@@ -93,6 +93,10 @@
                     <h2 class="kd-card-title" style="margin:0">Langkah 1: Pilih Siswa</h2>
                     <button type="button" class="kd-btn kd-btn--sm kd-hidden" id="rekapBtn">Lihat rekap kelas</button>
                 </div>
+                <div class="kd-modes" role="group" aria-label="Jumlah siswa yang dicatat">
+                    <button type="button" class="kd-mode is-active" id="modeOne" aria-pressed="true">Satu siswa</button>
+                    <button type="button" class="kd-mode" id="modeMany" aria-pressed="false">Beberapa siswa sekaligus</button>
+                </div>
                 <div class="kd-form-grid">
                     <div class="kd-field full kd-find-wrap">
                         <label class="kd-field-label" for="qSiswa">Cari cepat: ketik nama atau NIS siswa</label>
@@ -103,10 +107,23 @@
                         <label class="kd-field-label" for="selKelas">Atau pilih lewat kelas</label>
                         <select class="kd-select" id="selKelas"><option value="">Memuat…</option></select>
                     </div>
-                    <div class="kd-field">
+                    <div class="kd-field" id="fieldSiswa">
                         <label class="kd-field-label" for="selSiswa">Nama / NIS siswa</label>
                         <select class="kd-select" id="selSiswa" disabled><option value="">— pilih kelas dulu —</option></select>
                     </div>
+                </div>
+
+                <!-- Mode "Beberapa siswa": centang dari daftar kelas dan/atau tambah lewat pencarian -->
+                <div id="batchBox" class="kd-hidden">
+                    <div class="kd-toolbar" style="margin:.5rem 0">
+                        <span class="kd-card-sub" id="rosterHint" style="margin:0">Pilih kelas, lalu centang siswa. Siswa dari kelas lain bisa ditambah lewat kolom cari.</span>
+                        <div class="kd-actions">
+                            <button type="button" class="kd-btn kd-btn--sm" id="rosterAll">Pilih semua kelas ini</button>
+                            <button type="button" class="kd-btn kd-btn--sm" id="rosterNone">Kosongkan pilihan</button>
+                        </div>
+                    </div>
+                    <div class="kd-roster" id="roster" role="group" aria-label="Daftar siswa kelas"></div>
+                    <div class="kd-chosen" id="batchChosen" aria-live="polite"></div>
                 </div>
             </div>
 
@@ -136,7 +153,7 @@
             </div>
 
             <div class="kd-card kd-hidden" id="sectionForm" style="margin-top:1rem">
-                <h2 class="kd-card-title">Langkah 2: Tambah Pelanggaran Baru</h2>
+                <h2 class="kd-card-title" id="formTitle">Langkah 2: Tambah Pelanggaran Baru</h2>
                 <p class="kd-card-sub">Kategori dan poin diambil dari Master Pelanggaran.</p>
 
                 <form id="inputForm" novalidate>

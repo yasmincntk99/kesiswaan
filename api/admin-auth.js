@@ -24,18 +24,28 @@ Environment Variable di Vercel -- nilainya mengambil alih default:
 Selama ADMIN_SESSION_SECRET kosong, respons login membawa
 "insecureDefaults: true" dan panel admin menampilkan peringatan.
 
-Pembatas tebak password: maksimal 5 gagal per IP per 10 menit
+AKUN PER GURU (opsional): tab "Pengguna" di Google Sheet
+  Username | Nama | Password | Aktif | Peran
+Nama guru itulah yang dicatat di kolom Pencatat. Tab dibaca hanya di
+mode service account (tidak pernah lewat jalur publik, karena memuat
+password). Akun ADMIN_USERNAME / ADMIN_PASSWORD tetap berlaku sebagai
+akun cadangan. Password di sheet boleh teks biasa atau "sha256:<hex>".
+Akun yang dinonaktifkan di sheet tetap bisa memakai token yang sudah
+terbit sampai kedaluwarsa (maks. 8 jam); sesi baru langsung ditolak.
+
+Pembatas tebak password: maksimal 5 gagal per IP + username per 10 menit
 (Upstash kalau UPSTASH_REDIS_REST_* terisi, kalau tidak di memori).
 
 POST body  : { "username": "...", "password": "..." }
-POST respon: 200 { success, token, expiresAt, username, insecureDefaults }
+POST respon: 200 { success, token, expiresAt, username, nama, peran, insecureDefaults }
              401 salah | 429 terlalu banyak percobaan
 GET header : Authorization: Bearer <token>
-GET respon : 200 { valid: true, username, expiresAt } | 401 { valid: false }
+GET respon : 200 { valid: true, username, nama, peran, expiresAt } | 401 { valid: false }
 ==========================================================
 */
 
 const crypto = require("crypto");
+const sheets = require("./_lib/sheets");
 
 const TTL_SECONDS = 8 * 60 * 60;
 const MAX_FAILS = 5;
@@ -88,6 +98,49 @@ function passwordMatches(password) {
     const expected = Buffer.from(DEFAULT_PASSWORD_HASH, "hex");
 
     return given.length === expected.length && crypto.timingSafeEqual(given, expected);
+
+}
+
+/* ==========================================
+   AKUN PER GURU (tab "Pengguna")
+========================================== */
+
+const INACTIVE = ["tidak", "nonaktif", "non-aktif", "no", "n", "false", "0", "off"];
+const DUMMY_PASSWORD = "tidak-ada-akun-" + DEFAULT_PASSWORD_HASH.slice(0, 16);
+
+async function loadUsers() {
+
+    // Tab ini memuat password: hanya dibaca lewat service account, tidak pernah lewat gviz publik.
+    if (sheets.mode() !== "service-account") return [];
+
+    try {
+
+        const rows = await sheets.readTab("Pengguna");
+
+        return rows.slice(1).map((r) => ({
+            username: String(r[0] || "").trim(),
+            nama: String(r[1] || "").trim(),
+            password: String(r[2] || "").trim(),
+            aktif: !INACTIVE.includes(String(r[3] || "").trim().toLowerCase()),
+            peran: String(r[4] || "").trim().toLowerCase() || "komisi"
+        })).filter((u) => u.username && u.password && u.aktif);
+
+    } catch (e) {
+
+        console.warn("Tab Pengguna tidak terbaca (memakai akun cadangan saja):", e.message);
+        return [];
+
+    }
+
+}
+
+function sheetPasswordMatches(stored, given) {
+
+    const m = /^sha256:([0-9a-f]{64})$/i.exec(stored);
+
+    if (m) return crypto.timingSafeEqual(sha(given), Buffer.from(m[1], "hex"));
+
+    return safeEqual(given, stored);
 
 }
 
@@ -153,7 +206,7 @@ function verifyAdmin(req) {
         return { ok: false, configured: true };
     }
 
-    return { ok: true, configured: true, username: payload.u, expiresAt: payload.exp };
+    return { ok: true, configured: true, username: payload.u, nama: payload.n || payload.u, peran: payload.r || "komisi", expiresAt: payload.exp };
 
 }
 
@@ -249,7 +302,13 @@ async function handleLogin(req, res) {
 
     const adminUser = adminUsername();
 
-    const key = "kesiswaan-adminfail:" + clientIp(req);
+    const body = readBody(req);
+    const username = String(body.username || "").trim();
+    const password = String(body.password || "");
+    const uname = username.toLowerCase();
+
+    // per IP + username: satu guru yang salah ketik tidak mengunci guru lain di Wi-Fi sekolah yang sama
+    const key = "kesiswaan-adminfail:" + clientIp(req) + ":" + uname.slice(0, 64);
 
     if ((await getFails(key)) >= MAX_FAILS) {
         return res.status(429).json({
@@ -258,15 +317,26 @@ async function handleLogin(req, res) {
         });
     }
 
-    const body = readBody(req);
-    const username = String(body.username || "").trim();
-    const password = String(body.password || "");
-
     // keduanya selalu dihitung (tanpa short-circuit) supaya waktu respons seragam
-    const userOk = safeEqual(username, adminUser);
+    const userOk = safeEqual(uname, adminUser.toLowerCase());
     const passOk = passwordMatches(password);
 
-    if (!(userOk && passOk)) {
+    let account = null;
+
+    if (userOk && passOk) {
+
+        account = { username: adminUser, nama: process.env.ADMIN_NAME || adminUser, peran: "komisi" };
+
+    } else {
+
+        const user = (await loadUsers()).find((u) => u.username.toLowerCase() === uname);
+        const ok = sheetPasswordMatches(user ? user.password : DUMMY_PASSWORD, password);
+
+        if (user && ok) account = { username: user.username, nama: user.nama || user.username, peran: user.peran };
+
+    }
+
+    if (!account) {
 
         await addFail(key);
         await new Promise((resolve) => setTimeout(resolve, 500));
@@ -282,9 +352,11 @@ async function handleLogin(req, res) {
 
     return res.status(200).json({
         success: true,
-        token: signToken({ u: adminUser, iat: now, exp }),
+        token: signToken({ u: account.username, n: account.nama, r: account.peran, iat: now, exp }),
         expiresAt: exp,
-        username: adminUser,
+        username: account.username,
+        nama: account.nama,
+        peran: account.peran,
         insecureDefaults: insecureDefaults()
     });
 
@@ -298,7 +370,7 @@ function handleVerify(req, res) {
         return res.status(401).json({ valid: false });
     }
 
-    return res.status(200).json({ valid: true, username: result.username, expiresAt: result.expiresAt, insecureDefaults: insecureDefaults() });
+    return res.status(200).json({ valid: true, username: result.username, nama: result.nama, peran: result.peran, expiresAt: result.expiresAt, insecureDefaults: insecureDefaults() });
 
 }
 

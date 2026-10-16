@@ -55,6 +55,7 @@ Fetch ke /api/pelanggaran otomatis membawa token itu.
     const isLoggedIn = () => !!readSession();
     const getToken = () => (readSession() || {}).token || "";
     const username = () => (readSession() || {}).username || "";
+    const displayName = () => { const s = readSession() || {}; return s.nama || s.username || ""; };
     const expiresAt = () => (readSession() || {}).exp || 0;
     const insecure = () => !!(readSession() || {}).insecure;
 
@@ -82,7 +83,7 @@ Fetch ke /api/pelanggaran otomatis membawa token itu.
             try { result = await r.json(); } catch (e) { /* bukan JSON */ }
 
             if (r.ok && result.success && result.token) {
-                saveSession({ token: result.token, exp: result.expiresAt, username: result.username, insecure: !!result.insecureDefaults });
+                saveSession({ token: result.token, exp: result.expiresAt, username: result.username, nama: result.nama || result.username, peran: result.peran || "komisi", insecure: !!result.insecureDefaults });
                 document.dispatchEvent(new CustomEvent("adminauth:change"));
                 return { ok: true, insecure: !!result.insecureDefaults };
             }
@@ -300,7 +301,7 @@ Fetch ke /api/pelanggaran otomatis membawa token itu.
         else run();
     }
 
-    window.AdminAuth = { login, openLogin, buildLoginForm, isLoggedIn, getToken, username, expiresAt, insecure, logout, verify };
+    window.AdminAuth = { login, openLogin, buildLoginForm, isLoggedIn, getToken, username, displayName, expiresAt, insecure, logout, verify };
 
     if (requirePage) startPageGuard();
 
