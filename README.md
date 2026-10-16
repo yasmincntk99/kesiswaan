@@ -7,7 +7,7 @@ Portal Gerakan Disiplin Sekolah (GDS) — kesiswaan & kedisiplinan siswa SMAN 1 
 - **Cek Poin Siswa**: lihat poin & riwayat dengan NIS.
 - **Tata Tertib & Sanksi**: daftar pelanggaran, poin, tingkat pembinaan.
 - **Floating badge "Komisi Disiplin"** di semua halaman → panel masuk Komisi Disiplin Sekolah, menu kerja, dan toggle mode gelap/terang.
-- **Panel Komisi Disiplin** (`/pages/admin`): alur Kelas → Siswa → profil (foto, poin, riwayat) → input pelanggaran, rekap per kelas, antrean offline (kirim otomatis saat online, tanpa data ganda), data pelanggaran (filter + CSV), siswa perlu pembinaan.
+- **Panel Komisi Disiplin** (`/pages/admin`): alur Kelas → Siswa → profil (foto, poin, riwayat) → input pelanggaran, rekap per kelas, **catat massal** (satu pelanggaran untuk beberapa siswa sekaligus, maks 60, satu kali tulis tanpa data setengah masuk), antrean offline (kirim otomatis saat online, tanpa data ganda), data pelanggaran (filter + CSV), siswa perlu pembinaan.
 
 ## Menjalankan lokal
 ```bash
@@ -22,6 +22,7 @@ Sama dengan skema Apps Script sebelumnya (dibaca per posisi kolom, baris 1 = hea
 |-----|-------|
 | `Data_Siswa` | NIS \| Nama \| Kelas \| Foto (https / link Drive) |
 | `Master_Pelanggaran` | Kode \| Nama \| Poin \| Kategori (opsional) |
+| `Pengguna` | Username \| Nama \| Password \| Aktif \| Peran (akun per guru; opsional) |
 | `Input_Pelanggaran` | Timestamp \| NIS \| Nama \| Kelas \| Jenis \| Poin \| Keterangan \| Kode \| Sanksi \| Pencatat \| ClientID |
 
 Kolom A–G `Input_Pelanggaran` kompatibel dengan Apps Script lama; H–K ditambahkan portal. Atur *Locale* spreadsheet ke Indonesia (dd/mm/yyyy).
@@ -39,6 +40,10 @@ Username `adminkesiswaan`. Password diperiksa **di server** (`/api/admin-auth`) 
 - `ADMIN_PASSWORD` — password Komisi Disiplin
 - `ADMIN_SESSION_SECRET` — string acak panjang untuk menandatangani token
 - `ADMIN_USERNAME` — (opsional)
+- `ADMIN_NAME` — (opsional) nama tampilan akun env pada kolom Pencatat
+
+### Akun per guru (tab `Pengguna`)
+Hanya dibaca pada mode service account. Satu baris per guru: `Username | Nama | Password | Aktif | Peran`. Kolom **Pencatat** di `Input_Pelanggaran` berisi *Nama* guru yang login. Password boleh teks biasa atau `sha256:<hex>`; format kolom Password sebagai teks biasa dan jaga sheet tetap *Restricted*. Aktif berisi `tidak`/`nonaktif`/`0` untuk menonaktifkan (login baru ditolak; sesi berjalan berakhir paling lama 8 jam). Kolom Peran belum dipakai untuk membatasi akses. Akun dari env tetap berlaku sebagai cadangan.
 
 Data siswa bersifat sensitif: jangan membuka Google Sheet secara publik; gunakan mode service account.
 
