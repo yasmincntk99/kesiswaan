@@ -264,7 +264,7 @@ function aggregate(violations, siswa, periode) {
 }
 
 module.exports = {
-    todayWIB, normDate, cleanNIS, num,
+    todayWIB, normDate, cleanNIS, cleanWA, num,
     loadTatib, loadSiswa, loadPelanggaran,
     tingkatFor, aggregate, tatib: tatibFile,
     academicYearStart, academicYearLabel, periodRange

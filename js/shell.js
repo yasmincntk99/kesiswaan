@@ -51,7 +51,8 @@ window.Shell = (() => {
             links: [
                 { key: "admin-input", tab: "input", label: "Catat Pelanggaran", href: "/pages/admin.html#input", icon: "✍️", queue: true },
                 { key: "admin-data", tab: "data", label: "Data Pelanggaran", href: "/pages/admin.html#data", icon: "🗂️" },
-                { key: "admin-pembinaan", tab: "pembinaan", label: "Perlu Pembinaan", href: "/pages/admin.html#pembinaan", icon: "🛡️" }
+                { key: "admin-pembinaan", tab: "pembinaan", label: "Perlu Pembinaan", href: "/pages/admin.html#pembinaan", icon: "🛡️" },
+                { key: "admin-ringkasan", tab: "ringkasan", label: "Ringkasan Harian", href: "/pages/admin.html#ringkasan", icon: "📋" }
             ]
         },
         {
@@ -677,14 +678,14 @@ window.Shell = (() => {
 
         navMount.innerHTML = navbarHTML();
 
+        // Tab awal di halaman admin mengikuti hash URL (harus sebelum sidebar dibangun agar menu aktif benar).
+        if (activePage() === "admin" && /^#(input|data|pembinaan|ringkasan)$/.test(location.hash)) adminTab = location.hash.slice(1);
+
         const { overlay, sidebar } = buildLayout(navMount);
 
         renderFooter();
 
         document.body.classList.toggle("is-admin-mode", !!adminSession());
-
-        // Tab awal di halaman admin mengikuti hash URL.
-        if (activePage() === "admin" && /^#(input|data|pembinaan)$/.test(location.hash)) adminTab = location.hash.slice(1);
 
         wireSidebarToggle(overlay, sidebar);
         wireSidebarBody();

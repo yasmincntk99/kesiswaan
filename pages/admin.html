@@ -226,6 +226,18 @@
             <div class="kd-pager"><span id="pageInfo"></span><div class="kd-actions"><button type="button" class="kd-btn kd-btn--sm" id="prevPage">‹ Sebelumnya</button><button type="button" class="kd-btn kd-btn--sm" id="nextPage">Berikutnya ›</button></div></div>
         </section>
 
+        <!-- RINGKASAN HARIAN -->
+        <section class="kd-card kd-hidden" id="panel-ringkasan" aria-labelledby="ringkasanTitle">
+            <h2 class="kd-card-title" id="ringkasanTitle">Ringkasan Harian</h2>
+            <p class="kd-card-sub" id="ringkasanSub">Dihitung saat halaman dibuka dari data terbaru.</p>
+            <div class="kd-actions" style="margin-bottom:1rem">
+                <button type="button" class="kd-btn kd-btn--primary" id="rkWa">💬 Kirim ringkasan ke WhatsApp</button>
+                <button type="button" class="kd-btn" id="rkCopy">Salin teks</button>
+                <button type="button" class="kd-btn" id="rkRefresh">Muat ulang</button>
+            </div>
+            <div id="ringkasanBody"><p class="kd-empty">Memuat…</p></div>
+        </section>
+
         <!-- PEMBINAAN -->
         <section class="kd-card kd-hidden" id="panel-pembinaan" aria-labelledby="pembinaanTitle">
             <h2 class="kd-card-title" id="pembinaanTitle">Siswa Perlu Pembinaan</h2>

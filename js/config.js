@@ -29,6 +29,7 @@ window.CONFIG = {
         PELANGGARAN: "/api/pelanggaran",
         PEMBINAAN: "/api/pembinaan",
         SURAT: "/api/surat",
+        RINGKASAN: "/api/ringkasan",
         ADMIN_AUTH: "/api/admin-auth"
     },
 

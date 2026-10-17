@@ -620,3 +620,6 @@ body[data-page="admin"] .header h1 span{display:inline}
 .kd-plan li:last-child{border-bottom:0}
 .kd-plan li.up{color:#FFE08A}
 .kd-plan small{opacity:.7}
+
+/* Ringkasan harian */
+.kd-list{margin:.4rem 0 1rem;padding-left:1.2rem}.kd-list li{margin:.4rem 0;line-height:1.45}

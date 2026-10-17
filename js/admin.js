@@ -53,8 +53,8 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
     // Tidak ada tombol tab di halaman: menu "Catat Pelanggaran / Data Pelanggaran /
     // Perlu Pembinaan" ada di sidebar (js/shell.js) dan memakai hash URL.
 
-    const TABS = ["input", "data", "pembinaan"];
-    const TAB_LABEL = { input: "Catat Pelanggaran", data: "Data Pelanggaran", pembinaan: "Perlu Pembinaan" };
+    const TABS = ["input", "data", "pembinaan", "ringkasan"];
+    const TAB_LABEL = { input: "Catat Pelanggaran", data: "Data Pelanggaran", pembinaan: "Perlu Pembinaan", ringkasan: "Ringkasan Harian" };
 
     function showTab(name, scroll) {
         if (!TABS.includes(name)) name = "input";
@@ -63,6 +63,7 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
         document.dispatchEvent(new CustomEvent("kd:tab", { detail: { tab: name } }));   // sidebar menyorot menu aktif
         if (name === "data") renderData();
         if (name === "pembinaan") renderPembinaan();
+        if (name === "ringkasan") loadRingkasan();
         if (scroll) document.querySelector("main").scrollIntoView({ block: "start", behavior: "smooth" });
     }
 
@@ -597,6 +598,61 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
         } finally {
             b.disabled = false; b.textContent = label;
         }
+    });
+
+    /* ---------- RINGKASAN HARIAN & CEK DATA ---------- */
+
+    let rk = null;
+
+    function rkList(rows, empty) {
+        return rows.length ? `<ul class="kd-list">${rows.map((p) => `<li><strong>${esc(p.nama)}</strong> (${esc(p.kelas)}) · ${esc(p.tingkat)} · ${fmt(p.poin)} poin · <em>${esc(p.status.toLowerCase())}</em>${p.hari !== undefined ? ` · ${fmt(p.hari)} hari sejak naik tingkat` : ""}</li>`).join("")}</ul>` : `<p class="kd-card-sub">${empty}</p>`;
+    }
+
+    function renderRingkasan() {
+        if (!rk) return;
+        const h = rk.hitung, c = rk.cek;
+        const stat = (n, label) => `<div class="kd-card" style="margin:0;text-align:center"><strong style="font-size:1.6rem">${fmt(n)}</strong><br><small>${label}</small></div>`;
+        const issue = (n, label, detail) => `<li><strong>${fmt(n)}</strong> ${label}${n && detail ? `<br><small style="opacity:.8">${detail}</small>` : ""}</li>`;
+        const names = (a, f) => a.slice(0, 8).map(f).join(", ") + (a.length > 8 ? " …" : "");
+        $("ringkasanSub").textContent = `Data per ${fmtDate(rk.hariIni)} · dihitung saat halaman dibuka`;
+        $("ringkasanBody").innerHTML = `
+            <div class="kd-filters" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
+                ${stat(h.hariIni, "pelanggaran hari ini")}${stat(h.tujuhHari, "7 hari terakhir")}${stat(h.perluTindakLanjut, "perlu tindak lanjut")}${stat(h.terlambat, "terlambat ditangani")}
+            </div>
+            <h3 class="kd-card-title" style="font-size:1rem">Perlu segera ditindaklanjuti</h3>
+            ${rkList(rk.terlambat, "Tidak ada. Belum ditangani &gt; 3 hari atau surat dikirim &gt; 7 hari tanpa pemanggilan akan tampil di sini.")}
+            <h3 class="kd-card-title" style="font-size:1rem">Baru naik tingkat (2 hari terakhir)</h3>
+            ${rkList(rk.baru, "Tidak ada siswa baru naik tingkat.")}
+            <h3 class="kd-card-title" style="font-size:1rem">Cek data</h3>
+            <ul class="kd-list">
+                ${issue(c.nisGanda.length, "NIS ganda di Data_Siswa", names(c.nisGanda, (x) => `${esc(x.nis)} (baris ${x.baris.join(", ")})`))}
+                ${issue(c.tanpaKelasAtauNis, "baris siswa tanpa NIS atau kelas", "Periksa tab Data_Siswa.")}
+                ${issue(c.waSalah.length, "nomor WA orang tua salah format", names(c.waSalah, (x) => `${esc(x.nama)} (baris ${x.baris})`))}
+                ${issue(c.pelanggaranNisTakDikenal.length, "NIS di pelanggaran tidak ada di Data_Siswa", names(c.pelanggaranNisTakDikenal, (x) => `${esc(x.nama)} (${esc(x.nis)})`))}
+                ${issue(c.perluTanpaWa.length, "siswa perlu tindak lanjut belum punya nomor WA", names(c.perluTanpaWa, (x) => `${esc(x.nama)} (${esc(x.kelas)})`))}
+            </ul>
+            <p class="kd-card-sub">Tidak ada isu jika semua angka di atas 0. Perbaikan dilakukan di Google Sheet; muat ulang halaman ini untuk memeriksa lagi.</p>`;
+    }
+
+    async function loadRingkasan() {
+        $("ringkasanBody").innerHTML = `<p class="kd-empty">Memuat…</p>`;
+        try {
+            const res = await getJSON(CONFIG.API.RINGKASAN);
+            rk = res.data;
+            renderRingkasan();
+        } catch (e) {
+            if (e.status === 401) { AdminAuth.logout(); location.reload(); return; }
+            rk = null;
+            $("ringkasanBody").innerHTML = `<div class="kd-card kd-error" role="alert"><strong>Ringkasan belum dapat dimuat.</strong> ${esc(e.message)}</div>`;
+        }
+    }
+
+    $("rkRefresh").addEventListener("click", loadRingkasan);
+    // WhatsApp dibuka di perangkat guru yang sedang login; guru memilih grup/nomor tujuan lalu menekan Kirim sendiri.
+    $("rkWa").addEventListener("click", () => { if (rk) window.open("https://wa.me/?text=" + encodeURIComponent(rk.pesan), "_blank"); });
+    $("rkCopy").addEventListener("click", async () => {
+        if (!rk) return;
+        try { await navigator.clipboard.writeText(rk.pesan); $("rkCopy").textContent = "Tersalin ✔"; setTimeout(() => { $("rkCopy").textContent = "Salin teks"; }, 1800); } catch (e) { /* abaikan */ }
     });
 
     async function loadPembinaan() {
