@@ -650,3 +650,6 @@ body[data-page="admin"] .header h1 span{display:inline}
 #panel-pembinaan .kd-filters{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
 /* Pilihan periode di beranda: boleh turun baris, tidak terpotong */
 @media (max-width:520px){.kd-seg{flex-wrap:wrap;border-radius:var(--radius-md)}}
+
+/* Lencana melayang tidak menutupi bagian paling bawah halaman di HP */
+@media (max-width:760px){ #shellFooter{padding-bottom:84px} }
