@@ -303,6 +303,93 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
         renderRoster(); renderBatch();
     }
 
+    /* ---------- Asisten AI: kalimat -> usulan (guru yang memeriksa & menyimpan) ---------- */
+    const aiPick = {};      // kode siswa (S1..) -> NIS terpilih
+    let aiData = null;
+
+    function aiMsg(t) { const m = $("aiMsg"); m.textContent = t || ""; m.classList.toggle("kd-hidden", !t); }
+
+    function renderAi() {
+        const d = aiData, box = $("aiOut");
+        if (!d) { box.innerHTML = ""; return; }
+        if (!d.mentions.length) { box.innerHTML = `<p class="kd-empty">${esc(d.pesan || "Tidak ada nama siswa yang cocok.")}</p>`; return; }
+        const nameOf = (m) => {
+            const nis = aiPick[m.id];
+            const c = m.kandidat.find((x) => x.nis === nis);
+            return c ? `${esc(c.nama)} (${esc(c.kelas)})` : null;
+        };
+        const names = d.mentions.map((m) => {
+            if (m.status === "ok") return `<li>✔ “${esc(m.teks)}” → <strong>${nameOf(m)}</strong></li>`;
+            if (m.status === "ambigu") return `<li>❓ “${esc(m.teks)}” cocok dengan beberapa siswa — pilih:
+                <select class="kd-select" data-mid="${m.id}" style="max-width:100%"><option value="">— pilih siswa —</option>${m.kandidat.map((c) => `<option value="${esc(c.nis)}"${aiPick[m.id] === c.nis ? " selected" : ""}>${esc(c.nama)} (${esc(c.kelas)})</option>`).join("")}</select></li>`;
+            return `<li>⚠ “${esc(m.teks)}” terlalu umum. Tambahkan kelas atau nama lengkap.</li>`;
+        }).join("");
+        const groups = d.kelompok.map((g, i) => {
+            const who = g.siswa.map((id) => { const m = d.mentions.find((x) => x.id === id); return m && (nameOf(m) || `<em>${esc(m.teks)} (belum dipilih)</em>`); }).filter(Boolean).join(", ");
+            const jenis = g.kode
+                ? `<strong>${esc(g.jenis)}</strong> <small>(+${fmt(g.poin)} poin)</small><input type="hidden" data-g="${i}" data-f="kode" value="${esc(g.kode)}">`
+                : `<select class="kd-select" data-g="${i}" data-f="kode"><option value="">— AI belum yakin, pilih jenis —</option>${state.tatib.map((t) => `<option value="${esc(t.kode)}">[${esc(t.kode)}] ${esc(t.jenis)} (+${t.poin})</option>`).join("")}</select>`;
+            return `<div class="kd-card" style="margin-top:.6rem;padding:.8rem">
+                <div>${jenis}</div>
+                <div style="margin:.35rem 0;font-size:var(--font-sm)">Siswa: ${who}</div>
+                <div class="kd-form-grid">
+                    <div class="kd-field"><label class="kd-field-label">Tanggal</label><input class="kd-input" type="date" data-g="${i}" data-f="tanggal" max="${new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" })}" value="${esc(g.tanggal)}"></div>
+                    <div class="kd-field"><label class="kd-field-label">Keterangan</label><input class="kd-input" type="text" maxlength="120" data-g="${i}" data-f="catatan" value="${esc(g.catatan)}"></div>
+                </div>
+                <div class="kd-actions" style="margin-top:.5rem"><button type="button" class="kd-btn kd-btn--sm kd-btn--primary" data-apply="${i}">Isi form dengan ini</button></div>
+            </div>`;
+        }).join("");
+        const sisa = d.tanpaJenis.length ? `<p class="kd-card-sub">Belum ada jenis pelanggaran untuk: ${d.tanpaJenis.map((id) => esc((d.mentions.find((m) => m.id === id) || {}).teks)).join(", ")}. Catat manual atau tulis ulang kalimatnya.</p>` : "";
+        const lain = d.belumTercocok.length ? `<p class="kd-card-sub">Nama tidak dikenali: ${d.belumTercocok.map(esc).join(", ")}.</p>` : "";
+        box.innerHTML = `<ul style="list-style:none;padding:0;margin:.8rem 0 0;display:grid;gap:.4rem;font-size:var(--font-sm)">${names}</ul>${groups || `<p class="kd-empty">AI tidak menemukan jenis pelanggaran pada kalimat itu.</p>`}${sisa}${lain}`;
+    }
+
+    $("aiRun").addEventListener("click", async () => {
+        const teks = $("aiTeks").value.trim();
+        if (teks.length < 5) return aiMsg("Tulis kalimatnya dulu.");
+        const btn = $("aiRun");
+        btn.disabled = true; btn.textContent = "Memproses…"; aiMsg("");
+        try {
+            const r = await fetch(CONFIG.API.AI_CATAT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ teks }) });
+            const body = await r.json().catch(() => ({}));
+            if (r.status === 401) { AdminAuth.logout(); location.reload(); return; }
+            if (!r.ok || body.success === false) throw new Error(body.message || `Gagal (HTTP ${r.status}).`);
+            aiData = body.data;
+            Object.keys(aiPick).forEach((k) => delete aiPick[k]);
+            aiData.mentions.forEach((m) => { if (m.status === "ok") aiPick[m.id] = m.kandidat[0].nis; });
+            renderAi();
+        } catch (e) { aiMsg(e.message); }
+        finally { btn.disabled = false; btn.textContent = "Terjemahkan"; }
+    });
+
+    $("aiOut").addEventListener("change", (e) => {
+        const sel = e.target.closest("select[data-mid]");
+        if (sel) { aiPick[sel.dataset.mid] = sel.value; renderAi(); }
+    });
+
+    $("aiOut").addEventListener("click", (e) => {
+        const b = e.target.closest("button[data-apply]");
+        if (!b || !aiData) return;
+        const i = Number(b.dataset.apply), g = aiData.kelompok[i];
+        const f = (name) => $("aiOut").querySelector(`[data-g="${i}"][data-f="${name}"]`).value;
+        const kode = f("kode");
+        if (!kode) return aiMsg("Pilih jenis pelanggaran untuk kelompok ini.");
+        const nisList = g.siswa.map((id) => aiPick[id]).filter(Boolean);
+        if (nisList.length < g.siswa.length) return aiMsg("Pilih dulu siswa yang masih bertanda ❓.");
+        aiMsg("");
+        setMode("many");
+        state.batch.clear();
+        nisList.forEach(addToBatch);
+        $("fKode").value = kode;
+        $("fTanggal").value = f("tanggal") || $("fTanggal").value;
+        $("fCatatan").value = f("catatan") || "";
+        $("fKode").dispatchEvent(new Event("change"));
+        renderRoster(); renderBatch();
+        $("sectionForm").classList.remove("kd-hidden");
+        setMsg($("formOk"), "Form terisi dari kalimat Anda. Periksa siswa, jenis, dan tanggal, lalu tekan Simpan.");
+        $("sectionForm").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
     function removeFromBatch(nis) { state.batch.delete(nis); renderRoster(); renderBatch(); }
 
     function renderBatch() {

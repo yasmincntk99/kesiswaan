@@ -87,6 +87,21 @@
                 </div>
             </div>
 
+            <!-- Asisten AI: kalimat biasa -> usulan catatan (tidak menulis ke Sheet; guru memeriksa & menyimpan sendiri) -->
+            <div class="kd-card" id="aiCard" style="margin-bottom:1rem">
+                <h2 class="kd-card-title" style="margin:0 0 .25rem">✨ Catat lewat kalimat (AI)</h2>
+                <p class="kd-card-sub" style="margin:0 0 .75rem">Tulis seperti bicara, mis. <em>“Rizky X-1 dan Dina XI-2 terlambat 15 menit, Budi X-3 tidak pakai dasi”</em>. Nama siswa dicocokkan di server dan disandikan sebelum ke AI; hasilnya hanya mengisi form untuk Anda periksa.</p>
+                <div class="kd-field full">
+                    <label class="kd-field-label" for="aiTeks">Kalimat pelanggaran</label>
+                    <textarea class="kd-textarea" id="aiTeks" rows="2" maxlength="600" placeholder="mis. Rizky X-1 dan Dina XI-2 terlambat 15 menit"></textarea>
+                </div>
+                <div class="kd-actions" style="margin-top:.6rem">
+                    <button type="button" class="kd-btn kd-btn--primary" id="aiRun">Terjemahkan</button>
+                </div>
+                <p class="kd-form-error kd-hidden" id="aiMsg" role="alert" style="margin-top:.6rem"></p>
+                <div id="aiOut" aria-live="polite"></div>
+            </div>
+
             <div class="kd-card" id="sectionPilih">
                 <div class="kd-toolbar" style="margin-bottom:.75rem">
                     <h2 class="kd-card-title" style="margin:0">Langkah 1: Pilih Siswa</h2>
