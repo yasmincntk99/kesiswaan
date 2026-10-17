@@ -52,7 +52,7 @@ module.exports = async (req, res) => {
             if (!s || !rows.length) return res.status(404).send(page(404, "Surat tidak ditemukan", "Data untuk surat ini tidak ditemukan. Silakan hubungi SMAN 1 Sooko."));
 
             const poin = rows.reduce((t, x) => t + x.poin, 0);
-            return res.status(200).send(S.letterHTML({ nis: s.nis, nama: s.nama, kelas: s.kelas, rows, poin, t: K.tingkatFor(poin), today: issued, ayLabel: K.academicYearLabel(start) }));
+            return res.status(200).send(S.letterHTML({ nis: s.nis, nama: s.nama, kelas: s.kelas, rows, poin, t: K.tingkatFor(poin), today: issued, ayLabel: K.academicYearLabel(start), jadwal: claim.j ? { d: claim.j.d, w: claim.j.w, r: claim.j.r } : null }));   // jadwal ikut tertandatangani di token
         }
 
         if (req.method === "POST") {
@@ -73,6 +73,9 @@ module.exports = async (req, res) => {
             const t = K.tingkatFor(poin);
             if (K.tatib.tingkat.indexOf(t) < 1) return res.status(400).json({ success: false, message: `Poin ${s.nama} baru ${poin}; surat tersedia mulai tingkat ${K.tatib.tingkat[1].label}.` });
 
+            const jd = S.cekJadwal(body.jadwal, today);
+            if (jd.error) return res.status(400).json({ success: false, message: jd.error });
+
             const penangani = safeCell(clipTxt(auth.nama || auth.username || "admin", 80));
 
             // Pengiriman dibuat bertahap: dicatat di tab Pembinaan (status "Surat dikirim") dan dibatasi per guru per hari
@@ -86,18 +89,18 @@ module.exports = async (req, res) => {
                     const mine = sentToday.filter((x) => x.penangani === penangani).length;
                     if (mine >= DAILY_LIMIT()) return res.status(429).json({ success: false, message: `Batas ${DAILY_LIMIT()} surat WhatsApp per guru per hari sudah tercapai (agar nomor tidak diblokir WhatsApp). Lanjutkan besok.` });
                     const jam = new Date().toLocaleTimeString("en-GB", { timeZone: "Asia/Jakarta" });
-                    await sheets.appendRow("Pembinaan", [`${today} ${jam}`, s.nis, safeCell(s.nama), s.kelas, t.label, "Surat dikirim", "Via WhatsApp", penangani, ""]);
+                    await sheets.appendRow("Pembinaan", [`${today} ${jam}`, s.nis, safeCell(s.nama), s.kelas, t.label, "Surat dikirim", `Via WhatsApp · hadir ${jd.d} ${jd.w} · ${jd.r}`, penangani, ""]);
                 }
             }
 
             const iat = Math.floor(Date.now() / 1000);
-            const token = S.signLink({ k: "surat", n: nis, iat, exp: iat + S.TTL_DAYS * 86400 }, signingSecret());
+            const token = S.signLink({ k: "surat", n: nis, iat, exp: iat + S.TTL_DAYS * 86400, j: { d: jd.d, w: jd.w, r: jd.r } }, signingSecret());
             const host = String(req.headers["x-forwarded-host"] || req.headers.host || "kedisiplinan.sman1sooko.sch.id").split(",")[0];
             const proto = String(req.headers["x-forwarded-proto"] || (/^(localhost|127\.)/.test(host) ? "http" : "https")).split(",")[0];
             const url = `${proto}://${host}/api/surat?t=${token}`;
 
             const isSP = /^Surat Peringatan/.test(t.label);
-            const pesan = `Assalamualaikum Bapak/Ibu, kami dari SMAN 1 Sooko (Komisi Disiplin Sekolah) menyampaikan ${isSP ? t.label : "panggilan orang tua/wali"} untuk putra/putri Bapak/Ibu, ${s.nama} (kelas ${s.kelas}). Suratnya dapat dibuka dan dicetak melalui tautan berikut (berlaku ${S.TTL_DAYS} hari):\n${url}\n\nMohon kehadiran Bapak/Ibu sesuai isi surat. Terima kasih.\n— ${auth.nama || auth.username || "Komisi Disiplin"}, SMAN 1 Sooko`;
+            const pesan = `Assalamualaikum Bapak/Ibu, kami dari SMAN 1 Sooko (Komisi Disiplin Sekolah) menyampaikan ${isSP ? t.label : "panggilan orang tua/wali"} untuk putra/putri Bapak/Ibu, ${s.nama} (kelas ${s.kelas}). Suratnya dapat dibuka dan dicetak melalui tautan berikut (berlaku ${S.TTL_DAYS} hari):\n${url}\n\nMohon kehadiran Bapak/Ibu pada ${S.hariTanggal(jd.d)}, pukul ${jd.w} WIB, di ${jd.r} SMAN 1 Sooko. Terima kasih.\n— ${auth.nama || auth.username || "Komisi Disiplin"}, SMAN 1 Sooko`;
 
             return res.status(200).json({
                 success: true,

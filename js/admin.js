@@ -525,7 +525,7 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
         const hasWa = (state.siswa.find((x) => x.nis === e.nis) || {}).hasWa;
         const print = `<button type="button" class="kd-btn kd-btn--sm" data-print="${esc(e.nis)}" title="Buka surat untuk dicetak / disimpan PDF">🖨️ Cetak surat</button> `
             + (hasWa ? `<button type="button" class="kd-btn kd-btn--sm" data-wa="${esc(e.nis)}" title="Buka WhatsApp dengan pesan + tautan surat">💬 Kirim WA</button>`
-                     : `<button type="button" class="kd-btn kd-btn--sm" disabled title="Isi kolom WA_Ortu di Data_Siswa">💬 No. WA kosong</button>`);
+                     : `<button type="button" class="kd-btn kd-btn--sm" disabled title="Nomor WA orang tua belum ada di Data_Foto_Siswa">💬 No. WA kosong</button>`);
         if (e.status === "Selesai") return `<strong>✔ Selesai</strong> ${print}${who}`;
         if (e.status === "Dipanggil") return `<strong>Dipanggil</strong> ${btn("Selesai", "Tandai selesai")} ${print}${who}`;
         const label = e.status === "Surat dikirim" ? `<strong>✉ Surat dikirim</strong>` : `<span style="opacity:.8">Belum</span>`;
@@ -548,6 +548,56 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
     $("csvPembinaan").addEventListener("click", () => downloadCSV(`perlu-pembinaan-${state.hariIni}.csv`,
         ["NIS", "Nama", "Kelas", "Poin", "Kasus", "Tingkat", "Tindak lanjut", "Status", "Penangani", "Catatan"],
         pembinaanRows().map((e) => [e.nis, e.nama, e.kelas, e.poin, e.kasus, e.t.label, e.t.tindakan, e.needs ? e.status : "-", e.last ? e.last.penangani : "", e.last ? e.last.catatan : ""])));
+
+    /* ---------- Dialog jadwal kehadiran orang tua (tanggal, jam 08.00–13.00, ruang) ---------- */
+    const WAKTU = ["08.00", "08.30", "09.00", "09.30", "10.00", "10.30", "11.00", "11.30", "12.00", "12.30", "13.00"];
+    const RUANG = ["Ruang BK", "Ruang Pertemuan"];
+
+    const todayWIB = () => new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
+
+    function askJadwal(judul) {
+        return new Promise((resolve) => {
+            const today = todayWIB();
+            const maxD = new Date(Date.parse(today + "T00:00:00Z") + 90 * 86400000).toISOString().slice(0, 10);
+            const ov = document.createElement("div");
+            ov.className = "kd-overlay";
+            ov.innerHTML = `
+              <form class="kd-modal" role="dialog" aria-modal="true" aria-labelledby="jdTitle" novalidate>
+                <h2 class="kd-modal-title" id="jdTitle">${esc(judul)}</h2>
+                <p class="kd-modal-sub">Tentukan jadwal kehadiran orang tua/wali. Isian ini tercetak pada surat.</p>
+                <div class="kd-field"><label class="kd-field-label" for="jdTgl">Hari / tanggal</label>
+                  <input class="kd-input" id="jdTgl" type="date" min="${today}" max="${maxD}" required></div>
+                <div class="kd-field"><label class="kd-field-label" for="jdJam">Waktu (WIB)</label>
+                  <select class="kd-select" id="jdJam">${WAKTU.map((x) => `<option value="${x}">Pukul ${x}</option>`).join("")}</select></div>
+                <div class="kd-field"><label class="kd-field-label" for="jdRuang">Ruangan</label>
+                  <select class="kd-select" id="jdRuang">${RUANG.map((x) => `<option>${x}</option>`).join("")}</select></div>
+                <p class="kd-error-inline" id="jdErr" role="alert" style="color:#ffb4b4;font-size:var(--font-sm);min-height:1.2em;margin:.5rem 0 0"></p>
+                <div style="display:flex;gap:.6rem;justify-content:flex-end;margin-top:var(--space-md);flex-wrap:wrap">
+                  <button type="button" class="kd-btn kd-btn--ghost" id="jdBatal">Batal</button>
+                  <button type="submit" class="kd-btn kd-btn--primary" id="jdOk">Lanjut</button>
+                </div>
+              </form>`;
+            document.body.appendChild(ov);
+            document.body.classList.add("kd-lock");
+            const $o = (id) => ov.querySelector("#" + id);
+            const done = (v) => { document.body.classList.remove("kd-lock"); ov.remove(); document.removeEventListener("keydown", onKey); resolve(v); };
+            const onKey = (e) => { if (e.key === "Escape") done(null); };
+            document.addEventListener("keydown", onKey);
+            $o("jdBatal").addEventListener("click", () => done(null));
+            ov.addEventListener("mousedown", (e) => { if (e.target === ov) done(null); });
+            ov.querySelector("form").addEventListener("submit", (e) => {
+                e.preventDefault();
+                const tanggal = $o("jdTgl").value;
+                const err = (m) => { $o("jdErr").textContent = m; };
+                if (!tanggal) return err("Pilih tanggal kehadiran terlebih dahulu.");
+                if (tanggal < today) return err("Tanggal tidak boleh sebelum hari ini.");
+                if (tanggal > maxD) return err("Tanggal maksimal 90 hari ke depan.");
+                if (new Date(tanggal + "T00:00:00Z").getUTCDay() === 0) return err("Hari Minggu tidak dapat dipilih.");
+                done({ tanggal, waktu: $o("jdJam").value, ruang: $o("jdRuang").value });
+            });
+            $o("jdTgl").focus();
+        });
+    }
 
     $("pembinaanBody").addEventListener("click", async (ev) => {
         const b = ev.target.closest("button[data-pb]");
@@ -578,16 +628,18 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
         if (!b || b.disabled) return;
         const wa = b.hasAttribute("data-wa");
         const nis = b.dataset.print || b.dataset.wa;
-        const w = window.open("", "_blank");   // dibuka sekarang agar tidak diblokir pop-up, diarahkan setelah tautan siap
+        const jadwal = await askJadwal(wa ? "Kirim surat lewat WhatsApp" : "Cetak surat");   // pilih tanggal, jam, ruang
+        if (!jadwal) return;
+        const w = window.open("", "_blank");   // dibuka segera setelah klik "Lanjut" agar tidak diblokir pop-up, diarahkan setelah tautan siap
         const label = b.textContent;
         b.disabled = true; b.textContent = "Menyiapkan…";
         try {
-            const r = await fetch(CONFIG.API.SURAT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nis, kirim: wa }) });
+            const r = await fetch(CONFIG.API.SURAT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nis, kirim: wa, jadwal }) });
             const body = await r.json().catch(() => ({}));
             if (r.status === 401) { if (w) w.close(); AdminAuth.logout(); location.reload(); return; }
             if (!r.ok || body.success === false) throw new Error(body.message || `Gagal membuat surat (HTTP ${r.status}).`);
             const d = body.data;
-            if (wa && !d.waUrl) throw new Error("Nomor WhatsApp orang tua belum diisi (kolom WA_Ortu di Data_Siswa).");
+            if (wa && !d.waUrl) throw new Error("Nomor WhatsApp orang tua belum diisi (isi lewat formulir siswa / tab Data_Foto_Siswa).");
             if (!w) throw new Error("Pop-up diblokir browser. Izinkan pop-up untuk situs ini lalu coba lagi.");
             w.location.href = wa ? d.waUrl : d.url;
             if (wa) loadPembinaan();      // status "Surat dikirim" tercatat di server

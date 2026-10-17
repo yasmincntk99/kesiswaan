@@ -11,6 +11,31 @@ const esc = (v) => String(v === undefined || v === null ? "" : v).replace(/[&<>"
 
 const TTL_DAYS = 14;
 
+/* Jadwal kehadiran orang tua: tanggal (kalender), jam 08.00–13.00, ruang (daftar tetap). */
+const WAKTU = ["08.00", "08.30", "09.00", "09.30", "10.00", "10.30", "11.00", "11.30", "12.00", "12.30", "13.00"];
+const RUANG = ["Ruang BK", "Ruang Pertemuan"];
+const HARI = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+const MAKS_HARI_KE_DEPAN = 90;
+
+function hariTanggal(iso) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+    if (!m) return "";
+    return `${HARI[new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])).getUTCDay()]}, ${tglPanjang(iso)}`;
+}
+
+/** -> { d, w, r } yang sudah divalidasi, atau { error }. today: ISO tanggal hari ini (WIB). */
+function cekJadwal(j, today) {
+    j = j || {};
+    const d = String(j.tanggal || ""), w = String(j.waktu || ""), r = String(j.ruang || "");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || hariTanggal(d).startsWith("undefined") || isNaN(Date.parse(d + "T00:00:00Z"))) return { error: "Tanggal kehadiran belum dipilih." };
+    if (d < today) return { error: "Tanggal kehadiran tidak boleh sebelum hari ini." };
+    if (Date.parse(d + "T00:00:00Z") - Date.parse(today + "T00:00:00Z") > MAKS_HARI_KE_DEPAN * 86400000) return { error: `Tanggal kehadiran maksimal ${MAKS_HARI_KE_DEPAN} hari ke depan.` };
+    if (new Date(d + "T00:00:00Z").getUTCDay() === 0) return { error: "Hari Minggu tidak dapat dipilih." };
+    if (!WAKTU.includes(w)) return { error: "Waktu harus antara 08.00 dan 13.00." };
+    if (!RUANG.includes(r)) return { error: "Ruangan tidak valid." };
+    return { d, w, r };
+}
+
 function key(secret) { return crypto.createHash("sha256").update("surat-kesiswaan|" + secret).digest(); }
 
 function signLink(payload, secret) {
@@ -34,7 +59,7 @@ function verifyLink(token, secret) {
 }
 
 /** rows: pelanggaran siswa pada tahun ajaran, urut tanggal; t: tingkat; today: ISO tanggal surat. */
-function letterHTML({ nis, nama, kelas, rows, poin, t, today, ayLabel }) {
+function letterHTML({ nis, nama, kelas, rows, poin, t, today, ayLabel, jadwal }) {
     const r = { label: ayLabel };
     const state = { hariIni: today };
     const isSP = /^Surat Peringatan/.test(t.label);
@@ -76,7 +101,7 @@ table.p th,table.p td{border:1px solid #000;padding:2px 6px}table.p th{backgroun
 <table class="p"><thead><tr><th class="c" style="width:32px">No</th><th style="width:150px">Tanggal</th><th>Pelanggaran</th><th class="c" style="width:50px">Poin</th></tr></thead><tbody>${body}</tbody></table>
 <p>Tindak lanjut sekolah: ${esc(t.tindakan)}</p>
 <p style="margin-bottom:2px">Mengharap kehadiran Bapak/Ibu pada :</p>
-<table class="i"><tr><td>Hari / Tanggal</td><td>: ................................................</td></tr><tr><td>Waktu</td><td>: Pukul ............ WIB</td></tr><tr><td>Tempat</td><td>: ................................................</td></tr></table>
+<table class="i"><tr><td>Hari / Tanggal</td><td>: ${jadwal ? `<b>${esc(hariTanggal(jadwal.d))}</b>` : "................................................"}</td></tr><tr><td>Waktu</td><td>: ${jadwal ? `Pukul <b>${esc(jadwal.w)}</b> WIB` : "Pukul ............ WIB"}</td></tr><tr><td>Tempat</td><td>: ${jadwal ? `<b>${esc(jadwal.r)}</b> SMAN 1 Sooko` : "................................................"}</td></tr></table>
 <p>Atas perhatian dan kerjasamanya, kami sampaikan terima kasih.</p>
 <div class="sign">Kepala SMAN 1 Sooko<img class="qr" src="${base}/assets/ttd/ttd-kepsek.png" alt="" onerror="this.style.visibility='hidden'"><b>Drs. SUGENG WIBAWA</b><br>Pembina Utama Muda<br>NIP. 196709041995121003</div>
 <div class="bawah"><b>Tanda terima orang tua / wali</b> — surat ini telah saya terima. Mojokerto, ........................ &nbsp; (............................)</div>
@@ -84,4 +109,4 @@ table.p th,table.p td{border:1px solid #000;padding:2px 6px}table.p th{backgroun
 </body></html>`;
 }
 
-module.exports = { letterHTML, signLink, verifyLink, tglPanjang, TTL_DAYS };
+module.exports = { letterHTML, signLink, verifyLink, tglPanjang, TTL_DAYS, WAKTU, RUANG, MAKS_HARI_KE_DEPAN, hariTanggal, cekJadwal };

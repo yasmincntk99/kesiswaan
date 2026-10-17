@@ -101,16 +101,33 @@ async function loadTatib() {
     }
 }
 
+/** Nomor WA orang tua dari tab Data_Foto_Siswa (hasil formulir): NIS di kolom B, "Nomer WA Orang Tua (ayah)" di kolom G.
+ *  Isian terbaru per NIS yang nomornya valid yang dipakai. */
+async function loadWAForm() {
+    const map = new Map();
+    try {
+        for (const { cells } of bodyRows(await sheets.readTab("Data_Foto_Siswa"))) {
+            const nis = cleanNIS(cell(cells, 1)), wa = cleanWA(cell(cells, 6));
+            if (nis && wa) map.set(nis, wa);
+        }
+    } catch (e) { /* tab belum ada / tidak terbaca: abaikan, pakai kolom WA_Ortu */ }
+    return map;
+}
+
 async function loadSiswa() {
     if (sheets.mode() === "demo") return require("../../data/sample-siswa.json").map((s) => ({ foto: "", ...s }));
-    return bodyRows(await sheets.readTab("Data_Siswa"))
-        .map(({ cells, row }) => ({
-            nis: cleanNIS(cell(cells, 0)) || `TANPA-NIS-${row}`,
-            nama: cell(cells, 1) || "(Belum ada nama)",
-            kelas: cell(cells, 2),
-            foto: fotoUrl(cell(cells, 3)),
-            wa: cleanWA(cell(cells, 5))     // kolom F "WA_Ortu" (opsional; hanya dipakai server untuk tautan WhatsApp)
-        }))
+    const [raw, waForm] = await Promise.all([sheets.readTab("Data_Siswa"), loadWAForm()]);
+    return bodyRows(raw)
+        .map(({ cells, row }) => {
+            const nis = cleanNIS(cell(cells, 0)) || `TANPA-NIS-${row}`;
+            return {
+                nis,
+                nama: cell(cells, 1) || "(Belum ada nama)",
+                kelas: cell(cells, 2),
+                foto: fotoUrl(cell(cells, 3)),
+                wa: waForm.get(nis) || cleanWA(cell(cells, 5))   // prioritas: formulir Data_Foto_Siswa, cadangan kolom F "WA_Ortu"
+            };
+        })
         .filter((r) => r.kelas);
 }
 
