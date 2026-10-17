@@ -28,6 +28,7 @@ window.CONFIG = {
         TATA_TERTIB: "/api/tata-tertib",
         PELANGGARAN: "/api/pelanggaran",
         PEMBINAAN: "/api/pembinaan",
+        SURAT: "/api/surat",
         ADMIN_AUTH: "/api/admin-auth"
     },
 

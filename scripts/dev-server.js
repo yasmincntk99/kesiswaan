@@ -26,6 +26,7 @@ http.createServer(async (req, res) => {
         try { req.body = raw ? JSON.parse(raw) : {}; } catch (e) { req.body = {}; }
         res.status = (c) => { res.statusCode = c; return res; };
         res.json = (b) => { res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(b)); };
+        res.send = (b) => res.end(typeof b === "string" || Buffer.isBuffer(b) ? b : JSON.stringify(b));
         try { return await require(file)(req, res); } catch (e) { res.statusCode = 500; return res.end(String(e)); }
     }
 

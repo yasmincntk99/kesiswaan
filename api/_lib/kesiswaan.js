@@ -45,6 +45,15 @@ const num = (v) => {
     return Number.isFinite(n) ? n : 0;
 };
 
+/** "0812-3456-789" / "+62 812…" / "812…" -> "62812…" (format wa.me); "" bila tidak masuk akal. */
+function cleanWA(v) {
+    let d = String(v || "").replace(/\D/g, "");
+    if (d.startsWith("00")) d = d.slice(2);
+    if (d.startsWith("0")) d = "62" + d.slice(1);
+    else if (d.startsWith("8")) d = "62" + d;
+    return /^62\d{8,13}$/.test(d) ? d : "";
+}
+
 const cleanNIS = (v) => String(v || "").trim().replace(/\.0+$/, "");
 
 /** Tahun ajaran dimulai 1 Juli. */
@@ -99,7 +108,8 @@ async function loadSiswa() {
             nis: cleanNIS(cell(cells, 0)) || `TANPA-NIS-${row}`,
             nama: cell(cells, 1) || "(Belum ada nama)",
             kelas: cell(cells, 2),
-            foto: fotoUrl(cell(cells, 3))
+            foto: fotoUrl(cell(cells, 3)),
+            wa: cleanWA(cell(cells, 5))     // kolom F "WA_Ortu" (opsional; hanya dipakai server untuk tautan WhatsApp)
         }))
         .filter((r) => r.kelas);
 }

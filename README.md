@@ -7,7 +7,7 @@ Portal Gerakan Disiplin Sekolah (GDS) — kesiswaan & kedisiplinan siswa SMAN 1 
 - **Cek Poin Siswa**: lihat poin & riwayat dengan NIS.
 - **Tata Tertib & Sanksi**: daftar pelanggaran, poin, tingkat pembinaan.
 - **Floating badge "Komisi Disiplin"** di semua halaman → panel masuk Komisi Disiplin Sekolah, menu kerja, dan toggle mode gelap/terang.
-- **Panel Komisi Disiplin** (`/pages/admin`): alur Kelas → Siswa → profil (foto, poin, riwayat) → input pelanggaran, rekap per kelas, **catat massal** (satu pelanggaran untuk beberapa siswa sekaligus, maks 60, satu kali tulis tanpa data setengah masuk), antrean offline (kirim otomatis saat online, tanpa data ganda), data pelanggaran (filter + CSV), siswa perlu pembinaan dengan **status tindak lanjut** (Belum → Dipanggil → Selesai, lengkap dengan catatan dan nama guru). Status berlaku per tingkat: siswa yang naik tingkat muncul lagi sebagai "Belum". Daftar bawaan menyembunyikan yang sudah Selesai. Tombol **Cetak surat** membuat surat peringatan/panggilan orang tua (kop sekolah, rincian pelanggaran tahun ajaran berjalan, kolom nomor surat, jadwal menghadap, tanda tangan, dan tanda terima) siap diprint atau disimpan sebagai PDF.
+- **Panel Komisi Disiplin** (`/pages/admin`): alur Kelas → Siswa → profil (foto, poin, riwayat) → input pelanggaran, rekap per kelas, **catat massal** (satu pelanggaran untuk beberapa siswa sekaligus, maks 60, satu kali tulis tanpa data setengah masuk), antrean offline (kirim otomatis saat online, tanpa data ganda), data pelanggaran (filter + CSV), siswa perlu pembinaan dengan **status tindak lanjut** (Belum → Dipanggil → Selesai, lengkap dengan catatan dan nama guru). Status berlaku per tingkat: siswa yang naik tingkat muncul lagi sebagai "Belum". Daftar bawaan menyembunyikan yang sudah Selesai. Tombol **Cetak surat** membuat surat peringatan/panggilan orang tua (kop sekolah, rincian pelanggaran tahun ajaran berjalan, kolom nomor surat, jadwal menghadap, tanda tangan, dan tanda terima) siap diprint atau disimpan sebagai PDF. Tombol **Kirim WA** membuka WhatsApp guru dengan nomor orang tua (kolom `WA_Ortu`) dan pesan berisi **tautan surat bertanda tangan (berlaku 14 hari, tanpa login)**; guru menekan Kirim sendiri, satu per satu (sengaja tidak massal agar nomor tidak diblokir). Pengiriman dicatat di tab `Pembinaan` dengan status *Surat dikirim* dan dibatasi 20 surat per guru per hari (atur dengan env `WA_DAILY_LIMIT`). Barcode tanda tangan Kepala Sekolah: simpan sebagai `assets/ttd/ttd-kepsek.png`.
 
 ## Menjalankan lokal
 ```bash
@@ -20,7 +20,7 @@ Sama dengan skema Apps Script sebelumnya (dibaca per posisi kolom, baris 1 = hea
 
 | Tab | Kolom |
 |-----|-------|
-| `Data_Siswa` | NIS \| Nama \| Kelas \| Foto (https / link Drive) |
+| `Data_Siswa` | NIS \| Nama \| Kelas \| Foto (https / link Drive) \| NISN \| WA_Ortu (nomor WhatsApp orang tua/wali, opsional; 08xx / +62xx / 62xx) |
 | `Master_Pelanggaran` | Kode \| Nama \| Poin \| Kategori (opsional) |
 | `Pengguna` | Username \| Nama \| Password \| Aktif \| Peran (akun per guru; opsional) |
 | `Pembinaan` | Timestamp \| NIS \| Nama \| Kelas \| Tingkat \| Status \| Catatan \| Penangani \| ClientID (tindak lanjut pembinaan; opsional) |

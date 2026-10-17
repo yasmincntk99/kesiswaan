@@ -48,7 +48,7 @@ module.exports = async (req, res) => {
                 success: true,
                 mode: sheets.mode(),
                 canWrite: sheets.canWrite(),
-                data: { violations, siswa, tatib, tingkat: K.tatib.tingkat, hariIni: K.todayWIB() }
+                data: { violations, siswa: siswa.map(({ wa, ...rest }) => ({ ...rest, hasWa: !!wa })), tatib, tingkat: K.tatib.tingkat, hariIni: K.todayWIB() }
             });
         }
 

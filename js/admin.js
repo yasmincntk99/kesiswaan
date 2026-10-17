@@ -521,10 +521,14 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
         if (!e.needs) return `<span class="kd-card-sub">Tidak perlu</span>`;
         const who = e.last ? `<br><small style="opacity:.75">${esc(fmtDate(e.last.tanggal))} · ${esc(e.last.penangani || "-")}${e.last.catatan && e.last.catatan !== "-" ? " · " + esc(e.last.catatan) : ""}</small>` : "";
         const btn = (st, label) => `<button type="button" class="kd-btn kd-btn--sm" data-pb="${esc(e.nis)}" data-st="${st}"${state.canWrite ? "" : " disabled"}>${label}</button>`;
-        const print = `<button type="button" class="kd-btn kd-btn--sm" data-print="${esc(e.nis)}" title="Cetak surat untuk orang tua / wali">🖨️ Cetak surat</button>`;
+        const hasWa = (state.siswa.find((x) => x.nis === e.nis) || {}).hasWa;
+        const print = `<button type="button" class="kd-btn kd-btn--sm" data-print="${esc(e.nis)}" title="Buka surat untuk dicetak / disimpan PDF">🖨️ Cetak surat</button> `
+            + (hasWa ? `<button type="button" class="kd-btn kd-btn--sm" data-wa="${esc(e.nis)}" title="Buka WhatsApp dengan pesan + tautan surat">💬 Kirim WA</button>`
+                     : `<button type="button" class="kd-btn kd-btn--sm" disabled title="Isi kolom WA_Ortu di Data_Siswa">💬 No. WA kosong</button>`);
         if (e.status === "Selesai") return `<strong>✔ Selesai</strong> ${print}${who}`;
         if (e.status === "Dipanggil") return `<strong>Dipanggil</strong> ${btn("Selesai", "Tandai selesai")} ${print}${who}`;
-        return `<span style="opacity:.8">Belum</span> ${btn("Dipanggil", "Tandai dipanggil")} ${btn("Selesai", "Selesai")} ${print}`;
+        const label = e.status === "Surat dikirim" ? `<strong>✉ Surat dikirim</strong>` : `<span style="opacity:.8">Belum</span>`;
+        return `${label} ${btn("Dipanggil", "Tandai dipanggil")} ${btn("Selesai", "Selesai")} ${print}${who}`;
     }
 
     function renderPembinaan() {
@@ -564,75 +568,35 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
     });
 
 
-    /* ---------- SURAT PANGGILAN / PERINGATAN (cetak) ---------- */
+    /* ---------- SURAT PANGGILAN / PERINGATAN (cetak & WhatsApp) ---------- */
+    // Surat dibuat server (tautan bertanda tangan, berlaku 14 hari). WhatsApp dikirim guru sendiri
+    // lewat tautan wa.me -- sengaja manual satu per satu supaya nomor sekolah/guru tidak diblokir.
 
-    const BULAN_PANJANG = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-    const tglPanjang = (iso) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ""); return m ? `${Number(m[3])} ${BULAN_PANJANG[Number(m[2]) - 1]} ${m[1]}` : ""; };
-
-    function letterHTML(nis) {
-        const r = ayRange();
-        const rows = state.v.filter((x) => x.nis === nis && x.tanggal >= r.from && x.tanggal <= r.to).sort((a, b) => a.tanggal.localeCompare(b.tanggal));
-        if (!rows.length) return "";
-        const poin = rows.reduce((t, x) => t + x.poin, 0);
-        const t = tierOf(poin);
-        const head = rows[rows.length - 1];
-        const isSP = /^Surat Peringatan/.test(t.label);
-        const judul = isSP ? t.label.toUpperCase() : "PANGGILAN ORANG TUA / WALI";
-        const isi = {
-            "Surat Peringatan 1": "Berdasarkan catatan Komisi Disiplin Sekolah, putra/putri Bapak/Ibu telah melakukan beberapa pelanggaran tata tertib sekolah sebagaimana tercantum di bawah ini. Sehubungan dengan itu, sekolah menerbitkan Surat Peringatan 1 dan siswa dipanggil oleh Guru BK untuk mendapat pembinaan.",
-            "Surat Peringatan 2": "Berdasarkan catatan Komisi Disiplin Sekolah, jumlah poin pelanggaran putra/putri Bapak/Ibu telah mencapai tingkat Surat Peringatan 2. Sekolah menerbitkan Surat Peringatan 2 dan memohon kehadiran Bapak/Ibu untuk pembinaan bersama pihak sekolah.",
-            "Surat Peringatan 3": "Berdasarkan catatan Komisi Disiplin Sekolah, jumlah poin pelanggaran putra/putri Bapak/Ibu telah mencapai tingkat Surat Peringatan 3. Sekolah menerbitkan Surat Peringatan 3 dan memohon kehadiran Bapak/Ibu untuk pembinaan intensif serta pembuatan pernyataan tertulis bermaterai.",
-            "Pembinaan Khusus": "Berdasarkan catatan Komisi Disiplin Sekolah, jumlah poin pelanggaran putra/putri Bapak/Ibu telah mencapai tingkat Pembinaan Khusus. Sekolah memohon kehadiran Bapak/Ibu untuk pembahasan tindak lanjut bersama pihak sekolah."
-        }[t.label] || "Berdasarkan catatan Komisi Disiplin Sekolah, putra/putri Bapak/Ibu memerlukan pembinaan terkait pelanggaran tata tertib sekolah.";
-        const body = rows.map((x, i) => `<tr><td class="c">${i + 1}</td><td class="nw">${esc(tglPanjang(x.tanggal))}</td><td>${esc(x.jenis)}</td><td class="c">${esc(x.poin)}</td></tr>`).join("");
-        const base = location.origin;
-        const hal = isSP ? t.label : "Panggilan Orang Tua / Wali";
-        return `<!doctype html><html lang="id"><head><meta charset="utf-8"><title>${esc(hal)} - ${esc(head.nama)}</title>
-<style>
-@page{size:A4;margin:12mm 18mm 18mm}
-*{box-sizing:border-box}body{font:10.5pt/1.35 Arial,Helvetica,sans-serif;color:#000;margin:0}
-.kop{display:flex;align-items:center;gap:14px;padding-bottom:6px;border-bottom:4px double #222}
-.kop img{width:70px;height:auto;flex:none}.kop .t{flex:1;text-align:center;line-height:1.25}
-.kop .t div{font-size:13pt}.kop .t b{display:block;font-size:15pt}.kop .t small{display:block;font-size:9pt}
-.tgl{text-align:right;margin:8px 0 10px}
-table.i{border-collapse:collapse}table.i td{padding:0 8px 0 0;vertical-align:top}table.i td:first-child{width:95px}
-p{margin:6px 0}
-table.p{width:100%;border-collapse:collapse;margin:6px 0}
-table.p th,table.p td{border:1px solid #000;padding:2px 6px}table.p th{background:#eee}.c{text-align:center}.nw{white-space:nowrap}
-.sign{margin:10px 0 0 auto;width:58%;break-inside:avoid;line-height:1.3}
-.sign .qr{display:block;height:64px;width:auto;min-width:64px;margin:2px 0}
-.bawah{margin-top:10px;border-top:1px dashed #000;padding-top:6px;font-size:10pt;break-inside:avoid}
-.foot{position:fixed;left:0;right:0;bottom:0;border-top:3px solid #8fbf9f;padding-top:3px;font:italic bold 10pt Georgia,serif;color:#222}
-.noprint{position:fixed;top:8px;right:8px;font:14px sans-serif}.noprint button{padding:8px 14px;font-size:14px;cursor:pointer}
-@media print{.noprint{display:none}}
-</style></head><body>
-<div class="noprint"><button onclick="window.print()">Cetak</button></div>
-<div class="kop"><img src="${base}/assets/logo/kop-jatim.png" alt=""><div class="t"><div>PEMERINTAH PROVINSI JAWA TIMUR</div><div>DINAS PENDIDIKAN</div><b>SMA NEGERI 1 SOOKO MOJOKERTO</b><small>Jalan R.A. Basuni No. 361 Kecamatan Sooko, Kab. Mojokerto 61361</small><small>Pos-el : info@sman1sooko.sch.id &nbsp; Laman : www.sman1sooko.sch.id</small></div></div>
-<div class="tgl">Mojokerto, ${esc(tglPanjang(state.hariIni))}</div>
-<table class="i"><tr><td>Nomor</td><td>: ......... / ......... / 101.6.27.15 / ${esc(state.hariIni.slice(0, 4))}</td></tr><tr><td>Lampiran</td><td>: -</td></tr><tr><td>Hal</td><td>: <b>${esc(hal)}</b></td></tr></table>
-<p style="margin-top:10px">Kepada :<br>Yth. Bapak/Ibu Orang Tua / Wali dari <b>${esc(head.nama)}</b> (Kelas ${esc(head.kelas)}, NIS ${esc(nis)})<br>Di <b><u>TEMPAT</u></b></p>
-<p>Dengan hormat,<br>${esc(isi)}</p>
-<p>Total poin pelanggaran tahun ajaran ${esc(r.label)}: <b>${esc(poin)} poin</b> (${esc(t.label)}), dengan rincian:</p>
-<table class="p"><thead><tr><th class="c" style="width:32px">No</th><th style="width:150px">Tanggal</th><th>Pelanggaran</th><th class="c" style="width:50px">Poin</th></tr></thead><tbody>${body}</tbody></table>
-<p>Tindak lanjut sekolah: ${esc(t.tindakan)}</p>
-<p style="margin-bottom:2px">Mengharap kehadiran Bapak/Ibu pada :</p>
-<table class="i"><tr><td>Hari / Tanggal</td><td>: ................................................</td></tr><tr><td>Waktu</td><td>: Pukul ............ WIB</td></tr><tr><td>Tempat</td><td>: ................................................</td></tr></table>
-<p>Atas perhatian dan kerjasamanya, kami sampaikan terima kasih.</p>
-<div class="sign">Kepala SMAN 1 Sooko<img class="qr" src="${base}/assets/ttd/ttd-kepsek.png" alt="" onerror="this.style.visibility='hidden'"><b>Drs. SUGENG WIBAWA</b><br>Pembina Utama Muda<br>NIP. 196709041995121003</div>
-<div class="bawah"><b>Tanda terima orang tua / wali</b> — surat ini telah saya terima. Mojokerto, ........................ &nbsp; (............................)</div>
-<div class="foot">Bersama, Berkreasi dan Berprestasi</div>
-</body></html>`;
-    }
-
-    $("pembinaanBody").addEventListener("click", (ev) => {
-        const b = ev.target.closest("button[data-print]");
-        if (!b) return;
-        const html = letterHTML(b.dataset.print);
-        if (!html) return;
-        const w = window.open("", "_blank");
-        if (!w) { $("adminAlert").innerHTML = `<div class="kd-card kd-error" role="alert">Pop-up diblokir browser. Izinkan pop-up untuk situs ini lalu coba lagi.</div>`; return; }
-        w.document.open(); w.document.write(html); w.document.close();
-        w.focus();
+    $("pembinaanBody").addEventListener("click", async (ev) => {
+        const b = ev.target.closest("button[data-print], button[data-wa]");
+        if (!b || b.disabled) return;
+        const wa = b.hasAttribute("data-wa");
+        const nis = b.dataset.print || b.dataset.wa;
+        const w = window.open("", "_blank");   // dibuka sekarang agar tidak diblokir pop-up, diarahkan setelah tautan siap
+        const label = b.textContent;
+        b.disabled = true; b.textContent = "Menyiapkan…";
+        try {
+            const r = await fetch(CONFIG.API.SURAT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nis, kirim: wa }) });
+            const body = await r.json().catch(() => ({}));
+            if (r.status === 401) { if (w) w.close(); AdminAuth.logout(); location.reload(); return; }
+            if (!r.ok || body.success === false) throw new Error(body.message || `Gagal membuat surat (HTTP ${r.status}).`);
+            const d = body.data;
+            if (wa && !d.waUrl) throw new Error("Nomor WhatsApp orang tua belum diisi (kolom WA_Ortu di Data_Siswa).");
+            if (!w) throw new Error("Pop-up diblokir browser. Izinkan pop-up untuk situs ini lalu coba lagi.");
+            w.location.href = wa ? d.waUrl : d.url;
+            if (wa) loadPembinaan();      // status "Surat dikirim" tercatat di server
+        } catch (e) {
+            if (w) w.close();
+            $("adminAlert").innerHTML = `<div class="kd-card kd-error" role="alert"><strong>${wa ? "WhatsApp belum dapat dibuka." : "Surat belum dapat dibuat."}</strong> ${esc(e.message)}</div>`;
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        } finally {
+            b.disabled = false; b.textContent = label;
+        }
     });
 
     async function loadPembinaan() {
