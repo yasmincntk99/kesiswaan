@@ -208,7 +208,7 @@ Dimuat SETELAH shell.css.
 .kd-legend b{margin-left:auto;padding-left:.75rem;font-variant-numeric:tabular-nums}
 
 /* bar horizontal */
-.kd-bars{list-style:none;margin:0;padding:0;display:grid;gap:.7rem}
+.kd-bars{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:.7rem}
 .kd-bar-top{display:flex;justify-content:space-between;gap:.75rem;font-size:var(--font-sm);margin-bottom:.25rem}
 .kd-bar-top span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .kd-bar-top b{font-variant-numeric:tabular-nums}
@@ -623,3 +623,30 @@ body[data-page="admin"] .header h1 span{display:inline}
 
 /* Ringkasan harian */
 .kd-list{margin:.4rem 0 1rem;padding-left:1.2rem}.kd-list li{margin:.4rem 0;line-height:1.45}
+
+/* ---------- Tabel -> kartu pada layar sempit (tablet & HP): semua kolom & tombol tetap terlihat ---------- */
+@media (max-width:1180px){
+    .kd-cards{min-width:0 !important}
+    .kd-cards,.kd-cards tbody{display:block}
+    .kd-cards thead{display:none}
+    .kd-cards tr{display:block;padding:.8rem .95rem;border-bottom:1px solid rgba(255,255,255,.18)}
+    .kd-cards tr:last-child{border-bottom:0}
+    .kd-cards td{display:block;padding:.22rem 0;border:0;text-align:left !important;white-space:normal}
+    .kd-cards td::before{content:attr(data-label);display:block;font-size:var(--font-xs);text-transform:uppercase;letter-spacing:.05em;opacity:.65;margin-bottom:.1rem}
+    .kd-cards td:first-child{font-weight:600}
+    .kd-cards td:first-child::before{display:none}
+    .kd-cards td.kd-empty::before{display:none}
+    .kd-cards td.num{display:inline-block;margin-right:1.4rem}
+    .kd-cards td.kd-act .kd-btn{margin:.2rem .3rem .2rem 0}
+    .kd-cards tbody tr:hover{background:transparent}
+}
+/* Target sentuh >= 40px di layar sentuh */
+@media (pointer:coarse){
+    .kd-btn--sm,.kd-seg button{min-height:40px}
+    .app-footer a,#shellFooter a{display:inline-block;padding:.65rem .5rem}
+    #statsPanelClose,#appSidebarCollapseBtn{min-width:40px;min-height:40px}
+}
+/* Filter pembinaan: kolom menyesuaikan lebar, label tidak terpotong */
+#panel-pembinaan .kd-filters{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+/* Pilihan periode di beranda: boleh turun baris, tidak terpotong */
+@media (max-width:520px){.kd-seg{flex-wrap:wrap;border-radius:var(--radius-md)}}

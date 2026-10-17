@@ -472,9 +472,9 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
         page = Math.min(page, pages);
         const slice = rows.slice((page - 1) * PAGE, page * PAGE);
         $("dataBody").innerHTML = slice.length ? slice.map((x) => `
-            <tr><td>${esc(fmtDate(x.tanggal))}</td><td>${esc(x.nama)}<br><small style="opacity:.7">${esc(x.nis)}</small></td><td>${esc(x.kelas)}</td>
-            <td>${esc(x.jenis)}${x.catatan && x.catatan !== "-" ? `<br><small style="opacity:.7">${esc(x.catatan)}</small>` : ""}${x.pencatat ? `<br><small style="opacity:.55">oleh ${esc(x.pencatat)}</small>` : ""}</td>
-            <td><span class="kd-badge-cat" data-cat="${esc(x.kategori)}">${esc(x.kategori)}</span></td><td class="num">${fmt(x.poin)}</td></tr>`).join("")
+            <tr><td data-label="Tanggal">${esc(fmtDate(x.tanggal))}</td><td data-label="Siswa">${esc(x.nama)}<br><small style="opacity:.7">${esc(x.nis)}</small></td><td data-label="Kelas">${esc(x.kelas)}</td>
+            <td data-label="Pelanggaran">${esc(x.jenis)}${x.catatan && x.catatan !== "-" ? `<br><small style="opacity:.7">${esc(x.catatan)}</small>` : ""}${x.pencatat ? `<br><small style="opacity:.55">oleh ${esc(x.pencatat)}</small>` : ""}</td>
+            <td data-label="Kategori"><span class="kd-badge-cat" data-cat="${esc(x.kategori)}">${esc(x.kategori)}</span></td><td class="num" data-label="Poin">${fmt(x.poin)}</td></tr>`).join("")
             : `<tr><td colspan="6" class="kd-empty">Tidak ada data yang cocok.</td></tr>`;
         $("dataCount").textContent = `${fmt(rows.length)} catatan`;
         $("pageInfo").textContent = `Halaman ${page} dari ${pages}`;
@@ -537,9 +537,9 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
         const rows = pembinaanRows();
         $("pembinaanSub").textContent = `Poin kumulatif tahun ajaran ${ayRange().label} · ${fmt(rows.length)} siswa`;
         $("pembinaanBody").innerHTML = rows.length ? rows.map((e) => { const t = e.t; return `
-            <tr><td>${esc(e.nama)}<br><small style="opacity:.7">${esc(e.nis)}</small></td><td>${esc(e.kelas)}</td><td class="num"><strong>${fmt(e.poin)}</strong></td><td class="num">${fmt(e.kasus)}</td>
-            <td><span class="kd-tier" data-w="${esc(t.warna)}" style="margin:0 0 .3rem">${esc(t.label)}</span><br><small>${esc(t.tindakan)}</small></td>
-            <td>${pbCell(e)}</td></tr>`; }).join("")
+            <tr><td data-label="Siswa">${esc(e.nama)}<br><small style="opacity:.7">${esc(e.nis)}</small></td><td data-label="Kelas">${esc(e.kelas)}</td><td class="num" data-label="Poin"><strong>${fmt(e.poin)}</strong></td><td class="num" data-label="Kasus">${fmt(e.kasus)}</td>
+            <td data-label="Tingkat &amp; tindak lanjut"><span class="kd-tier" data-w="${esc(t.warna)}" style="margin:0 0 .3rem">${esc(t.label)}</span><br><small>${esc(t.tindakan)}</small></td>
+            <td data-label="Status" class="kd-act">${pbCell(e)}</td></tr>`; }).join("")
             : `<tr><td colspan="6" class="kd-empty">Tidak ada siswa pada filter ini.</td></tr>`;
     }
 
@@ -635,6 +635,7 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
     }
 
     async function loadRingkasan() {
+        if (!AdminAuth.isLoggedIn()) return;   // belum login: overlay login tampil, jangan memanggil API (mencegah loop 401 → reload)
         $("ringkasanBody").innerHTML = `<p class="kd-empty">Memuat…</p>`;
         try {
             const res = await getJSON(CONFIG.API.RINGKASAN);
