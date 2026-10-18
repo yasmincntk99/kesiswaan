@@ -23,6 +23,7 @@ Sama dengan skema Apps Script sebelumnya (dibaca per posisi kolom, baris 1 = hea
 | `Log_Perapian` | Timestamp \| Tab \| Baris \| Kolom \| NIS \| Nama \| Dari \| Ke \| Penangani (diisi otomatis oleh Rapikan Data) |
 | `Data_Siswa` | NIS \| Nama \| Kelas \| Foto (https / link Drive) \| NISN \| WA_Ortu (nomor WhatsApp orang tua/wali, opsional; 08xx / +62xx / 62xx) |
 | `Master_Pelanggaran` | Kode \| Nama \| Poin \| Kategori (opsional) |
+| `Target_KPI` | Kode \| Nama \| Target \| Arah (`min`/`maks`) \| Keterangan. Kolom Target kosong = memakai nilai *contoh* (ditandai di portal) |
 | `Pengguna` | Username \| Nama \| Password \| Aktif \| Peran (akun per guru; opsional) |
 | `Pembinaan` | Timestamp \| NIS \| Nama \| Kelas \| Tingkat \| Status \| Catatan \| Penangani \| ClientID (tindak lanjut pembinaan; opsional) |
 | `Input_Pelanggaran` | Timestamp \| NIS \| Nama \| Kelas \| Jenis \| Poin \| Keterangan \| Kode \| Sanksi \| Pencatat \| ClientID |
@@ -46,9 +47,13 @@ Username `adminkesiswaan`. Password diperiksa **di server** (`/api/admin-auth`) 
 - `GEMINI_API_KEY` — (opsional) kunci Gemini gratis dari Google AI Studio untuk fitur **Catat lewat kalimat (AI)**; pasang di Vercel lalu Redeploy. `GEMINI_MODEL` (opsional, bawaan `gemini-3.5-flash-lite`), `AI_HOURLY_LIMIT` (opsional, bawaan 30 permintaan per guru per jam)
 
 ### Akun per guru (tab `Pengguna`)
-Hanya dibaca pada mode service account. Satu baris per guru: `Username | Nama | Password | Aktif | Peran`. Kolom **Pencatat** di `Input_Pelanggaran` berisi *Nama* guru yang login. Password boleh teks biasa atau `sha256:<hex>`; format kolom Password sebagai teks biasa dan jaga sheet tetap *Restricted*. Aktif berisi `tidak`/`nonaktif`/`0` untuk menonaktifkan (login baru ditolak; sesi berjalan berakhir paling lama 8 jam). Kolom Peran belum dipakai untuk membatasi akses. Akun dari env tetap berlaku sebagai cadangan.
+Hanya dibaca pada mode service account. Satu baris per guru: `Username | Nama | Password | Aktif | Peran`. Kolom **Pencatat** di `Input_Pelanggaran` berisi *Nama* guru yang login. Password boleh teks biasa atau `sha256:<hex>`; format kolom Password sebagai teks biasa dan jaga sheet tetap *Restricted*. Aktif berisi `tidak`/`nonaktif`/`0` untuk menonaktifkan (login baru ditolak; sesi berjalan berakhir paling lama 8 jam). Kolom **Peran** menentukan portal: kosong/`komisi` (atau nilai lama seperti `admin`/`guru`) = Panel Komisi; `eksekutif` (alias `kepsek`, `kepala-sekolah`, `pimpinan`) = Portal Eksekutif saja; `komisi,eksekutif` = keduanya (setelah login diarahkan ke Portal Eksekutif, ada menu ke Panel Komisi). Akun eksekutif ditolak (403) oleh semua API Komisi, dan akun komisi ditolak oleh `/api/eksekutif`. Akun dari env tetap berlaku sebagai cadangan.
 
 Data siswa bersifat sensitif: jangan membuka Google Sheet secara publik; gunakan mode service account.
 
 ## Deploy
 Vercel (lihat `vercel.json`). Node 24.x.
+
+
+### Portal Eksekutif (`/pages/eksekutif.html`)
+Khusus akun berperan `eksekutif`. Menampilkan 7 KPI bertarget (hijau/kuning/merah), ringkasan tahun ajaran, tren 12 bulan, sebaran tingkat, kelas dan jenis pelanggaran teratas, serta status tindak lanjut. Hanya angka agregat, tanpa nama siswa. Tombol **Mode tayang** (layar penuh, geser otomatis 12 detik, tombol panah/Esc) dan **Cetak A4**. Target diubah lewat tab `Target_KPI`.

@@ -21,6 +21,10 @@ window.AdminBadge = (() => {
         { href: "/pages/admin.html#perapian", title: "Rapikan Data", desc: "Usulan perbaikan data siswa, disetujui per baris", icon: "🧹" }
     ];
 
+    const MENU_EKS = [
+        { href: "/pages/eksekutif.html", title: "KPI & Infografis", desc: "Ringkasan capaian disiplin untuk pimpinan", icon: "📈" }
+    ];
+
     const SHIELD = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6l7-3z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg>';
 
     let badge, panel, body, backdrop, loginCtl;
@@ -37,7 +41,7 @@ window.AdminBadge = (() => {
         const logged = !!(auth && auth.isLoggedIn());
 
         badge.classList.toggle("is-active", logged);
-        badge.querySelector(".kd-badge-label").textContent = logged ? "Komisi aktif" : "Komisi Disiplin";
+        badge.querySelector(".kd-badge-label").textContent = logged ? (auth.hasRole("komisi") ? "Komisi aktif" : "Eksekutif aktif") : "Komisi Disiplin";
 
         let html = "";
 
@@ -59,7 +63,7 @@ window.AdminBadge = (() => {
                 </div>
                 ${auth.insecure() ? '<p class="kd-panel-warn">⚠️ Server masih memakai pengaman bawaan. Atur <code>ADMIN_PASSWORD</code> dan <code>ADMIN_SESSION_SECRET</code> di Vercel sebelum dipakai sungguhan.</p>' : ""}
                 <ul class="kd-menu">
-                    ${MENU.map((m) => `
+                    ${[].concat(auth.hasRole("eksekutif") ? MENU_EKS : [], auth.hasRole("komisi") ? MENU : []).map((m) => `
                     <li><a class="kd-menu-item" href="${m.href}">
                         <span class="kd-menu-ico" aria-hidden="true">${m.icon}</span>
                         <span class="kd-menu-text"><strong>${m.title}</strong><small>${m.desc}</small></span>
@@ -104,7 +108,7 @@ window.AdminBadge = (() => {
         if (out) {
             out.addEventListener("click", () => {
                 auth.logout();
-                if (/\/pages\/admin(\.html)?$/.test(location.pathname)) { location.href = "/index.html"; return; }
+                if (/\/pages\/(admin|eksekutif)(\.html)?$/.test(location.pathname)) { location.href = "/index.html"; return; }
                 renderBody();
             });
         }

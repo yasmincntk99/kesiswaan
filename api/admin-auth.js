@@ -173,7 +173,20 @@ function signToken(payload) {
    dan di-export untuk endpoint lain)
 ========================================== */
 
-function verifyAdmin(req) {
+/* Peran akun (kolom "Peran" tab Pengguna). Boleh lebih dari satu: "komisi", "eksekutif", "komisi,eksekutif".
+   Nilai lain (mis. "admin", "guru") dianggap "komisi" agar akun lama tetap berfungsi. Kosong = "komisi". */
+const EKSEKUTIF_ALIAS = ["eksekutif", "executive", "eksekutif-sekolah", "kepsek", "kepala-sekolah", "pimpinan"];
+
+function parsePeran(value) {
+    const tokens = String(value || "").toLowerCase().split(/[,;/|]+/).map((t) => t.trim().replace(/\s+/g, "-")).filter(Boolean);
+    const roles = new Set();
+    if (!tokens.length) roles.add("komisi");
+    tokens.forEach((t) => roles.add(EKSEKUTIF_ALIAS.includes(t) ? "eksekutif" : "komisi"));
+    return [...roles];
+}
+
+/** need: peran yang disyaratkan endpoint ("komisi" bawaan; "eksekutif"; null = cukup sesi valid). */
+function verifyAdmin(req, need = "komisi") {
 
     const header = String(req.headers.authorization || "");
     const token = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
@@ -206,7 +219,10 @@ function verifyAdmin(req) {
         return { ok: false, configured: true };
     }
 
-    return { ok: true, configured: true, username: payload.u, nama: payload.n || payload.u, peran: payload.r || "komisi", expiresAt: payload.exp };
+    const roles = parsePeran(payload.r);
+    if (need && !roles.includes(need)) return { ok: false, forbidden: true, configured: true, roles };
+
+    return { ok: true, configured: true, username: payload.u, nama: payload.n || payload.u, peran: payload.r || "komisi", roles, expiresAt: payload.exp };
 
 }
 
@@ -357,6 +373,7 @@ async function handleLogin(req, res) {
         username: account.username,
         nama: account.nama,
         peran: account.peran,
+        roles: parsePeran(account.peran),
         insecureDefaults: insecureDefaults()
     });
 
@@ -364,13 +381,13 @@ async function handleLogin(req, res) {
 
 function handleVerify(req, res) {
 
-    const result = verifyAdmin(req);
+    const result = verifyAdmin(req, null);
 
     if (!result.ok) {
         return res.status(401).json({ valid: false });
     }
 
-    return res.status(200).json({ valid: true, username: result.username, nama: result.nama, peran: result.peran, expiresAt: result.expiresAt, insecureDefaults: insecureDefaults() });
+    return res.status(200).json({ valid: true, username: result.username, nama: result.nama, peran: result.peran, roles: result.roles, expiresAt: result.expiresAt, insecureDefaults: insecureDefaults() });
 
 }
 
@@ -387,4 +404,6 @@ module.exports = async function handler(req, res) {
 };
 
 module.exports.verifyAdmin = verifyAdmin;
+module.exports.parsePeran = parsePeran;
 module.exports.signingSecret = signingSecret;
+module.exports.signToken = signToken;

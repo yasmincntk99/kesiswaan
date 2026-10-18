@@ -653,3 +653,67 @@ body[data-page="admin"] .header h1 span{display:inline}
 
 /* Lencana melayang tidak menutupi bagian paling bawah halaman di HP */
 @media (max-width:760px){ #shellFooter{padding-bottom:84px} }
+
+/* ==========================================
+   PORTAL EKSEKUTIF (KPI, tayang, cetak A4)
+========================================== */
+.kd-eks-bar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:var(--space-lg)}
+.kd-eks-actions{margin-left:auto;display:flex;gap:.5rem;flex-wrap:wrap}
+#eksBody{display:grid;gap:var(--space-lg)}
+.kd-ekpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:var(--space-lg)}
+.kd-ekpi{display:flex;flex-direction:column;gap:.5rem;border-left:6px solid #8E8E93;min-height:150px}
+.kd-ekpi[data-s="ok"]{border-left-color:#32D74B}
+.kd-ekpi[data-s="warn"]{border-left-color:#FFD60A}
+.kd-ekpi[data-s="bad"]{border-left-color:#FF453A}
+.kd-ekpi-top{display:flex;gap:.5rem;align-items:flex-start;font-size:var(--font-sm);font-weight:var(--weight-bold)}
+.kd-ekpi-val{font-size:clamp(2rem,4vw,2.8rem);font-weight:var(--weight-extrabold);letter-spacing:-.03em;line-height:1.1;font-variant-numeric:tabular-nums}
+.kd-ekpi-foot{margin-top:auto;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;font-size:var(--font-xs);opacity:.85}
+.kd-ekpi-badge{padding:.15rem .55rem;border-radius:999px;font-weight:var(--weight-bold);background:rgba(142,142,147,.25)}
+.kd-ekpi[data-s="ok"] .kd-ekpi-badge{background:rgba(50,215,75,.25)}
+.kd-ekpi[data-s="warn"] .kd-ekpi-badge{background:rgba(255,214,10,.3)}
+.kd-ekpi[data-s="bad"] .kd-ekpi-badge{background:rgba(255,69,58,.28)}
+.kd-enote{margin-top:.5rem}
+.kd-esum{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:var(--space-md)}
+.kd-esum-i{display:flex;flex-direction:column;gap:.2rem;font-size:var(--font-xs)}
+.kd-esum-i strong{font-size:1.5rem;font-variant-numeric:tabular-nums}
+.kd-etren{display:flex;gap:.3rem;align-items:flex-end;height:200px;padding-top:1.2rem}
+.kd-etren-c{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:.2rem}
+.kd-etren-bar{width:70%;min-height:2px;border-radius:6px 6px 0 0;background:linear-gradient(180deg,#8DDCFF,#0F4C81)}
+.kd-etren-c.is-now .kd-etren-bar{background:linear-gradient(180deg,#FFD60A,#FF9F0A)}
+.kd-etren-n{font-size:.7rem;font-weight:700;min-height:1em}
+.kd-etren-l{font-size:.7rem;opacity:.8}
+.kd-estack{display:flex;height:30px;border-radius:999px;overflow:hidden;margin:.5rem 0 1rem;background:rgba(142,142,147,.2)}
+.kd-elegend{list-style:none;margin:0;padding:0;display:grid;gap:.35rem;font-size:var(--font-sm)}
+.kd-elegend i{display:inline-block;width:.8rem;height:.8rem;border-radius:50%;margin-right:.5rem;vertical-align:middle}
+.kd-eprint-foot{display:none}
+/* mode tayang */
+.kd-tayang{position:fixed;inset:0;z-index:9999;background:#0b1e33;color:#fff;display:flex;flex-direction:column;padding:clamp(1rem,3vw,3rem);overflow:auto}
+.kd-tayang.kd-hidden{display:none !important}
+.kd-tayang-slide{flex:1;display:flex;flex-direction:column;justify-content:center;gap:1.5rem;max-width:1500px;width:100%;margin:0 auto}
+.kd-tayang-h{font-size:clamp(1.4rem,3vw,2.4rem);margin:0}
+.kd-tayang .kd-ekpi-val{font-size:clamp(2.4rem,5vw,4rem)}
+.kd-tayang-x{position:absolute;top:1rem;right:1rem;background:rgba(255,255,255,.15);color:#fff;border:0;border-radius:50%;width:2.5rem;height:2.5rem;cursor:pointer;font-size:1.1rem}
+.kd-tayang-nav{display:flex;gap:1rem;justify-content:center;align-items:center;padding-top:1rem}
+.kd-tayang-dots i{display:inline-block;width:.6rem;height:.6rem;margin:0 .2rem;border-radius:50%;background:rgba(255,255,255,.3)}
+.kd-tayang-dots i.on{background:#FFD60A}
+.kd-tayang-on{overflow:hidden}
+@media (max-width:640px){ .kd-eks-actions{margin-left:0;width:100%} .kd-etren{height:160px} .kd-etren-l{font-size:.6rem} }
+/* cetak A4 */
+@media print{
+    @page{size:A4;margin:12mm}
+    body[data-page="eksekutif"]{background:#fff !important;color:#000 !important}
+    body[data-page="eksekutif"] #shellNav,body[data-page="eksekutif"] .app-sidebar,body[data-page="eksekutif"] .app-sidebar-overlay,body[data-page="eksekutif"] #shellFooter,body[data-page="eksekutif"] .kd-eks-actions,body[data-page="eksekutif"] .kd-tayang,body[data-page="eksekutif"] .bg-layer,body[data-page="eksekutif"] .kd-badge,body[data-page="eksekutif"] .kd-badge-panel{display:none !important}
+    body[data-page="eksekutif"] .header{padding:0 0 4mm !important;background:none !important;color:#000 !important}
+    body[data-page="eksekutif"] .header *{color:#000 !important}
+    body[data-page="eksekutif"] .header .logo{display:none}
+    body[data-page="eksekutif"] .header h1{font-size:20pt !important;margin:2mm 0}
+    body[data-page="eksekutif"] .header p{display:none}
+    body[data-page="eksekutif"] .kd-chip{color:#000 !important;background:none !important}
+    body[data-page="eksekutif"] main.kd-wrap{padding-top:0 !important;margin-top:0 !important}
+    body[data-page="eksekutif"] .kd-card{background:#fff !important;color:#000 !important;box-shadow:none !important;border:1px solid #bbb;break-inside:avoid;backdrop-filter:none !important}
+    body[data-page="eksekutif"] .kd-grid--1-1{grid-template-columns:1fr 1fr}
+    body[data-page="eksekutif"] .kd-ekpi-grid{grid-template-columns:repeat(3,1fr);gap:4mm}
+    body[data-page="eksekutif"] .kd-ekpi{min-height:0}
+    body[data-page="eksekutif"] .kd-eprint-foot{display:block}
+    body[data-page="eksekutif"] *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}

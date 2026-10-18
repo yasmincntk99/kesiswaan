@@ -67,6 +67,20 @@ window.Shell = (() => {
         }
     ];
 
+    // Sidebar akun EKSEKUTIF (kepala sekolah): hanya portal KPI.
+    const EKSEKUTIF_GROUP = {
+        title: "Portal Eksekutif",
+        links: [
+            { key: "eksekutif", label: "KPI & Infografis", href: "/pages/eksekutif.html", icon: "📈" },
+            { key: "home", label: "Dashboard", href: "/index.html", icon: "📊" },
+            { key: "tata-tertib", label: "Tata Tertib & Sanksi", href: "/pages/tata-tertib.html", icon: "📘" }
+        ]
+    };
+
+    function sessionRoles(s) {
+        return s && Array.isArray(s.roles) && s.roles.length ? s.roles : ["komisi"];
+    }
+
     // Salinan logika sesi js/admin-auth.js (sessionStorage) supaya sidebar
     // langsung benar sebelum modul itu selesai dimuat. Keabsahan token tetap
     // diperiksa server pada setiap panggilan /api/pelanggaran.
@@ -138,7 +152,9 @@ window.Shell = (() => {
 
     function sidebarTitle() {
 
-        return adminSession() ? "Menu Komisi Disiplin" : "Menu Situs";
+        const s = adminSession();
+        if (!s) return "Menu Situs";
+        return sessionRoles(s).includes("komisi") ? "Menu Komisi Disiplin" : "Menu Eksekutif";
 
     }
 
@@ -157,7 +173,7 @@ window.Shell = (() => {
                     <small>${CONFIG.PROGRAM_NAME}</small>
                     <strong>${CONFIG.COMMITTEE_NAME}</strong>
                 </div>
-                <div class="gds-user"><span class="gds-dot" aria-hidden="true"></span><span>${esc(session.nama || session.username || "admin")}</span><em>Komisi</em></div>
+                <div class="gds-user"><span class="gds-dot" aria-hidden="true"></span><span>${esc(session.nama || session.username || "admin")}</span><em>${sessionRoles(session).includes("komisi") ? (sessionRoles(session).includes("eksekutif") ? "Komisi · Eksekutif" : "Komisi") : "Eksekutif"}</em></div>
             </div>`;
 
         }
@@ -203,7 +219,11 @@ window.Shell = (() => {
 
         if (session) {
 
-            nav = ADMIN_GROUPS.map((g) => `
+            const rl = sessionRoles(session);
+            const groups = [];
+            if (rl.includes("eksekutif")) groups.push(EKSEKUTIF_GROUP);
+            if (rl.includes("komisi")) groups.push(...ADMIN_GROUPS);
+            nav = groups.map((g) => `
                 <p class="app-sidebar-title">${g.title}</p>
                 <nav>${g.links.map((l) => navLinkHTML(l, activeKey, session)).join("")}</nav>
             `).join("");
@@ -335,7 +355,7 @@ window.Shell = (() => {
                 }
 
                 // Halaman admin ditutup overlay login oleh js/admin-auth.js saat dimuat.
-                if (activePage() === "admin") location.reload();
+                if (activePage() === "admin" || activePage() === "eksekutif") location.reload();
 
             });
 

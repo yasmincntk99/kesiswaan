@@ -21,10 +21,12 @@ Fetch ke /api/pelanggaran otomatis membawa token itu.
 
     const SESSION_KEY = "kesiswaan-admin-session";
     const AUTH_URL = "/api/admin-auth";
-    const PROTECTED_API = /^\/api\/(pelanggaran|pembinaan|surat|ringkasan|ai-catat|perapian)/;
+    const PROTECTED_API = /^\/api\/(pelanggaran|pembinaan|surat|ringkasan|ai-catat|perapian|eksekutif)/;
 
     const thisScript = document.currentScript;
-    const requirePage = !!(thisScript && thisScript.hasAttribute("data-require-admin"));
+    const requireRole = thisScript ? (thisScript.getAttribute("data-require-role") || (thisScript.hasAttribute("data-require-admin") ? "komisi" : "")) : "";
+    const requirePage = !!requireRole;
+    const EKSEKUTIF_URL = "/pages/eksekutif.html", KOMISI_URL = "/pages/admin.html";
 
     let overlayEl = null;
 
@@ -52,6 +54,10 @@ Fetch ke /api/pelanggaran otomatis membawa token itu.
         document.dispatchEvent(new CustomEvent("adminauth:change"));
     }
 
+    const roles = () => { const r = (readSession() || {}).roles; return Array.isArray(r) && r.length ? r : ["komisi"]; };
+    const hasRole = (r) => roles().includes(r);
+    /* Akun dengan peran eksekutif diarahkan ke portal eksekutif; selain itu ke panel Komisi. */
+    const homeUrl = () => (hasRole("eksekutif") ? EKSEKUTIF_URL : KOMISI_URL);
     const isLoggedIn = () => !!readSession();
     const getToken = () => (readSession() || {}).token || "";
     const username = () => (readSession() || {}).username || "";
@@ -83,7 +89,7 @@ Fetch ke /api/pelanggaran otomatis membawa token itu.
             try { result = await r.json(); } catch (e) { /* bukan JSON */ }
 
             if (r.ok && result.success && result.token) {
-                saveSession({ token: result.token, exp: result.expiresAt, username: result.username, nama: result.nama || result.username, peran: result.peran || "komisi", insecure: !!result.insecureDefaults });
+                saveSession({ token: result.token, exp: result.expiresAt, username: result.username, nama: result.nama || result.username, peran: result.peran || "komisi", roles: Array.isArray(result.roles) ? result.roles : ["komisi"], insecure: !!result.insecureDefaults });
                 document.dispatchEvent(new CustomEvent("adminauth:change"));
                 return { ok: true, insecure: !!result.insecureDefaults };
             }
@@ -185,6 +191,8 @@ Fetch ke /api/pelanggaran otomatis membawa token itu.
 
             if (result.ok) {
                 iPass.value = "";
+                // peran eksekutif: setelah login selalu ke portal eksekutif (kecuali sudah di sana)
+                if (hasRole("eksekutif") && !/\/eksekutif(\.html)?$/.test(location.pathname)) { window.location.assign(EKSEKUTIF_URL); return; }
                 onSuccess(result);
                 return;
             }
@@ -294,6 +302,11 @@ Fetch ke /api/pelanggaran otomatis membawa token itu.
             if (!isLoggedIn()) { gate(); return; }
             const result = await verify();
             if (result === false) { logout(); gate(); return; }
+            // sesi valid tetapi peran tidak cocok dengan halaman ini: arahkan ke portal yang sesuai
+            if (!hasRole(requireRole)) {
+                const dest = requireRole === "eksekutif" ? KOMISI_URL : homeUrl();
+                if (dest !== location.pathname && dest.replace(".html", "") !== location.pathname) { window.location.replace(dest); return; }
+            }
             reveal();
         }
 
@@ -301,7 +314,7 @@ Fetch ke /api/pelanggaran otomatis membawa token itu.
         else run();
     }
 
-    window.AdminAuth = { login, openLogin, buildLoginForm, isLoggedIn, getToken, username, displayName, expiresAt, insecure, logout, verify };
+    window.AdminAuth = { login, openLogin, buildLoginForm, isLoggedIn, getToken, username, displayName, expiresAt, insecure, logout, verify, roles, hasRole, homeUrl };
 
     if (requirePage) startPageGuard();
 
