@@ -17,7 +17,8 @@ window.AdminBadge = (() => {
         { href: "/pages/admin.html#input", title: "Catat Pelanggaran", desc: "Input pelanggaran baru ke Google Sheet", icon: "✍️" },
         { href: "/pages/admin.html#data", title: "Data Pelanggaran", desc: "Cari, filter, dan unduh CSV", icon: "🗂️" },
         { href: "/pages/admin.html#pembinaan", title: "Perlu Pembinaan", desc: "Siswa dengan poin tertinggi & tindak lanjut", icon: "🛡️" },
-        { href: "/pages/admin.html#ringkasan", title: "Ringkasan Harian", desc: "Ringkasan, siswa terlambat ditangani & cek data", icon: "📋" }
+        { href: "/pages/admin.html#ringkasan", title: "Ringkasan Harian", desc: "Ringkasan, siswa terlambat ditangani & cek data", icon: "📋" },
+        { href: "/pages/admin.html#perapian", title: "Rapikan Data", desc: "Usulan perbaikan data siswa, disetujui per baris", icon: "🧹" }
     ];
 
     const SHIELD = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6l7-3z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg>';

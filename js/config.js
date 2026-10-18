@@ -30,6 +30,7 @@ window.CONFIG = {
         PEMBINAAN: "/api/pembinaan",
         SURAT: "/api/surat",
         RINGKASAN: "/api/ringkasan",
+        PERAPIAN: "/api/perapian",
         AI_CATAT: "/api/ai-catat",
         ADMIN_AUTH: "/api/admin-auth"
     },

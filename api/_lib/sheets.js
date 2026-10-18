@@ -197,4 +197,27 @@ async function appendRows(tab, rows) {
     }
 }
 
-module.exports = { mode, canWrite, sheetUrl, readTab, rowsToObjects, appendRow, appendRows, diagnostics };
+/** 0 -> A, 25 -> Z, 26 -> AA */
+function colLetter(i) { let n = i + 1, s = ""; while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; }
+
+/** Ubah banyak sel sekaligus (satu panggilan). updates: [{ tab, row (1-based), col (0-based), value }]. Nilai RAW (teks apa adanya). */
+async function updateCells(updates) {
+    if (!updates.length) return;
+    if (!canWrite()) throw Object.assign(new Error("Penulisan ke Google Sheet belum diaktifkan (service account belum diatur)."), { code: "READ_ONLY" });
+    const token = await accessToken();
+    const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID()}/values:batchUpdate`, {
+        method: "POST",
+        headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+        body: JSON.stringify({
+            valueInputOption: "RAW",
+            data: updates.map((u) => ({ range: `'${String(u.tab).replace(/'/g, "''")}'!${colLetter(u.col)}${u.row}`, values: [[u.value]] }))
+        })
+    });
+    if (!response.ok) {
+        const detail = await googleDetail(response);
+        console.error("Sheets update gagal", JSON.stringify(detail));
+        throw Object.assign(new Error(`Gagal mengubah sheet (HTTP ${response.status}). Pastikan service account menjadi Editor.`), { detail });
+    }
+}
+
+module.exports = { mode, canWrite, sheetUrl, readTab, rowsToObjects, appendRow, appendRows, updateCells, colLetter, diagnostics };

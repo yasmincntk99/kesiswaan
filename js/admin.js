@@ -53,8 +53,8 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
     // Tidak ada tombol tab di halaman: menu "Catat Pelanggaran / Data Pelanggaran /
     // Perlu Pembinaan" ada di sidebar (js/shell.js) dan memakai hash URL.
 
-    const TABS = ["input", "data", "pembinaan", "ringkasan"];
-    const TAB_LABEL = { input: "Catat Pelanggaran", data: "Data Pelanggaran", pembinaan: "Perlu Pembinaan", ringkasan: "Ringkasan Harian" };
+    const TABS = ["input", "data", "pembinaan", "ringkasan", "perapian"];
+    const TAB_LABEL = { input: "Catat Pelanggaran", data: "Data Pelanggaran", pembinaan: "Perlu Pembinaan", ringkasan: "Ringkasan Harian", perapian: "Rapikan Data" };
 
     function showTab(name, scroll) {
         if (!TABS.includes(name)) name = "input";
@@ -786,6 +786,72 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
             $("ringkasanBody").innerHTML = `<div class="kd-card kd-error" role="alert"><strong>Ringkasan belum dapat dimuat.</strong> ${esc(e.message)}</div>`;
         }
     }
+
+    /* ---------- Rapikan Data: usulan perbaikan, guru mencentang lalu menerapkan ---------- */
+    let pf = null;
+    const pfShow = (el, t) => { el.textContent = t || ""; el.classList.toggle("kd-hidden", !t); };
+    const pfPicked = () => [...$("pfBody").querySelectorAll("input[data-fix]:checked")].map((c) => c.dataset.fix);
+    const pfCount = () => { const n = pfPicked().length; $("pfApply").textContent = `Terapkan ${fmt(n)} perbaikan`; $("pfApply").disabled = !n || !(pf && pf.canWrite); };
+
+    function renderPerapian() {
+        const box = $("pfBody");
+        if (!pf) { box.innerHTML = `<p class="kd-empty">Tekan “Periksa data” untuk mulai.</p>`; $("pfApply").classList.add("kd-hidden"); return; }
+        const groups = {};
+        pf.perbaikan.forEach((p) => { (groups[p.jenis] = groups[p.jenis] || []).push(p); });
+        const urutan = ["Format", "Lengkapi"];
+        const judul = { Format: "Rapikan format", Lengkapi: "Lengkapi dari formulir siswa" };
+        const fixHtml = urutan.filter((j) => groups[j]).map((j) => `
+            <h3 class="kd-card-title" style="font-size:var(--font-md);margin:1rem 0 .4rem">${judul[j]} <small style="opacity:.7">(${fmt(groups[j].length)})</small></h3>
+            <div style="display:grid;gap:.4rem">${groups[j].map((p) => `
+              <label class="kd-rrow" style="align-items:flex-start;gap:.6rem">
+                <input type="checkbox" data-fix="${esc(p.id)}" checked>
+                <span style="min-width:0"><strong>${esc(p.nama || "(tanpa nama)")}</strong> <small style="opacity:.7">NIS ${esc(p.nis || "-")} · ${esc(p.kolom)}</small><br>
+                  <span style="font-size:var(--font-sm);word-break:break-word"><s style="opacity:.65">${esc(p.dari || "(kosong)")}</s> → <b>${esc(p.ke)}</b></span><br>
+                  <small style="opacity:.75">${esc(p.saran)}</small></span>
+              </label>`).join("")}</div>`).join("");
+        const lap = pf.laporan.length ? `
+            <h3 class="kd-card-title" style="font-size:var(--font-md);margin:1.4rem 0 .4rem">Perlu dicek manual di Sheet <small style="opacity:.7">(${fmt(pf.laporan.length)})</small></h3>
+            <ul style="margin:0;padding-left:1.1rem;display:grid;gap:.3rem;font-size:var(--font-sm)">${pf.laporan.slice(0, 200).map((l) => `<li><strong>${esc(l.jenis)}</strong>: ${esc(l.teks)}</li>`).join("")}</ul>` : "";
+        const kosong = !pf.perbaikan.length && !pf.laporan.length ? `<p class="kd-empty">Data sudah rapi. Tidak ada usulan perbaikan. ✔</p>` : "";
+        const note = pf.demo ? `<p class="kd-empty">Mode demo: tidak ada data Sheet untuk diperiksa.</p>` : (pf.canWrite ? "" : `<p class="kd-card-sub">Mode baca saja (service account belum diatur): usulan hanya bisa dilihat.</p>`);
+        box.innerHTML = `<p class="kd-card-sub">${fmt(pf.jumlahSiswa || 0)} siswa diperiksa.</p>${note}${kosong}${fixHtml}${lap}`;
+        $("pfApply").classList.toggle("kd-hidden", !pf.perbaikan.length);
+        pfCount();
+    }
+
+    async function loadPerapian() {
+        if (!AdminAuth.isLoggedIn()) return;
+        const btn = $("pfRun");
+        btn.disabled = true; btn.textContent = "Memeriksa…"; pfShow($("pfMsg"), ""); pfShow($("pfOk"), "");
+        try {
+            const res = await getJSON(CONFIG.API.PERAPIAN);
+            pf = res.data; renderPerapian();
+        } catch (e) {
+            if (e.status === 401) { AdminAuth.logout(); location.reload(); return; }
+            pfShow($("pfMsg"), e.message || "Pemeriksaan gagal.");
+        } finally { btn.disabled = false; btn.textContent = "Periksa data"; }
+    }
+
+    $("pfRun").addEventListener("click", loadPerapian);
+    $("pfBody").addEventListener("change", (e) => { if (e.target.matches("input[data-fix]")) pfCount(); });
+    $("pfApply").addEventListener("click", async () => {
+        const ids = pfPicked();
+        if (!ids.length) return;
+        if (!window.confirm(`Terapkan ${ids.length} perbaikan ke Google Sheet? Perubahan dicatat di tab Log_Perapian.`)) return;
+        const btn = $("pfApply"), label = btn.textContent;
+        btn.disabled = true; btn.textContent = "Menerapkan…"; pfShow($("pfMsg"), ""); pfShow($("pfOk"), "");
+        try {
+            const r = await fetch(CONFIG.API.PERAPIAN, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids }) });
+            const body = await r.json().catch(() => ({}));
+            if (r.status === 401) { AdminAuth.logout(); location.reload(); return; }
+            if (!r.ok || body.success === false) throw new Error(body.message || `Gagal (HTTP ${r.status}).`);
+            const d = body.data;
+            pfShow($("pfOk"), `✔ ${fmt(d.diterapkan)} perbaikan diterapkan${d.dilewati ? `, ${fmt(d.dilewati)} dilewati (data sudah berubah)` : ""}.${d.logOk ? "" : " Catatan log gagal ditulis: pastikan tab Log_Perapian ada."}`);
+            await loadPerapian();
+            pfShow($("pfOk"), $("pfOk").textContent || `✔ ${fmt(d.diterapkan)} perbaikan diterapkan.`);
+            load(true).catch(() => {});     // muat ulang data siswa agar mengikuti perubahan
+        } catch (e) { pfShow($("pfMsg"), e.message); btn.textContent = label; btn.disabled = false; }
+    });
 
     $("rkRefresh").addEventListener("click", loadRingkasan);
     // WhatsApp dibuka di perangkat guru yang sedang login; guru memilih grup/nomor tujuan lalu menekan Kirim sendiri.
