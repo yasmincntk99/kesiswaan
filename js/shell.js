@@ -171,7 +171,7 @@ window.Shell = (() => {
                 <span class="gds-shield">${shield}</span>
                 <div class="gds-text">
                     <small>${CONFIG.PROGRAM_NAME}</small>
-                    <strong>${CONFIG.COMMITTEE_NAME}</strong>
+                    <strong>${sessionRoles(session).includes("komisi") ? CONFIG.COMMITTEE_NAME : "Portal Eksekutif"}</strong>
                 </div>
                 <div class="gds-user"><span class="gds-dot" aria-hidden="true"></span><span>${esc(session.nama || session.username || "admin")}</span><em>${sessionRoles(session).includes("komisi") ? (sessionRoles(session).includes("eksekutif") ? "Komisi · Eksekutif" : "Komisi") : "Eksekutif"}</em></div>
             </div>`;
@@ -231,7 +231,7 @@ window.Shell = (() => {
             nav += `
                 <p class="app-sidebar-title">Akun & data</p>
                 <nav>
-                    <button type="button" class="gds-logout" id="sbLogout" title="Keluar dari sesi Komisi Disiplin">
+                    <button type="button" class="gds-logout" id="sbLogout" title="Keluar">
                         <span class="icon">🚪</span> <span class="label">Keluar</span>
                     </button>
                 </nav>`;

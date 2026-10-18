@@ -167,7 +167,7 @@ window.AdminBadge = (() => {
         // status awal badge (tanpa membuka panel)
         const logged = !!(window.AdminAuth && AdminAuth.isLoggedIn());
         badge.classList.toggle("is-active", logged);
-        badge.querySelector(".kd-badge-label").textContent = logged ? "Komisi aktif" : "Komisi Disiplin";
+        badge.querySelector(".kd-badge-label").textContent = logged ? (window.AdminAuth && !window.AdminAuth.hasRole("komisi") ? "Eksekutif aktif" : "Komisi aktif") : "Komisi Disiplin";
 
         // tautan #input/#data/#pembinaan di halaman admin: tutup panel saat dipilih
         body.addEventListener("click", (e) => { if (e.target.closest(".kd-menu-item")) close(); });

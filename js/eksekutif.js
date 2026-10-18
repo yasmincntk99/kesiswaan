@@ -13,18 +13,29 @@ Portal Eksekutif: KPI, grafik, mode tayang, cetak A4. Data dari /api/eksekutif (
     function fmtVal(k) {
         if (k.nilai === null || k.nilai === undefined) return "–";
         const sign = k.kode === "tren_pct" && k.nilai > 0 ? "+" : "";
-        return sign + nf(k.nilai) + (k.satuan === "%" ? "%" : "");
+        return sign + nf(k.nilai);
     }
+    const unit = (k) => (k.nilai === null || k.nilai === undefined ? "" : k.satuan);
     function fmtTarget(k) {
         const op = k.arah === "min" ? "≥" : "≤";
-        return `Target ${op} ${k.target}${k.satuan === "%" ? "%" : " " + k.satuan}`;
+        return `Target ${op} ${nf(k.target)}${k.satuan === "%" ? "%" : " " + k.satuan}`;
+    }
+    // Seberapa dekat nilai dengan target (0..1) untuk batang kemajuan.
+    function ratio(k) {
+        const v = k.nilai, t = k.target;
+        if (v === null || v === undefined) return 0;
+        if (k.arah === "min") return t > 0 ? Math.max(0, Math.min(1, v / t)) : 1;
+        if (v <= t) return 1;
+        if (t > 0) return Math.max(0.06, Math.min(1, t / v));
+        return 0.06;
     }
 
     function kpiCard(k) {
         return `<article class="kd-card kd-ekpi" data-s="${esc(k.status)}">
             <div class="kd-ekpi-top"><span class="kd-ekpi-ico" aria-hidden="true">${ICON[k.kode] || "📊"}</span><span class="kd-ekpi-name">${esc(k.nama)}</span></div>
-            <div class="kd-ekpi-val">${esc(fmtVal(k))}</div>
-            <div class="kd-ekpi-foot"><span class="kd-ekpi-badge">${STAT[k.status] || ""}</span><span>${esc(fmtTarget(k))}${k.contoh ? " (contoh)" : ""}</span></div>
+            <div class="kd-ekpi-val">${esc(fmtVal(k))}<small>${esc(unit(k))}</small></div>
+            <div class="kd-ekpi-meter" role="img" aria-label="Capaian terhadap target"><i style="width:${Math.round(ratio(k) * 100)}%"></i></div>
+            <div class="kd-ekpi-foot"><span class="kd-ekpi-badge">${STAT[k.status] || ""}</span><span class="kd-ekpi-target">${esc(fmtTarget(k))}${k.contoh ? " · contoh" : ""}</span></div>
         </article>`;
     }
 
@@ -110,14 +121,32 @@ Portal Eksekutif: KPI, grafik, mode tayang, cetak A4. Data dari /api/eksekutif (
     /* ---- mode tayang ---- */
     function show(i) {
         idx = (i + slides.length) % slides.length;
-        $("eksSlide").innerHTML = `<h2 class="kd-tayang-h">${esc(slides[idx][0])}</h2>${slides[idx][1]}`;
+        $("eksSlide").innerHTML = `<div class="kd-tayang-fit" id="eksFit"><h2 class="kd-tayang-h">${esc(slides[idx][0])}</h2>${slides[idx][1]}</div>`;
+        fit();
         $("eksDots").innerHTML = slides.map((_, n) => `<i class="${n === idx ? "on" : ""}"></i>`).join("");
+        $("eksCount").textContent = (idx + 1) + " / " + slides.length;
+        const bar = $("eksProg"); bar.style.transition = "none"; bar.style.width = "0%";
+        void bar.offsetWidth; bar.style.transition = "width 12s linear"; bar.style.width = "100%";
     }
+    // Skala isi slide agar muat satu layar tanpa gulir (proyektor/layar kecil).
+    function fit() {
+        const box = $("eksSlide"), el = $("eksFit");
+        if (!el || $("eksStage").classList.contains("kd-hidden")) return;
+        el.style.zoom = "";
+        if (window.innerWidth < 700) return; // HP: biarkan digulir
+        const cs = getComputedStyle(box);
+        const avail = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+        const need = el.scrollHeight;
+        if (need > avail && avail > 0) el.style.zoom = String(Math.max(0.45, (avail / need) * 0.97));
+    }
+    window.addEventListener("resize", fit);
+
     function auto() { clearInterval(timer); timer = setInterval(() => show(idx + 1), 12000); }
     function openStage() {
         if (!D) return;
         $("eksStage").classList.remove("kd-hidden");
         document.body.classList.add("kd-tayang-on");
+        $("eksStageTa").textContent = D ? "Tahun ajaran " + D.ta : "";
         show(0); auto();
         const el = $("eksStage");
         if (el.requestFullscreen) el.requestFullscreen().catch(() => {});

@@ -76,13 +76,21 @@
     </main>
 
     <div class="kd-tayang kd-hidden" id="eksStage" role="dialog" aria-label="Mode tayang KPI">
-        <button type="button" class="kd-tayang-x" id="eksStageX" aria-label="Tutup mode tayang">✕</button>
+        <div class="kd-tayang-bg" aria-hidden="true"></div>
+        <header class="kd-tayang-head">
+            <img src="../assets/logo/logo.png" alt="" class="kd-tayang-logo">
+            <div class="kd-tayang-brand"><small>SMAN 1 Sooko Mojokerto</small><strong>Gerakan Disiplin Sekolah</strong></div>
+            <span class="kd-tayang-ta" id="eksStageTa"></span>
+            <button type="button" class="kd-tayang-x" id="eksStageX" aria-label="Tutup mode tayang">✕</button>
+        </header>
         <div class="kd-tayang-slide" id="eksSlide"></div>
-        <div class="kd-tayang-nav">
+        <footer class="kd-tayang-nav">
             <button type="button" class="kd-btn kd-btn--sm" id="eksPrev" aria-label="Sebelumnya">◀</button>
             <span id="eksDots" class="kd-tayang-dots"></span>
+            <span id="eksCount" class="kd-tayang-count"></span>
             <button type="button" class="kd-btn kd-btn--sm" id="eksNext" aria-label="Berikutnya">▶</button>
-        </div>
+        </footer>
+        <div class="kd-tayang-prog"><i id="eksProg"></i></div>
     </div>
 
     <div id="shellFooter"></div>
