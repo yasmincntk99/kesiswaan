@@ -353,7 +353,7 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
             const r = await fetch(CONFIG.API.AI_CATAT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ teks }) });
             const body = await r.json().catch(() => ({}));
             if (r.status === 401) { AdminAuth.logout(); location.reload(); return; }
-            if (!r.ok || body.success === false) throw new Error(body.message || `Gagal (HTTP ${r.status}).`);
+            if (!r.ok || body.success === false) throw new Error(body.message || (r.status === 504 || r.status === 502 ? "Server AI terlalu lama menjawab. Coba lagi." : `Gagal (HTTP ${r.status}).`));
             aiData = body.data;
             Object.keys(aiPick).forEach((k) => delete aiPick[k]);
             aiData.mentions.forEach((m) => { if (m.status === "ok") aiPick[m.id] = m.kandidat[0].nis; });

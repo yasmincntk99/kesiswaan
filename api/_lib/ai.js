@@ -100,12 +100,15 @@ function prompt(masked, tatib, today, hari) {
     return { sys, user };
 }
 
-async function callGemini({ masked, tatib, today, hari, apiKey, models, timeoutMs = 8000 }) {
+async function callGemini({ masked, tatib, today, hari, apiKey, models, timeoutMs = 8500 }) {
     const { sys, user } = prompt(masked, tatib, today, hari);
     let lastErr = "Layanan AI tidak dapat dihubungi.";
+    const deadline = Date.now() + timeoutMs;      // total anggaran waktu (fungsi Vercel gratis ~10 detik)
     for (const model of models) {
+        const sisa = deadline - Date.now();
+        if (sisa < 1500) break;
         const ctl = new AbortController();
-        const timer = setTimeout(() => ctl.abort(), timeoutMs);
+        const timer = setTimeout(() => ctl.abort(), sisa);
         try {
             const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
                 method: "POST",
@@ -117,10 +120,11 @@ async function callGemini({ masked, tatib, today, hari, apiKey, models, timeoutM
                 }),
                 signal: ctl.signal
             });
-            if (r.status === 404) { lastErr = `Model ${model} tidak tersedia.`; continue; }      // coba model cadangan
+            const alasan = async () => { try { const j = await r.clone().json(); return String((j.error && (j.error.message || j.error.status)) || "").replace(/AIza[0-9A-Za-z_\-]+/g, "***").slice(0, 160); } catch (e) { return ""; } };
+            if (r.status === 404) { lastErr = `Model ${model} tidak tersedia. ${await alasan()}`.trim(); continue; }      // coba model cadangan
             if (r.status === 429) { const e = new Error("Kuota gratis Gemini sedang habis. Coba lagi beberapa menit lagi."); e.status = 429; throw e; }
-            if (r.status === 400 || r.status === 401 || r.status === 403) { const e = new Error("Kunci Gemini ditolak atau tidak berlaku. Periksa GEMINI_API_KEY di Vercel."); e.status = 502; throw e; }
-            if (!r.ok) { lastErr = `Layanan AI membalas HTTP ${r.status}.`; continue; }
+            if (r.status === 400 || r.status === 401 || r.status === 403) { const e = new Error(`Gemini menolak permintaan (HTTP ${r.status}): ${await alasan() || "periksa GEMINI_API_KEY di Vercel"}`); e.status = 502; throw e; }
+            if (!r.ok) { lastErr = `Layanan AI membalas HTTP ${r.status}. ${await alasan()}`.trim(); continue; }
             const j = await r.json();
             const txt = j && j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts && j.candidates[0].content.parts.map((p) => p.text || "").join("");
             if (!txt) { lastErr = "AI tidak memberi jawaban (kemungkinan diblokir filter)."; continue; }
