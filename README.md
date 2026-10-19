@@ -57,3 +57,6 @@ Vercel (lihat `vercel.json`). Node 24.x.
 
 ### Portal Eksekutif (`/pages/eksekutif.html`)
 Khusus akun berperan `eksekutif`. Menampilkan 7 KPI bertarget (hijau/kuning/merah), ringkasan tahun ajaran, tren 12 bulan, sebaran tingkat, kelas dan jenis pelanggaran teratas, serta status tindak lanjut. Hanya angka agregat, tanpa nama siswa. Tombol **Mode tayang** (layar penuh, geser otomatis 12 detik, tombol panah/Esc) dan **Cetak A4**. Target diubah lewat tab `Target_KPI`.
+
+### Tanya Data (AI)
+Kotak "💬 Tanya Data" di Portal Eksekutif dan di bagian *Data Pelanggaran* Panel Komisi/Kesiswaan (`POST /api/tanya`, semua akun yang masuk). Contoh: "Kelas mana paling banyak melanggar bulan ini?", "Hari apa paling banyak siswa terlambat?". Alur: Gemini hanya **menerjemahkan** pertanyaan menjadi kueri terstruktur (metrik, pengelompokan, periode, filter dari daftar kelas dan kode tata tertib); **angka dihitung server** dari Sheet, jadi tidak ada angka karangan AI. Gemini tidak menerima data pelanggaran dan nama siswa disandikan; pertanyaan tentang individu ditolak. Hasil hanya agregat. Memakai `GEMINI_API_KEY` dan `AI_HOURLY_LIMIT` yang sama dengan fitur catat lewat kalimat.

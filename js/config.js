@@ -31,6 +31,7 @@ window.CONFIG = {
         SURAT: "/api/surat",
         RINGKASAN: "/api/ringkasan",
         EKSEKUTIF: "/api/eksekutif",
+        TANYA: "/api/tanya",
         PERAPIAN: "/api/perapian",
         AI_CATAT: "/api/ai-catat",
         ADMIN_AUTH: "/api/admin-auth"

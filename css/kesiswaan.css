@@ -759,3 +759,12 @@ body[data-page="eksekutif"] .header h1 span{display:inline}
 .kd-tayang-fit{display:flex;flex-direction:column;gap:clamp(1rem,2vw,2rem);margin:auto 0}
 .kd-tayang-slide>:first-child,.kd-tayang-slide>:last-child{margin-top:auto;margin-bottom:auto}
 @media (max-width:700px){.kd-tayang-ta{display:none}.kd-tayang-brand small{display:none}.kd-tayang-slide{justify-content:flex-start}}
+
+/* Tanya Data */
+.kd-tanya{margin-bottom:var(--space-lg)}
+#panel-data .kd-tanya{padding:1rem;border:1px solid var(--glass-border);border-radius:var(--glass-radius-sm);background:rgba(255,255,255,.05)}
+.kd-tny-chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem}
+.kd-tny-chip{cursor:pointer;font:inherit;font-size:var(--font-xs)}
+.kd-tny-main{margin:0;font-size:var(--font-lg);font-weight:var(--weight-bold)}
+body[data-page="eksekutif"] .kd-eks-bar+#eksAlert{margin:0}
+@media print{ body[data-page="eksekutif"] .kd-tanya{display:none !important} }

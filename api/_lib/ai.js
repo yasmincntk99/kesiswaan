@@ -21,7 +21,7 @@ const words = (s) => norm(s).split(" ").filter(Boolean);
 function normKelas(a, b) { return `${a.toUpperCase()}-${Number(b)}`; }
 
 /** Cari sebutan siswa pada teks. -> { masked, mentions:[{id, teks, status, kandidat:[{nis,nama,kelas}]}] } */
-function maskNames(teks, siswa, tatib) {
+function maskNames(teks, siswa, tatib, extraStop) {
     const clean = String(teks || "").replace(/\d{6,}/g, "[angka]");
     // token dengan posisi
     const toks = [];
@@ -30,6 +30,7 @@ function maskNames(teks, siswa, tatib) {
     while ((m = re.exec(clean))) toks.push({ w: m[0].toLowerCase(), s: m.index, e: m.index + m[0].length });
 
     const stop = new Set(STOP);
+    (extraStop || []).forEach((w) => stop.add(w));
     tatib.forEach((t) => words(t.jenis).forEach((w) => stop.add(w)));
 
     const idx = siswa.map((s) => ({ s, set: words(s.nama).filter((w) => w.length >= 2) }));
@@ -102,6 +103,11 @@ function prompt(masked, tatib, today, hari) {
 
 async function callGemini({ masked, tatib, today, hari, apiKey, models, timeoutMs = 8500 }) {
     const { sys, user } = prompt(masked, tatib, today, hari);
+    return callJSON({ sys, user, schema: SCHEMA, apiKey, models, timeoutMs });
+}
+
+/** Panggilan Gemini umum: keluaran JSON sesuai skema. Dipakai juga oleh Tanya Data. */
+async function callJSON({ sys, user, schema, apiKey, models, timeoutMs = 8500 }) {
     let lastErr = "Layanan AI tidak dapat dihubungi.";
     const deadline = Date.now() + timeoutMs;      // total anggaran waktu (fungsi Vercel gratis ~10 detik)
     for (const model of models) {
@@ -116,7 +122,7 @@ async function callGemini({ masked, tatib, today, hari, apiKey, models, timeoutM
                 body: JSON.stringify({
                     systemInstruction: { parts: [{ text: sys }] },
                     contents: [{ role: "user", parts: [{ text: user }] }],
-                    generationConfig: { temperature: 0, responseMimeType: "application/json", responseSchema: SCHEMA }
+                    generationConfig: { temperature: 0, responseMimeType: "application/json", responseSchema: schema }
                 }),
                 signal: ctl.signal
             });
@@ -160,4 +166,4 @@ function validate(ai, mentions, tatib, today) {
     return { kelompok, tanpaJenis, belumTercocok };
 }
 
-module.exports = { maskNames, callGemini, validate };
+module.exports = { maskNames, callGemini, callJSON, validate };
