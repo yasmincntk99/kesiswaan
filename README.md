@@ -64,3 +64,7 @@ Kotak "💬 Tanya Data" di Portal Eksekutif dan di bagian *Data Pelanggaran* Pan
 
 ### Rekomendasi Mingguan Wali Kelas (`/pages/walikelas.html`)
 Untuk akun berperan `walikelas`. Berisi ringkasan kelas (7 hari terakhir vs 7 hari sebelumnya), daftar siswa yang perlu perhatian beserta saran, jenis pelanggaran tersering, dan siswa yang layak diapresiasi. Disusun dengan aturan sederhana yang tertulis di bagian bawah halaman (tindak lanjut SP1+ yang belum ada, sisa ≤ 10 poin menuju tingkat berikutnya, jenis sama ≥ 3 kali dalam 30 hari, lonjakan ≥ 15 poin dalam 7 hari); bukan prediksi dan tidak memakai AI, jadi tidak ada angka karangan. Hanya anjuran: tidak ada yang dikirim atau diubah otomatis. Wali kelas hanya bisa melihat kelas di kolom **Kelas** (dibawa di token bertanda tangan, dicek server; kelas lain 403). Perubahan kolom Kelas berlaku setelah wali kelas masuk lagi. Komisi dan Kesiswaan dapat melihat semua kelas lewat halaman yang sama.
+
+
+### Batas fungsi Vercel (paket gratis)
+Paket Hobby hanya mengizinkan **12 fungsi serverless** per deployment; lebih dari itu deployment GAGAL dan situs tetap memakai versi lama. Karena itu `ai-catat`, `eksekutif`, `perapian`, `ringkasan`, `tanya`, dan `walikelas` digabung menjadi satu fungsi `api/layanan.js` (kode handler di `api/_lib/h/`), dan URL lamanya tetap berlaku lewat `rewrites` di `vercel.json`. Saat ini ada 9 fungsi; **jangan menambah file di `/api` tanpa menghitung dulu** (tambahkan endpoint baru sebagai handler di `api/_lib/h/` + satu baris di `api/layanan.js` dan `vercel.json`).

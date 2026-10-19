@@ -7,9 +7,9 @@ POST { ids:[...] } -> terapkan hanya usulan yang dicentang (server menghitung ul
 Tanpa AI: semua aturan deterministik di api/_lib/perapian.js.
 ==========================================================
 */
-const sheets = require("./_lib/sheets");
-const P = require("./_lib/perapian");
-const { verifyAdmin } = require("./admin-auth");
+const sheets = require("../sheets");
+const P = require("../perapian");
+const { verifyAdmin } = require("../../admin-auth");
 
 const MAX_IDS = 300;
 

@@ -8,9 +8,9 @@ Env: GEMINI_API_KEY (wajib), GEMINI_MODEL (opsional), AI_HOURLY_LIMIT (opsional,
 Privasi & validasi: lihat api/_lib/ai.js.
 ==========================================================
 */
-const K = require("./_lib/kesiswaan");
-const AI = require("./_lib/ai");
-const { verifyAdmin } = require("./admin-auth");
+const K = require("../kesiswaan");
+const AI = require("../ai");
+const { verifyAdmin } = require("../../admin-auth");
 
 const HARI = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 const HOURLY = () => Math.max(1, Number(process.env.AI_HOURLY_LIMIT) || 30);

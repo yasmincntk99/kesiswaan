@@ -6,8 +6,8 @@ Wali kelas HANYA mendapat kelas yang tercantum di kolom "Kelas" tab Pengguna (di
 kelas lain ditolak server (403). Berisi nama siswa kelasnya sendiri.
 ==========================================================
 */
-const R = require("./_lib/rekomendasi");
-const { verifyAdmin } = require("./admin-auth");
+const R = require("../rekomendasi");
+const { verifyAdmin } = require("../../admin-auth");
 
 module.exports = async (req, res) => {
     res.setHeader("Cache-Control", "no-store");

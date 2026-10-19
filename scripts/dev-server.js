@@ -17,7 +17,9 @@ http.createServer(async (req, res) => {
     let p = decodeURIComponent(u.pathname);
 
     if (p.startsWith("/api/")) {
-        const name = p.slice(5).replace(/[^a-z0-9-]/gi, "");
+        let name = p.slice(5).replace(/[^a-z0-9-]/gi, "");
+        // Meniru "rewrites" vercel.json: endpoint yang digabung ke /api/layanan
+        if (["ai-catat", "eksekutif", "perapian", "ringkasan", "tanya", "walikelas"].includes(name)) { u.query.op = name; name = "layanan"; }
         const file = path.join(root, "api", name + ".js");
         if (!fs.existsSync(file)) { res.writeHead(404, { "Content-Type": "application/json" }); return res.end('{"success":false}'); }
         let raw = "";

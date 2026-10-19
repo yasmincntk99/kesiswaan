@@ -4,8 +4,8 @@
 GET -> KPI & infografis agregat untuk kepala sekolah (tanpa nama siswa). Lihat api/_lib/kpi.js.
 ==========================================================
 */
-const kpi = require("./_lib/kpi");
-const { verifyAdmin } = require("./admin-auth");
+const kpi = require("../kpi");
+const { verifyAdmin } = require("../../admin-auth");
 
 module.exports = async (req, res) => {
     res.setHeader("Cache-Control", "no-store");

@@ -1,10 +1,7 @@
 {
   "version": 2,
-
   "cleanUrls": true,
-
   "trailingSlash": false,
-
   "headers": [
     {
       "source": "/(.*)",
@@ -24,11 +21,34 @@
       ]
     }
   ],
-
   "rewrites": [
     {
       "source": "/",
       "destination": "/index.html"
+    },
+    {
+      "source": "/api/ai-catat",
+      "destination": "/api/layanan?op=ai-catat"
+    },
+    {
+      "source": "/api/eksekutif",
+      "destination": "/api/layanan?op=eksekutif"
+    },
+    {
+      "source": "/api/perapian",
+      "destination": "/api/layanan?op=perapian"
+    },
+    {
+      "source": "/api/ringkasan",
+      "destination": "/api/layanan?op=ringkasan"
+    },
+    {
+      "source": "/api/tanya",
+      "destination": "/api/layanan?op=tanya"
+    },
+    {
+      "source": "/api/walikelas",
+      "destination": "/api/layanan?op=walikelas"
     }
   ]
 }

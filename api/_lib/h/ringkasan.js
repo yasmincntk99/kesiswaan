@@ -10,9 +10,9 @@ GET -> ringkasan harian Komisi Disiplin + pemeriksaan data (dihitung saat dibuka
   pesan     = teks ringkasan siap kirim lewat WhatsApp (tanpa nomor orang tua; hanya untuk pengurus)
 ==========================================================
 */
-const K = require("./_lib/kesiswaan");
-const sheets = require("./_lib/sheets");
-const { verifyAdmin } = require("./admin-auth");
+const K = require("../kesiswaan");
+const sheets = require("../sheets");
+const { verifyAdmin } = require("../../admin-auth");
 
 const DAY = 86400000;
 const dayNum = (iso) => Math.floor(Date.parse(iso + "T00:00:00Z") / DAY);

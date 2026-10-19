@@ -6,10 +6,10 @@ Hasil hanya angka gabungan. Lihat api/_lib/tanya.js untuk batas privasi.
 Env: GEMINI_API_KEY (wajib), GEMINI_MODEL (opsional), AI_HOURLY_LIMIT (opsional; default 30 per akun per jam)
 ==========================================================
 */
-const K = require("./_lib/kesiswaan");
-const AI = require("./_lib/ai");
-const T = require("./_lib/tanya");
-const { verifyAdmin } = require("./admin-auth");
+const K = require("../kesiswaan");
+const AI = require("../ai");
+const T = require("../tanya");
+const { verifyAdmin } = require("../../admin-auth");
 
 const HOURLY = () => Math.max(1, Number(process.env.AI_HOURLY_LIMIT) || 30);
 const MAX_TEKS = 300;
