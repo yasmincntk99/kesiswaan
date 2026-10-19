@@ -768,3 +768,33 @@ body[data-page="eksekutif"] .header h1 span{display:inline}
 .kd-tny-main{margin:0;font-size:var(--font-lg);font-weight:var(--weight-bold)}
 body[data-page="eksekutif"] .kd-eks-bar+#eksAlert{margin:0}
 @media print{ body[data-page="eksekutif"] .kd-tanya{display:none !important} }
+
+/* Wali kelas */
+#wkBody{display:grid;gap:var(--space-lg)}
+#wkPilih{width:auto;min-width:6rem}
+#wkPilih.kd-hidden{display:none !important}
+.wk-sum{border-top:4px solid #8E8E93}
+.wk-sum[data-s="ok"]{border-top-color:#32D74B}
+.wk-sum[data-s="bad"]{border-top-color:#FF453A}
+.wk-h{margin:.5rem 0 0}
+.wk-h small{opacity:.7;font-weight:600}
+.wk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:var(--space-lg)}
+.wk-card{border-left:6px solid #8E8E93}
+.wk-card[data-s="bad"]{border-left-color:#FF453A}
+.wk-card[data-s="warn"]{border-left-color:#FFD60A}
+.wk-top{display:flex;justify-content:space-between;gap:.5rem;align-items:flex-start}
+.wk-nama{font-size:var(--font-md)}
+.wk-card[data-s="bad"] .kd-ekpi-badge{background:rgba(255,69,58,.32)}
+.wk-card[data-s="warn"] .kd-ekpi-badge{background:rgba(255,214,10,.32)}
+.wk-list{margin:0 0 .5rem;padding-left:1.1rem;font-size:var(--font-sm)}
+.wk-saran{margin:0;font-size:var(--font-sm);opacity:.95}
+.kd-esum-i small{font-size:.5em;font-weight:600;opacity:.8}
+@media print{
+    body[data-page="walikelas"]{background:#fff !important;color:#000 !important}
+    body[data-page="walikelas"] #shellNav,body[data-page="walikelas"] .app-sidebar,body[data-page="walikelas"] .app-sidebar-overlay,body[data-page="walikelas"] #shellFooter,body[data-page="walikelas"] .kd-eks-actions,body[data-page="walikelas"] .bg-layer,body[data-page="walikelas"] .kd-badge,body[data-page="walikelas"] .kd-badge-panel,body[data-page="walikelas"] .header .logo,body[data-page="walikelas"] .header p{display:none !important}
+    body[data-page="walikelas"] .header,body[data-page="walikelas"] .header *{color:#000 !important;background:none !important;padding-top:0 !important}
+    body[data-page="walikelas"] .kd-card{background:#fff !important;color:#000 !important;box-shadow:none !important;border:1px solid #bbb;break-inside:avoid;backdrop-filter:none !important}
+    body[data-page="walikelas"] .wk-grid{grid-template-columns:1fr 1fr}
+    body[data-page="walikelas"] .kd-chip{color:#000 !important;background:none !important}
+    body[data-page="walikelas"] *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}

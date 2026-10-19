@@ -108,6 +108,11 @@ function passwordMatches(password) {
 const INACTIVE = ["tidak", "nonaktif", "non-aktif", "no", "n", "false", "0", "off"];
 const DUMMY_PASSWORD = "tidak-ada-akun-" + DEFAULT_PASSWORD_HASH.slice(0, 16);
 
+/** Kolom "Kelas" tab Pengguna (untuk wali kelas): "X-1" atau "X-1, X-2" -> ["X-1","X-2"] (huruf besar). */
+function parseKelas(v) {
+    return [...new Set(String(v || "").toUpperCase().split(/[,;|]+/).map((x) => x.trim().replace(/\s+/g, "-")).filter(Boolean))].slice(0, 6);
+}
+
 async function loadUsers() {
 
     // Tab ini memuat password: hanya dibaca lewat service account, tidak pernah lewat gviz publik.
@@ -122,7 +127,8 @@ async function loadUsers() {
             nama: String(r[1] || "").trim(),
             password: String(r[2] || "").trim(),
             aktif: !INACTIVE.includes(String(r[3] || "").trim().toLowerCase()),
-            peran: String(r[4] || "").trim().toLowerCase() || "komisi"
+            peran: String(r[4] || "").trim().toLowerCase() || "komisi",
+            kelas: parseKelas(r[5])
         })).filter((u) => u.username && u.password && u.aktif);
 
     } catch (e) {
@@ -177,13 +183,14 @@ function signToken(payload) {
    Nilai lain (mis. "admin", "guru") dianggap "komisi" agar akun lama tetap berfungsi. Kosong = "komisi". */
 const EKSEKUTIF_ALIAS = ["eksekutif", "executive", "eksekutif-sekolah", "kepsek", "kepala-sekolah", "pimpinan"];
 
+const WALI_ALIAS = ["walikelas", "wali-kelas", "wali", "wk"];
 const KESISWAAN_ALIAS = ["kesiswaan", "bk", "bimbingan-konseling", "guru-bk", "wakasek-kesiswaan", "waka-kesiswaan"];
 
 function parsePeran(value) {
     const tokens = String(value || "").toLowerCase().split(/[,;/|]+/).map((t) => t.trim().replace(/\s+/g, "-")).filter(Boolean);
     const roles = new Set();
     if (!tokens.length) roles.add("komisi");
-    tokens.forEach((t) => roles.add(EKSEKUTIF_ALIAS.includes(t) ? "eksekutif" : KESISWAAN_ALIAS.includes(t) ? "kesiswaan" : "komisi"));
+    tokens.forEach((t) => roles.add(EKSEKUTIF_ALIAS.includes(t) ? "eksekutif" : KESISWAAN_ALIAS.includes(t) ? "kesiswaan" : WALI_ALIAS.includes(t) ? "walikelas" : "komisi"));
     return [...roles];
 }
 
@@ -225,7 +232,7 @@ function verifyAdmin(req, need = "komisi") {
     const roles = parsePeran(payload.r);
     if (need && !([].concat(need)).some((n) => roles.includes(n))) return { ok: false, forbidden: true, configured: true, roles };
 
-    return { ok: true, configured: true, username: payload.u, nama: payload.n || payload.u, peran: payload.r || "komisi", roles, expiresAt: payload.exp };
+    return { ok: true, configured: true, username: payload.u, nama: payload.n || payload.u, peran: payload.r || "komisi", roles, kelas: Array.isArray(payload.k) ? payload.k.map(String).slice(0, 6) : [], expiresAt: payload.exp };
 
 }
 
@@ -351,7 +358,7 @@ async function handleLogin(req, res) {
         const user = (await loadUsers()).find((u) => u.username.toLowerCase() === uname);
         const ok = sheetPasswordMatches(user ? user.password : DUMMY_PASSWORD, password);
 
-        if (user && ok) account = { username: user.username, nama: user.nama || user.username, peran: user.peran };
+        if (user && ok) account = { username: user.username, nama: user.nama || user.username, peran: user.peran, kelas: user.kelas || [] };
 
     }
 
@@ -371,12 +378,13 @@ async function handleLogin(req, res) {
 
     return res.status(200).json({
         success: true,
-        token: signToken({ u: account.username, n: account.nama, r: account.peran, iat: now, exp }),
+        token: signToken({ u: account.username, n: account.nama, r: account.peran, k: account.kelas || [], iat: now, exp }),
         expiresAt: exp,
         username: account.username,
         nama: account.nama,
         peran: account.peran,
         roles: parsePeran(account.peran),
+        kelas: account.kelas || [],
         insecureDefaults: insecureDefaults()
     });
 
@@ -390,7 +398,7 @@ function handleVerify(req, res) {
         return res.status(401).json({ valid: false });
     }
 
-    return res.status(200).json({ valid: true, username: result.username, nama: result.nama, peran: result.peran, roles: result.roles, expiresAt: result.expiresAt, insecureDefaults: insecureDefaults() });
+    return res.status(200).json({ valid: true, username: result.username, nama: result.nama, peran: result.peran, roles: result.roles, kelas: result.kelas, expiresAt: result.expiresAt, insecureDefaults: insecureDefaults() });
 
 }
 

@@ -25,6 +25,10 @@ window.AdminBadge = (() => {
         { href: "/pages/eksekutif.html", title: "KPI & Infografis", desc: "Ringkasan capaian disiplin untuk pimpinan", icon: "📈" }
     ];
 
+    const MENU_WALI = [
+        { href: "/pages/walikelas.html", title: "Rekomendasi Mingguan", desc: "Ringkasan dan saran untuk kelas Anda", icon: "🧑‍🏫" }
+    ];
+
     const SHIELD = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6l7-3z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg>';
 
     let badge, panel, body, backdrop, loginCtl;
@@ -41,7 +45,7 @@ window.AdminBadge = (() => {
         const logged = !!(auth && auth.isLoggedIn());
 
         badge.classList.toggle("is-active", logged);
-        badge.querySelector(".kd-badge-label").textContent = logged ? (auth.hasRole("komisi") ? "Komisi aktif" : auth.hasRole("kesiswaan") ? "Kesiswaan aktif" : "Eksekutif aktif") : "Komisi Disiplin";
+        badge.querySelector(".kd-badge-label").textContent = logged ? (auth.hasRole("komisi") ? "Komisi aktif" : auth.hasRole("kesiswaan") ? "Kesiswaan aktif" : auth.hasRole("walikelas") ? "Wali kelas aktif" : "Eksekutif aktif") : "Komisi Disiplin";
 
         let html = "";
 
@@ -63,7 +67,7 @@ window.AdminBadge = (() => {
                 </div>
                 ${auth.insecure() ? '<p class="kd-panel-warn">⚠️ Server masih memakai pengaman bawaan. Atur <code>ADMIN_PASSWORD</code> dan <code>ADMIN_SESSION_SECRET</code> di Vercel sebelum dipakai sungguhan.</p>' : ""}
                 <ul class="kd-menu">
-                    ${[].concat(auth.hasRole("eksekutif") ? MENU_EKS : [], auth.hasRole("komisi") ? MENU : auth.hasRole("kesiswaan") ? MENU.filter((m) => /#(data|pembinaan)$/.test(m.href)) : []).map((m) => `
+                    ${[].concat(auth.hasRole("eksekutif") ? MENU_EKS : [], auth.hasRole("walikelas") ? MENU_WALI : [], auth.hasRole("komisi") ? MENU : auth.hasRole("kesiswaan") ? MENU.filter((m) => /#(data|pembinaan)$/.test(m.href)) : []).map((m) => `
                     <li><a class="kd-menu-item" href="${m.href}">
                         <span class="kd-menu-ico" aria-hidden="true">${m.icon}</span>
                         <span class="kd-menu-text"><strong>${m.title}</strong><small>${m.desc}</small></span>
@@ -108,7 +112,7 @@ window.AdminBadge = (() => {
         if (out) {
             out.addEventListener("click", () => {
                 auth.logout();
-                if (/\/pages\/(admin|eksekutif)(\.html)?$/.test(location.pathname)) { location.href = "/index.html"; return; }
+                if (/\/pages\/(admin|eksekutif|walikelas)(\.html)?$/.test(location.pathname)) { location.href = "/index.html"; return; }
                 renderBody();
             });
         }
@@ -167,7 +171,7 @@ window.AdminBadge = (() => {
         // status awal badge (tanpa membuka panel)
         const logged = !!(window.AdminAuth && AdminAuth.isLoggedIn());
         badge.classList.toggle("is-active", logged);
-        badge.querySelector(".kd-badge-label").textContent = logged ? (window.AdminAuth && !window.AdminAuth.hasRole("komisi") ? (window.AdminAuth.hasRole("kesiswaan") ? "Kesiswaan aktif" : "Eksekutif aktif") : "Komisi aktif") : "Komisi Disiplin";
+        badge.querySelector(".kd-badge-label").textContent = logged ? (window.AdminAuth && !window.AdminAuth.hasRole("komisi") ? (window.AdminAuth.hasRole("kesiswaan") ? "Kesiswaan aktif" : window.AdminAuth.hasRole("walikelas") ? "Wali kelas aktif" : "Eksekutif aktif") : "Komisi aktif") : "Komisi Disiplin";
 
         // tautan #input/#data/#pembinaan di halaman admin: tutup panel saat dipilih
         body.addEventListener("click", (e) => { if (e.target.closest(".kd-menu-item")) close(); });

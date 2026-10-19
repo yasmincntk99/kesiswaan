@@ -21,12 +21,12 @@ Fetch ke /api/pelanggaran otomatis membawa token itu.
 
     const SESSION_KEY = "kesiswaan-admin-session";
     const AUTH_URL = "/api/admin-auth";
-    const PROTECTED_API = /^\/api\/(pelanggaran|pembinaan|surat|ringkasan|ai-catat|perapian|eksekutif|tanya)/;
+    const PROTECTED_API = /^\/api\/(pelanggaran|pembinaan|surat|ringkasan|ai-catat|perapian|eksekutif|tanya|walikelas)/;
 
     const thisScript = document.currentScript;
     const requireRole = thisScript ? (thisScript.getAttribute("data-require-role") || (thisScript.hasAttribute("data-require-admin") ? "komisi,kesiswaan" : "")) : "";
     const requirePage = !!requireRole;
-    const EKSEKUTIF_URL = "/pages/eksekutif.html", KOMISI_URL = "/pages/admin.html";
+    const EKSEKUTIF_URL = "/pages/eksekutif.html", KOMISI_URL = "/pages/admin.html", WALI_URL = "/pages/walikelas.html";
 
     let overlayEl = null;
 
@@ -60,7 +60,7 @@ Fetch ke /api/pelanggaran otomatis membawa token itu.
     /* Kesiswaan = akses terbatas (tanpa Komisi): hanya data & pembinaan. */
     const limited = () => hasRole("kesiswaan") && !hasRole("komisi");
     /* Akun dengan peran eksekutif diarahkan ke portal eksekutif; selain itu ke panel Komisi. */
-    const homeUrl = () => (hasRole("eksekutif") ? EKSEKUTIF_URL : KOMISI_URL);
+    const homeUrl = () => (hasRole("eksekutif") ? EKSEKUTIF_URL : (hasRole("walikelas") && !hasRole("komisi") && !hasRole("kesiswaan") ? WALI_URL : KOMISI_URL));
     const isLoggedIn = () => !!readSession();
     const getToken = () => (readSession() || {}).token || "";
     const username = () => (readSession() || {}).username || "";
@@ -196,6 +196,7 @@ Fetch ke /api/pelanggaran otomatis membawa token itu.
                 iPass.value = "";
                 // peran eksekutif: setelah login selalu ke portal eksekutif (kecuali sudah di sana)
                 if (hasRole("eksekutif") && !/\/eksekutif(\.html)?$/.test(location.pathname)) { window.location.assign(EKSEKUTIF_URL); return; }
+                if (homeUrl() === WALI_URL && !/\/walikelas(\.html)?$/.test(location.pathname)) { window.location.assign(WALI_URL); return; }
                 onSuccess(result);
                 return;
             }
@@ -307,7 +308,7 @@ Fetch ke /api/pelanggaran otomatis membawa token itu.
             if (result === false) { logout(); gate(); return; }
             // sesi valid tetapi peran tidak cocok dengan halaman ini: arahkan ke portal yang sesuai
             if (!hasAny(requireRole)) {
-                const dest = requireRole === "eksekutif" ? KOMISI_URL : homeUrl();
+                const dest = homeUrl();
                 if (dest !== location.pathname && dest.replace(".html", "") !== location.pathname) { window.location.replace(dest); return; }
             }
             reveal();

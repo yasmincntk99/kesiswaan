@@ -86,6 +86,15 @@ window.Shell = (() => {
         ADMIN_GROUPS[1]
     ];
 
+    const WALI_GROUP = {
+        title: "Wali Kelas",
+        links: [
+            { key: "walikelas", label: "Rekomendasi Mingguan", href: "/pages/walikelas.html", icon: "🧑‍🏫" },
+            { key: "tata-tertib", label: "Tata Tertib & Sanksi", href: "/pages/tata-tertib.html", icon: "📘" },
+            { key: "home", label: "Dashboard", href: "/index.html", icon: "📊" }
+        ]
+    };
+
     function sessionRoles(s) {
         return s && Array.isArray(s.roles) && s.roles.length ? s.roles : ["komisi"];
     }
@@ -164,7 +173,7 @@ window.Shell = (() => {
         const s = adminSession();
         if (!s) return "Menu Situs";
         const r = sessionRoles(s);
-        return r.includes("komisi") ? "Menu Komisi Disiplin" : r.includes("kesiswaan") ? "Menu Kesiswaan" : "Menu Eksekutif";
+        return r.includes("komisi") ? "Menu Komisi Disiplin" : r.includes("kesiswaan") ? "Menu Kesiswaan" : r.includes("walikelas") ? "Menu Wali Kelas" : "Menu Eksekutif";
 
     }
 
@@ -181,9 +190,9 @@ window.Shell = (() => {
                 <span class="gds-shield">${shield}</span>
                 <div class="gds-text">
                     <small>${CONFIG.PROGRAM_NAME}</small>
-                    <strong>${sessionRoles(session).includes("komisi") ? CONFIG.COMMITTEE_NAME : (sessionRoles(session).includes("kesiswaan") ? "Kesiswaan & BK" : "Portal Eksekutif")}</strong>
+                    <strong>${sessionRoles(session).includes("komisi") ? CONFIG.COMMITTEE_NAME : (sessionRoles(session).includes("kesiswaan") ? "Kesiswaan & BK" : sessionRoles(session).includes("walikelas") ? "Wali Kelas" : "Portal Eksekutif")}</strong>
                 </div>
-                <div class="gds-user"><span class="gds-dot" aria-hidden="true"></span><span>${esc(session.nama || session.username || "admin")}</span><em>${!sessionRoles(session).includes("komisi") && sessionRoles(session).includes("kesiswaan") ? "Kesiswaan" : sessionRoles(session).includes("komisi") ? (sessionRoles(session).includes("eksekutif") ? "Komisi · Eksekutif" : "Komisi") : "Eksekutif"}</em></div>
+                <div class="gds-user"><span class="gds-dot" aria-hidden="true"></span><span>${esc(session.nama || session.username || "admin")}</span><em>${!sessionRoles(session).includes("komisi") && sessionRoles(session).includes("kesiswaan") ? "Kesiswaan" : !sessionRoles(session).includes("komisi") && sessionRoles(session).includes("walikelas") ? "Wali kelas" : sessionRoles(session).includes("komisi") ? (sessionRoles(session).includes("eksekutif") ? "Komisi · Eksekutif" : "Komisi") : "Eksekutif"}</em></div>
             </div>`;
 
         }
@@ -232,6 +241,7 @@ window.Shell = (() => {
             const rl = sessionRoles(session);
             const groups = [];
             if (rl.includes("eksekutif")) groups.push(EKSEKUTIF_GROUP);
+            if (rl.includes("walikelas") && !rl.includes("komisi") && !rl.includes("kesiswaan") && !rl.includes("eksekutif")) groups.push(WALI_GROUP);
             if (rl.includes("komisi")) groups.push(...ADMIN_GROUPS);
             else if (rl.includes("kesiswaan")) groups.push(...KESISWAAN_GROUPS);
             nav = groups.map((g) => `
@@ -366,7 +376,7 @@ window.Shell = (() => {
                 }
 
                 // Halaman admin ditutup overlay login oleh js/admin-auth.js saat dimuat.
-                if (activePage() === "admin" || activePage() === "eksekutif") location.reload();
+                if (["admin", "eksekutif", "walikelas"].includes(activePage())) location.reload();
 
             });
 

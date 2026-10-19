@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Rekomendasi Mingguan Wali Kelas | SMAN 1 Sooko Mojokerto</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0F4C81">
+
+    <!-- Penjaga halaman: tanpa sesi admin valid, halaman tertutup overlay login -->
+    <script src="../js/admin-auth.js" data-require-role="walikelas,komisi,kesiswaan"></script>
+
+    <!-- ANTI-FLASH THEME INIT -->
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem('kesiswaan-theme');
+                var theme = saved || ((window.matchMedia &&
+                    window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+
+    <link rel="icon" href="../assets/icons/icon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/glass.css">
+    <link rel="stylesheet" href="../css/animation.css">
+    <link rel="stylesheet" href="../css/shell.css">
+    <link rel="stylesheet" href="../css/stats-panel.css">
+    <link rel="stylesheet" href="../css/kesiswaan.css">
+</head>
+
+<body data-page="walikelas">
+
+    <div class="bg-layer" aria-hidden="true"></div>
+
+    <div id="shellNav"></div>
+
+    <header class="header">
+        <div class="container">
+            <img src="../assets/logo/logo.png" alt="Logo SMAN 1 Sooko" class="logo">
+            <span class="kd-eyebrow">Gerakan Disiplin Sekolah · Wali Kelas</span>
+            <h1>Rekomendasi <span>Mingguan</span></h1>
+            <p>Ringkasan dan saran tindak lanjut untuk kelas Anda. Hanya anjuran; keputusan tetap di tangan Bapak/Ibu.</p>
+        </div>
+    </header>
+
+    <main class="kd-wrap">
+
+        <div class="kd-eks-bar">
+            <span class="kd-chip kd-chip--live" id="wkKelas">Memuat…</span>
+            <span class="kd-chip" id="wkPeriode"></span>
+            <div class="kd-eks-actions">
+                <label class="kd-field-label kd-hidden" id="wkPilihWrap" for="wkPilih" style="display:none">Kelas</label>
+                <select class="kd-select kd-hidden" id="wkPilih" aria-label="Pilih kelas"></select>
+                <button type="button" class="kd-btn kd-btn--sm" id="wkReload">Segarkan</button>
+                <button type="button" class="kd-btn kd-btn--sm" id="wkPrint">Cetak</button>
+            </div>
+        </div>
+
+        <div id="wkAlert" aria-live="polite"></div>
+        <div id="wkBody"><p class="kd-card-sub">Memuat data…</p></div>
+
+    </main>
+
+    <div id="shellFooter"></div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/theme.js"></script>
+    <script src="../js/ui-kit.js"></script>
+    <script src="../js/shell.js"></script>
+    <script src="../js/walikelas.js"></script>
+
+</body>
+
+</html>
