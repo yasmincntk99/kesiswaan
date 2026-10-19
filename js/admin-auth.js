@@ -24,7 +24,7 @@ Fetch ke /api/pelanggaran otomatis membawa token itu.
     const PROTECTED_API = /^\/api\/(pelanggaran|pembinaan|surat|ringkasan|ai-catat|perapian|eksekutif)/;
 
     const thisScript = document.currentScript;
-    const requireRole = thisScript ? (thisScript.getAttribute("data-require-role") || (thisScript.hasAttribute("data-require-admin") ? "komisi" : "")) : "";
+    const requireRole = thisScript ? (thisScript.getAttribute("data-require-role") || (thisScript.hasAttribute("data-require-admin") ? "komisi,kesiswaan" : "")) : "";
     const requirePage = !!requireRole;
     const EKSEKUTIF_URL = "/pages/eksekutif.html", KOMISI_URL = "/pages/admin.html";
 
@@ -56,6 +56,9 @@ Fetch ke /api/pelanggaran otomatis membawa token itu.
 
     const roles = () => { const r = (readSession() || {}).roles; return Array.isArray(r) && r.length ? r : ["komisi"]; };
     const hasRole = (r) => roles().includes(r);
+    const hasAny = (list) => String(list).split(",").some((r) => hasRole(r.trim()));
+    /* Kesiswaan = akses terbatas (tanpa Komisi): hanya data & pembinaan. */
+    const limited = () => hasRole("kesiswaan") && !hasRole("komisi");
     /* Akun dengan peran eksekutif diarahkan ke portal eksekutif; selain itu ke panel Komisi. */
     const homeUrl = () => (hasRole("eksekutif") ? EKSEKUTIF_URL : KOMISI_URL);
     const isLoggedIn = () => !!readSession();
@@ -303,7 +306,7 @@ Fetch ke /api/pelanggaran otomatis membawa token itu.
             const result = await verify();
             if (result === false) { logout(); gate(); return; }
             // sesi valid tetapi peran tidak cocok dengan halaman ini: arahkan ke portal yang sesuai
-            if (!hasRole(requireRole)) {
+            if (!hasAny(requireRole)) {
                 const dest = requireRole === "eksekutif" ? KOMISI_URL : homeUrl();
                 if (dest !== location.pathname && dest.replace(".html", "") !== location.pathname) { window.location.replace(dest); return; }
             }
@@ -314,7 +317,7 @@ Fetch ke /api/pelanggaran otomatis membawa token itu.
         else run();
     }
 
-    window.AdminAuth = { login, openLogin, buildLoginForm, isLoggedIn, getToken, username, displayName, expiresAt, insecure, logout, verify, roles, hasRole, homeUrl };
+    window.AdminAuth = { login, openLogin, buildLoginForm, isLoggedIn, getToken, username, displayName, expiresAt, insecure, logout, verify, roles, hasRole, hasAny, limited, homeUrl };
 
     if (requirePage) startPageGuard();
 

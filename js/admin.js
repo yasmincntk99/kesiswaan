@@ -56,8 +56,12 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
     const TABS = ["input", "data", "pembinaan", "ringkasan", "perapian"];
     const TAB_LABEL = { input: "Catat Pelanggaran", data: "Data Pelanggaran", pembinaan: "Perlu Pembinaan", ringkasan: "Ringkasan Harian", perapian: "Rapikan Data" };
 
+    // Akun Kesiswaan (tanpa Komisi) hanya boleh Data & Perlu Pembinaan; server tetap memeriksa di setiap panggilan.
+    const LIMITED = !!(AdminAuth.limited && AdminAuth.limited());
+    const ALLOWED = LIMITED ? ["data", "pembinaan"] : TABS;
+
     function showTab(name, scroll) {
-        if (!TABS.includes(name)) name = "input";
+        if (!ALLOWED.includes(name)) name = LIMITED ? "pembinaan" : "input";
         TABS.forEach((t) => $("panel-" + t).classList.toggle("kd-hidden", t !== name));
         $("adminSection").textContent = TAB_LABEL[name];
         document.dispatchEvent(new CustomEvent("kd:tab", { detail: { tab: name } }));   // sidebar menyorot menu aktif
@@ -924,6 +928,6 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
     renderQueue();
     showTab(location.hash.slice(1));
     // Tanpa sesi admin, halaman tertutup overlay login (js/admin-auth.js) dan login memuat ulang halaman.
-    if (AdminAuth.isLoggedIn()) load().then(syncQueue);
+    if (AdminAuth.isLoggedIn()) load().then(LIMITED ? null : syncQueue);
 
 })();

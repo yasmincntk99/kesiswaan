@@ -57,8 +57,8 @@ module.exports = async (req, res) => {
 
         if (req.method === "POST") {
 
-            const auth = verifyAdmin(req);
-            if (!auth.ok) return res.status(auth.forbidden ? 403 : 401).json({ success: false, message: auth.forbidden ? "Akun ini tidak memiliki akses Komisi Disiplin." : "Sesi Komisi Disiplin tidak valid. Silakan masuk lagi." });
+            const auth = verifyAdmin(req, ["komisi", "kesiswaan"]);
+            if (!auth.ok) return res.status(auth.forbidden ? 403 : 401).json({ success: false, message: auth.forbidden ? "Akun ini tidak memiliki izin untuk fitur ini." : "Sesi Komisi Disiplin tidak valid. Silakan masuk lagi." });
 
             const body = readBody(req);
             const nis = K.cleanNIS(body.nis);

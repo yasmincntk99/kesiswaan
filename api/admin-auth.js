@@ -177,15 +177,18 @@ function signToken(payload) {
    Nilai lain (mis. "admin", "guru") dianggap "komisi" agar akun lama tetap berfungsi. Kosong = "komisi". */
 const EKSEKUTIF_ALIAS = ["eksekutif", "executive", "eksekutif-sekolah", "kepsek", "kepala-sekolah", "pimpinan"];
 
+const KESISWAAN_ALIAS = ["kesiswaan", "bk", "bimbingan-konseling", "guru-bk", "wakasek-kesiswaan", "waka-kesiswaan"];
+
 function parsePeran(value) {
     const tokens = String(value || "").toLowerCase().split(/[,;/|]+/).map((t) => t.trim().replace(/\s+/g, "-")).filter(Boolean);
     const roles = new Set();
     if (!tokens.length) roles.add("komisi");
-    tokens.forEach((t) => roles.add(EKSEKUTIF_ALIAS.includes(t) ? "eksekutif" : "komisi"));
+    tokens.forEach((t) => roles.add(EKSEKUTIF_ALIAS.includes(t) ? "eksekutif" : KESISWAAN_ALIAS.includes(t) ? "kesiswaan" : "komisi"));
     return [...roles];
 }
 
-/** need: peran yang disyaratkan endpoint ("komisi" bawaan; "eksekutif"; null = cukup sesi valid). */
+/** need: peran yang disyaratkan endpoint ("komisi" bawaan; "eksekutif"; "kesiswaan"; atau daftar, mis. ["komisi","kesiswaan"] = salah satu; null = cukup sesi valid).
+    Komisi = akses penuh; Kesiswaan = terbatas (data, pembinaan, surat); Eksekutif = hanya portal KPI. */
 function verifyAdmin(req, need = "komisi") {
 
     const header = String(req.headers.authorization || "");
@@ -220,7 +223,7 @@ function verifyAdmin(req, need = "komisi") {
     }
 
     const roles = parsePeran(payload.r);
-    if (need && !roles.includes(need)) return { ok: false, forbidden: true, configured: true, roles };
+    if (need && !([].concat(need)).some((n) => roles.includes(n))) return { ok: false, forbidden: true, configured: true, roles };
 
     return { ok: true, configured: true, username: payload.u, nama: payload.n || payload.u, peran: payload.r || "komisi", roles, expiresAt: payload.exp };
 

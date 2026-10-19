@@ -41,7 +41,7 @@ window.AdminBadge = (() => {
         const logged = !!(auth && auth.isLoggedIn());
 
         badge.classList.toggle("is-active", logged);
-        badge.querySelector(".kd-badge-label").textContent = logged ? (auth.hasRole("komisi") ? "Komisi aktif" : "Eksekutif aktif") : "Komisi Disiplin";
+        badge.querySelector(".kd-badge-label").textContent = logged ? (auth.hasRole("komisi") ? "Komisi aktif" : auth.hasRole("kesiswaan") ? "Kesiswaan aktif" : "Eksekutif aktif") : "Komisi Disiplin";
 
         let html = "";
 
@@ -63,7 +63,7 @@ window.AdminBadge = (() => {
                 </div>
                 ${auth.insecure() ? '<p class="kd-panel-warn">⚠️ Server masih memakai pengaman bawaan. Atur <code>ADMIN_PASSWORD</code> dan <code>ADMIN_SESSION_SECRET</code> di Vercel sebelum dipakai sungguhan.</p>' : ""}
                 <ul class="kd-menu">
-                    ${[].concat(auth.hasRole("eksekutif") ? MENU_EKS : [], auth.hasRole("komisi") ? MENU : []).map((m) => `
+                    ${[].concat(auth.hasRole("eksekutif") ? MENU_EKS : [], auth.hasRole("komisi") ? MENU : auth.hasRole("kesiswaan") ? MENU.filter((m) => /#(data|pembinaan)$/.test(m.href)) : []).map((m) => `
                     <li><a class="kd-menu-item" href="${m.href}">
                         <span class="kd-menu-ico" aria-hidden="true">${m.icon}</span>
                         <span class="kd-menu-text"><strong>${m.title}</strong><small>${m.desc}</small></span>
@@ -167,7 +167,7 @@ window.AdminBadge = (() => {
         // status awal badge (tanpa membuka panel)
         const logged = !!(window.AdminAuth && AdminAuth.isLoggedIn());
         badge.classList.toggle("is-active", logged);
-        badge.querySelector(".kd-badge-label").textContent = logged ? (window.AdminAuth && !window.AdminAuth.hasRole("komisi") ? "Eksekutif aktif" : "Komisi aktif") : "Komisi Disiplin";
+        badge.querySelector(".kd-badge-label").textContent = logged ? (window.AdminAuth && !window.AdminAuth.hasRole("komisi") ? (window.AdminAuth.hasRole("kesiswaan") ? "Kesiswaan aktif" : "Eksekutif aktif") : "Komisi aktif") : "Komisi Disiplin";
 
         // tautan #input/#data/#pembinaan di halaman admin: tutup panel saat dipilih
         body.addEventListener("click", (e) => { if (e.target.closest(".kd-menu-item")) close(); });

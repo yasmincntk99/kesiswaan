@@ -16,7 +16,7 @@ const MAX_IDS = 300;
 module.exports = async (req, res) => {
     res.setHeader("Cache-Control", "no-store");
     const auth = verifyAdmin(req);
-    if (!auth.ok) return res.status(auth.forbidden ? 403 : 401).json({ success: false, message: auth.forbidden ? "Akun ini tidak memiliki akses Komisi Disiplin." : "Sesi Komisi Disiplin tidak valid. Silakan masuk lagi." });
+    if (!auth.ok) return res.status(auth.forbidden ? 403 : 401).json({ success: false, message: auth.forbidden ? "Akun ini tidak memiliki izin untuk fitur ini." : "Sesi Komisi Disiplin tidak valid. Silakan masuk lagi." });
 
     try {
         if (req.method === "GET") {

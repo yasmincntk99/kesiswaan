@@ -77,6 +77,15 @@ window.Shell = (() => {
         ]
     };
 
+    // Kesiswaan (bersama BK): Data & Perlu Pembinaan saja; tanpa catat pelanggaran, ringkasan, dan Rapikan Data.
+    const KESISWAAN_GROUPS = [
+        {
+            title: "Pembinaan",
+            links: ADMIN_GROUPS[0].links.filter((l) => l.tab === "data" || l.tab === "pembinaan")
+        },
+        ADMIN_GROUPS[1]
+    ];
+
     function sessionRoles(s) {
         return s && Array.isArray(s.roles) && s.roles.length ? s.roles : ["komisi"];
     }
@@ -154,7 +163,8 @@ window.Shell = (() => {
 
         const s = adminSession();
         if (!s) return "Menu Situs";
-        return sessionRoles(s).includes("komisi") ? "Menu Komisi Disiplin" : "Menu Eksekutif";
+        const r = sessionRoles(s);
+        return r.includes("komisi") ? "Menu Komisi Disiplin" : r.includes("kesiswaan") ? "Menu Kesiswaan" : "Menu Eksekutif";
 
     }
 
@@ -171,9 +181,9 @@ window.Shell = (() => {
                 <span class="gds-shield">${shield}</span>
                 <div class="gds-text">
                     <small>${CONFIG.PROGRAM_NAME}</small>
-                    <strong>${sessionRoles(session).includes("komisi") ? CONFIG.COMMITTEE_NAME : "Portal Eksekutif"}</strong>
+                    <strong>${sessionRoles(session).includes("komisi") ? CONFIG.COMMITTEE_NAME : (sessionRoles(session).includes("kesiswaan") ? "Kesiswaan & BK" : "Portal Eksekutif")}</strong>
                 </div>
-                <div class="gds-user"><span class="gds-dot" aria-hidden="true"></span><span>${esc(session.nama || session.username || "admin")}</span><em>${sessionRoles(session).includes("komisi") ? (sessionRoles(session).includes("eksekutif") ? "Komisi · Eksekutif" : "Komisi") : "Eksekutif"}</em></div>
+                <div class="gds-user"><span class="gds-dot" aria-hidden="true"></span><span>${esc(session.nama || session.username || "admin")}</span><em>${!sessionRoles(session).includes("komisi") && sessionRoles(session).includes("kesiswaan") ? "Kesiswaan" : sessionRoles(session).includes("komisi") ? (sessionRoles(session).includes("eksekutif") ? "Komisi · Eksekutif" : "Komisi") : "Eksekutif"}</em></div>
             </div>`;
 
         }
@@ -223,6 +233,7 @@ window.Shell = (() => {
             const groups = [];
             if (rl.includes("eksekutif")) groups.push(EKSEKUTIF_GROUP);
             if (rl.includes("komisi")) groups.push(...ADMIN_GROUPS);
+            else if (rl.includes("kesiswaan")) groups.push(...KESISWAAN_GROUPS);
             nav = groups.map((g) => `
                 <p class="app-sidebar-title">${g.title}</p>
                 <nav>${g.links.map((l) => navLinkHTML(l, activeKey, session)).join("")}</nav>
@@ -701,6 +712,7 @@ window.Shell = (() => {
 
         // Tab awal di halaman admin mengikuti hash URL (harus sebelum sidebar dibangun agar menu aktif benar).
         if (activePage() === "admin" && /^#(input|data|pembinaan|ringkasan|perapian)$/.test(location.hash)) adminTab = location.hash.slice(1);
+        if (activePage() === "admin" && !sessionRoles(adminSession()).includes("komisi") && !["data", "pembinaan"].includes(adminTab)) adminTab = "pembinaan";
 
         const { overlay, sidebar } = buildLayout(navMount);
 
