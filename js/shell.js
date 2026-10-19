@@ -448,6 +448,8 @@ window.Shell = (() => {
 
                 <small>${CONFIG.APP_NAME} &middot; v${CONFIG.VERSION}</small>
 
+                <small class="shell-footer-credit">Dikembangkan bersama Tim IT ${CONFIG.SCHOOL_NAME}</small>
+
             </div>
 
         </footer>

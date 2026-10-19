@@ -1047,3 +1047,5 @@ body.is-admin-mode .gds-card--admin{
     display:none !important;
 
 }
+
+.shell-footer-credit{display:block;margin-top:.25rem}
