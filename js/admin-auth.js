@@ -21,7 +21,7 @@ Fetch ke /api/pelanggaran otomatis membawa token itu.
 
     const SESSION_KEY = "kesiswaan-admin-session";
     const AUTH_URL = "/api/admin-auth";
-    const PROTECTED_API = /^\/api\/(pelanggaran|pembinaan|surat|ringkasan|ai-catat|perapian|eksekutif|tanya|walikelas)/;
+    const PROTECTED_API = /^\/api\/(pelanggaran|pembinaan|surat|ringkasan|ai-catat|perapian|eksekutif|tanya|walikelas|qr)/;
 
     const thisScript = document.currentScript;
     const requireRole = thisScript ? (thisScript.getAttribute("data-require-role") || (thisScript.hasAttribute("data-require-admin") ? "komisi,kesiswaan" : "")) : "";

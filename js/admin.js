@@ -918,6 +918,12 @@ API: GET/POST /api/pelanggaran (token otomatis ditambahkan)
                 fillFilters(); fillKelas();
             }
             renderData(); renderPembinaan();
+            // Dari pemindai QR: /pages/admin.html?nis=XXXX#input langsung memilih siswa tersebut (sekali).
+            if (!silent && !state._nisDone) {
+                state._nisDone = true;
+                const q = new URLSearchParams(location.search).get("nis");
+                if (q && state.siswa.some((x) => x.nis === q)) { showTab("input"); pick(q, true); }
+            }
         }
     }
 

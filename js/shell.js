@@ -53,7 +53,8 @@ window.Shell = (() => {
                 { key: "admin-data", tab: "data", label: "Data Pelanggaran", href: "/pages/admin.html#data", icon: "🗂️" },
                 { key: "admin-pembinaan", tab: "pembinaan", label: "Perlu Pembinaan", href: "/pages/admin.html#pembinaan", icon: "🛡️" },
                 { key: "admin-ringkasan", tab: "ringkasan", label: "Ringkasan Harian", href: "/pages/admin.html#ringkasan", icon: "📋" },
-                { key: "admin-perapian", tab: "perapian", label: "Rapikan Data", href: "/pages/admin.html#perapian", icon: "🧹" }
+                { key: "admin-perapian", tab: "perapian", label: "Rapikan Data", href: "/pages/admin.html#perapian", icon: "🧹" },
+                { key: "qr", label: "Kartu & Pindai QR", href: "/pages/qr.html", icon: "📷" }
             ]
         },
         {
@@ -81,7 +82,7 @@ window.Shell = (() => {
     const KESISWAAN_GROUPS = [
         {
             title: "Pembinaan",
-            links: ADMIN_GROUPS[0].links.filter((l) => l.tab === "data" || l.tab === "pembinaan")
+            links: ADMIN_GROUPS[0].links.filter((l) => l.tab === "data" || l.tab === "pembinaan" || l.key === "qr")
         },
         ADMIN_GROUPS[1]
     ];
@@ -90,6 +91,7 @@ window.Shell = (() => {
         title: "Wali Kelas",
         links: [
             { key: "walikelas", label: "Rekomendasi Mingguan", href: "/pages/walikelas.html", icon: "🧑‍🏫" },
+            { key: "qr", label: "Kartu & Pindai QR", href: "/pages/qr.html", icon: "📷" },
             { key: "tata-tertib", label: "Tata Tertib & Sanksi", href: "/pages/tata-tertib.html", icon: "📘" },
             { key: "home", label: "Dashboard", href: "/index.html", icon: "📊" }
         ]

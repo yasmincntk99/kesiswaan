@@ -39,6 +39,10 @@
       "destination": "/api/layanan?op=perapian"
     },
     {
+      "source": "/api/qr",
+      "destination": "/api/layanan?op=qr"
+    },
+    {
       "source": "/api/ringkasan",
       "destination": "/api/layanan?op=ringkasan"
     },

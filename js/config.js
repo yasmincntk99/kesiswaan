@@ -33,6 +33,7 @@ window.CONFIG = {
         EKSEKUTIF: "/api/eksekutif",
         TANYA: "/api/tanya",
         WALIKELAS: "/api/walikelas",
+        QR: "/api/qr",
         PERAPIAN: "/api/perapian",
         AI_CATAT: "/api/ai-catat",
         ADMIN_AUTH: "/api/admin-auth"

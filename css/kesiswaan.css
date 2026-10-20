@@ -798,3 +798,50 @@ body[data-page="eksekutif"] .kd-eks-bar+#eksAlert{margin:0}
     body[data-page="walikelas"] .kd-chip{color:#000 !important;background:none !important}
     body[data-page="walikelas"] *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
+
+/* ===== Kartu & Pindai QR (/pages/qr.html) ===== */
+body[data-page="qr"] [hidden]{display:none !important}
+.qr-tab[aria-selected="true"]{background:linear-gradient(135deg,var(--secondary),var(--secondary-light));color:#10223a;border-color:transparent}
+.qr-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:var(--space-lg);align-items:start}
+@media (max-width:860px){.qr-grid{grid-template-columns:1fr}}
+.qr-cam{position:relative;aspect-ratio:4/3;border-radius:var(--radius-md);overflow:hidden;background:#06121f;border:1px solid rgba(255,255,255,.2)}
+.qr-cam video{width:100%;height:100%;object-fit:cover;display:none}
+.qr-cam[data-on="1"] video{display:block}
+.qr-cam[data-on="1"] .qr-cam-empty{display:none}
+.qr-cam-empty{position:absolute;inset:0;display:grid;place-items:center;margin:0;color:rgba(255,255,255,.6);font-size:var(--font-sm)}
+.qr-frame{position:absolute;inset:18%;border:3px solid rgba(255,213,79,.9);border-radius:14px;box-shadow:0 0 0 999px rgba(0,0,0,.28);pointer-events:none;display:none}
+.qr-cam[data-on="1"] .qr-frame{display:block}
+.qr-manual{margin-top:.75rem;font-size:var(--font-sm)}
+.qr-manual summary{cursor:pointer;color:rgba(255,255,255,.8)}
+.qr-res{display:flex;gap:1rem;align-items:center;flex-wrap:wrap}
+.qr-res-info{display:flex;flex-direction:column;gap:.3rem;min-width:0;flex:1 1 12rem}
+.qr-res-nama{font-size:var(--font-xl,1.35rem);line-height:1.2}
+.qr-foto{width:112px;height:140px;object-fit:cover;border-radius:var(--radius-md);border:2px solid rgba(255,255,255,.4);background:rgba(255,255,255,.1);flex:none}
+.qr-foto--kosong{display:grid;place-items:center;text-align:center;font-size:var(--font-xs);color:rgba(255,255,255,.7);padding:.5rem}
+.qr-riwayat{list-style:none;margin:0;padding:0;display:grid;gap:.35rem}
+.qr-riwayat li{display:flex;justify-content:space-between;gap:.5rem;padding:.4rem .6rem;border-radius:var(--radius-sm,8px);background:rgba(255,255,255,.08)}
+.qr-sheet{display:grid;gap:10px;margin-top:var(--space-md)}
+.qr-sheet[data-bentuk="kartu"]{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.qr-sheet[data-bentuk="stiker"]{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+.qr-card,.qr-stiker{background:#fff;color:#10223a;border:1px dashed #8aa0b8;break-inside:avoid;page-break-inside:avoid}
+.qr-card{display:flex;align-items:center;justify-content:space-between;gap:3mm;padding:3.5mm;border-radius:3mm;min-height:54mm;aspect-ratio:85.6/54}
+.qr-card-teks{display:flex;flex-direction:column;gap:1mm;min-width:0;flex:1}
+.qr-card-logo{width:9mm;height:9mm;object-fit:contain}
+.qr-card-sek{font-size:6.5pt;font-weight:800;letter-spacing:.04em;color:#0F4C81}
+.qr-card-nama{font-size:10.5pt;line-height:1.15;word-break:break-word}
+.qr-card-kelas,.qr-card-nis{font-size:8pt}
+.qr-card-kode{background:#fff;line-height:0;flex:none}
+.qr-card .qr-card-kode{width:30mm;height:30mm}
+.qr-card-kode svg{width:100%;height:100%;display:block}
+.qr-stiker{display:flex;flex-direction:column;align-items:center;gap:1mm;padding:2.5mm;font-size:7pt;border-radius:2mm}
+.qr-stiker .qr-card-kode{width:22mm;height:22mm}
+@media print{
+    body[data-page="qr"]{background:#fff !important}
+    body[data-page="qr"] #shellNav,body[data-page="qr"] .app-sidebar,body[data-page="qr"] .app-sidebar-overlay,body[data-page="qr"] #shellFooter,body[data-page="qr"] .bg-layer,body[data-page="qr"] .kd-badge,body[data-page="qr"] .kd-badge-panel,body[data-page="qr"] .header,body[data-page="qr"] .kd-eks-bar,body[data-page="qr"] #paneScan,body[data-page="qr"] #paneCetak>.kd-card-sub,body[data-page="qr"] #qrAlert{display:none !important}
+    body[data-page="qr"] #paneCetak{display:block !important}
+    body[data-page="qr"] .app-main,body[data-page="qr"] .kd-wrap,body[data-page="qr"] main{margin:0 !important;padding:0 !important;max-width:none !important}
+    .qr-sheet{margin:0;gap:4mm}
+    .qr-sheet[data-bentuk="kartu"]{grid-template-columns:repeat(2,85.6mm);justify-content:center}
+    .qr-sheet[data-bentuk="stiker"]{grid-template-columns:repeat(6,28mm);gap:3mm;justify-content:center}
+    .qr-card{width:85.6mm;height:54mm;min-height:0;aspect-ratio:auto}
+}

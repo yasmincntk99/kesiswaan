@@ -18,15 +18,19 @@ window.AdminBadge = (() => {
         { href: "/pages/admin.html#data", title: "Data Pelanggaran", desc: "Cari, filter, dan unduh CSV", icon: "🗂️" },
         { href: "/pages/admin.html#pembinaan", title: "Perlu Pembinaan", desc: "Siswa dengan poin tertinggi & tindak lanjut", icon: "🛡️" },
         { href: "/pages/admin.html#ringkasan", title: "Ringkasan Harian", desc: "Ringkasan, siswa terlambat ditangani & cek data", icon: "📋" },
-        { href: "/pages/admin.html#perapian", title: "Rapikan Data", desc: "Usulan perbaikan data siswa, disetujui per baris", icon: "🧹" }
+        { href: "/pages/admin.html#perapian", title: "Rapikan Data", desc: "Usulan perbaikan data siswa, disetujui per baris", icon: "🧹" },
+        { href: "/pages/qr.html", title: "Kartu & Pindai QR", desc: "Pindai kartu siswa, cetak QR kelas", icon: "📷" }
     ];
 
     const MENU_EKS = [
         { href: "/pages/eksekutif.html", title: "KPI & Infografis", desc: "Ringkasan capaian disiplin untuk pimpinan", icon: "📈" }
     ];
 
+    const MENU_QR = [{ href: "/pages/qr.html", title: "Kartu & Pindai QR", desc: "Pindai kartu siswa, cetak QR kelas", icon: "📷" }];
+
     const MENU_WALI = [
-        { href: "/pages/walikelas.html", title: "Rekomendasi Mingguan", desc: "Ringkasan dan saran untuk kelas Anda", icon: "🧑‍🏫" }
+        { href: "/pages/walikelas.html", title: "Rekomendasi Mingguan", desc: "Ringkasan dan saran untuk kelas Anda", icon: "🧑‍🏫" },
+        { href: "/pages/qr.html", title: "Kartu & Pindai QR", desc: "Pindai kartu siswa, cetak QR kelas", icon: "📷" }
     ];
 
     const SHIELD = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6l7-3z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg>';
@@ -67,7 +71,7 @@ window.AdminBadge = (() => {
                 </div>
                 ${auth.insecure() ? '<p class="kd-panel-warn">⚠️ Server masih memakai pengaman bawaan. Atur <code>ADMIN_PASSWORD</code> dan <code>ADMIN_SESSION_SECRET</code> di Vercel sebelum dipakai sungguhan.</p>' : ""}
                 <ul class="kd-menu">
-                    ${[].concat(auth.hasRole("eksekutif") ? MENU_EKS : [], auth.hasRole("walikelas") ? MENU_WALI : [], auth.hasRole("komisi") ? MENU : auth.hasRole("kesiswaan") ? MENU.filter((m) => /#(data|pembinaan)$/.test(m.href)) : []).map((m) => `
+                    ${[].concat(auth.hasRole("eksekutif") ? MENU_EKS : [], auth.hasRole("walikelas") ? MENU_WALI : [], auth.hasRole("komisi") ? MENU : auth.hasRole("kesiswaan") ? MENU.filter((m) => /#(data|pembinaan)$/.test(m.href)).concat(MENU_QR) : []).map((m) => `
                     <li><a class="kd-menu-item" href="${m.href}">
                         <span class="kd-menu-ico" aria-hidden="true">${m.icon}</span>
                         <span class="kd-menu-text"><strong>${m.title}</strong><small>${m.desc}</small></span>
