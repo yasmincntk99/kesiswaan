@@ -52,7 +52,7 @@ module.exports = async (req, res) => {
             else kelasDipilih = [boleh[0]];
             const data = siswa.filter((s) => kelasDipilih.includes(R.up(s.kelas)))
                 .sort((a, b) => R.up(a.kelas).localeCompare(R.up(b.kelas), "id", { numeric: true }) || a.nama.localeCompare(b.nama, "id"))
-                .map((s) => ({ nis: s.nis, nama: s.nama, kelas: s.kelas, kode: kodeUntuk(s.nis) }));
+                .map((s) => ({ nis: s.nis, nama: s.nama, kelas: s.kelas, foto: s.foto || "", kode: kodeUntuk(s.nis) }));
             return res.status(200).json({ success: true, kelasTersedia: boleh, luas, data });
         }
 

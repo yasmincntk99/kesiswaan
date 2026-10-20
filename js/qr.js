@@ -159,12 +159,20 @@ Kartu & Pindai QR siswa.
     }
     function svgQR(kode) { const q = window.qrcode(0, "M"); q.addData(kode); q.make(); return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true }); }
     function kartuHTML(s) {
+        const foto = s.foto ? `<img src="${esc(s.foto)}" alt="" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'qr-id-nofoto',textContent:'FOTO'}))">` : `<span class="qr-id-nofoto">FOTO</span>`;
         return `<article class="qr-card">
-            <div class="qr-card-teks"><img class="qr-card-logo" src="../assets/logo/logo.png" alt="">
-                <span class="qr-card-sek">SMAN 1 SOOKO MOJOKERTO</span>
-                <strong class="qr-card-nama">${esc(s.nama)}</strong>
-                <span class="qr-card-kelas">Kelas ${esc(s.kelas)}</span><span class="qr-card-nis">NIS ${esc(s.nis)}</span></div>
-            <div class="qr-card-kode">${svgQR(s.kode)}</div></article>`;
+            <header class="qr-id-kop"><img src="../assets/logo/kop-jatim.png" alt="">
+                <div><small>PEMERINTAH PROVINSI JAWA TIMUR · DINAS PENDIDIKAN</small><strong>SMA NEGERI 1 SOOKO MOJOKERTO</strong>
+                <small>Jl. R.A. Basuni No. 361 Sooko, Kab. Mojokerto 61361</small></div>
+                <img src="../assets/logo/logo.png" alt=""></header>
+            <div class="qr-id-body">
+                <div class="qr-id-foto">${foto}</div>
+                <div class="qr-id-data"><span class="qr-id-label">KARTU PELAJAR</span>
+                    <strong class="qr-id-nama">${esc(s.nama)}</strong>
+                    <dl><dt>Kelas</dt><dd>${esc(s.kelas)}</dd><dt>NIS</dt><dd>${esc(s.nis)}</dd></dl></div>
+                <div class="qr-card-kode">${svgQR(s.kode)}</div>
+            </div>
+            <div class="qr-id-foot"></div></article>`;
     }
     function stikerHTML(s) { return `<article class="qr-stiker"><div class="qr-card-kode">${svgQR(s.kode)}</div><span>${esc(s.nis)}</span></article>`; }
 
