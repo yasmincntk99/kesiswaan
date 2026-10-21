@@ -64,6 +64,21 @@
 
     <main class="kd-wrap" id="main">
 
+        <section class="kd-card kd-cekhero" aria-labelledby="cekHeroT">
+            <div class="kd-cekhero-txt">
+                <span class="kd-cekhero-ico" aria-hidden="true">🔎</span>
+                <div>
+                    <h2 id="cekHeroT">Cek Poin Pelanggaranmu</h2>
+                    <p>Pantau poin dan riwayatmu sendiri. Sadari lebih awal, perbaiki lebih cepat.</p>
+                </div>
+            </div>
+            <form class="kd-cekhero-form" id="cekHeroForm" action="/pages/cek-poin.html" method="get">
+                <label class="kd-sr" for="cekHeroNis">NIS</label>
+                <input class="kd-input" id="cekHeroNis" name="nis" type="text" inputmode="numeric" placeholder="Masukkan NIS" autocomplete="off" required minlength="4">
+                <button class="kd-btn kd-btn--primary" type="submit">Cek Poin →</button>
+            </form>
+        </section>
+
         <div class="kd-toolbar">
             <div class="kd-seg" id="periodSeg" role="group" aria-label="Pilih periode">
                 <button type="button" data-p="tahun" aria-pressed="true">Tahun Ajaran</button>
@@ -80,11 +95,6 @@
         <div id="dash" aria-live="polite" aria-busy="true"></div>
 
         <section class="kd-grid kd-grid--cta" aria-label="Pintasan">
-            <a class="kd-card kd-cta" href="/pages/cek-poin.html">
-                <span class="kd-cta-ico" aria-hidden="true">🔎</span>
-                <span><strong>Cek Poin Siswa</strong><span>Lihat poin dan riwayat dengan NIS</span></span>
-                <span class="kd-cta-go" aria-hidden="true">→</span>
-            </a>
             <a class="kd-card kd-cta" href="/pages/tata-tertib.html">
                 <span class="kd-cta-ico" aria-hidden="true">📘</span>
                 <span><strong>Tata Tertib &amp; Sanksi</strong><span>Daftar pelanggaran, poin, dan tingkat pembinaan</span></span>

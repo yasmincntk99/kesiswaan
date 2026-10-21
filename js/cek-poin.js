@@ -92,4 +92,8 @@
         }
     });
 
+    // Dari dashboard: /pages/cek-poin.html?nis=XXXX langsung mencari.
+    const awal = new URLSearchParams(location.search).get("nis");
+    if (awal) { input.value = awal.replace(/[^0-9A-Za-z-]/g, "").slice(0, 24); form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event("submit", { cancelable: true })); }
+
 })();

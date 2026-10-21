@@ -860,3 +860,13 @@ body[data-page="qr"] [hidden]{display:none !important}
     .qr-sheet[data-bentuk="kartu"]{grid-template-columns:repeat(2,85.6mm);justify-content:center}
     .qr-sheet[data-bentuk="stiker"]{grid-template-columns:repeat(6,28mm);gap:3mm;justify-content:center}
 }
+
+/* ===== Sorotan Cek Poin di dashboard publik ===== */
+.kd-cekhero{display:flex;gap:var(--space-lg);align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:var(--space-lg);border:1px solid rgba(255,213,79,.55);background:linear-gradient(135deg,rgba(15,76,129,.55),rgba(255,213,79,.14))}
+.kd-cekhero-txt{display:flex;gap:var(--space-md);align-items:center;flex:1 1 18rem;min-width:0}
+.kd-cekhero-ico{font-size:2.4rem;flex:none}
+.kd-cekhero h2{margin:0 0 .15rem;font-size:var(--font-xl,1.35rem);color:#fff}
+.kd-cekhero p{margin:0;color:rgba(255,255,255,.85);font-size:var(--font-sm)}
+.kd-cekhero-form{display:flex;gap:.5rem;flex:1 1 18rem;max-width:30rem}
+.kd-cekhero-form .kd-input{flex:1;min-width:0}
+@media (max-width:560px){.kd-cekhero-form{max-width:none;width:100%}}
