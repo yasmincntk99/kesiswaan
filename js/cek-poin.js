@@ -64,25 +64,12 @@
         out.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
     }
 
-    form.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        const key = input.value.trim();
-
-        if (key.length < 4) {
-            out.innerHTML = `<div class="kd-card kd-error" role="alert"><p>Masukkan NIS minimal 4 digit.</p></div>`;
-            input.focus();
-            return;
-        }
-
+    async function cari(query) {
         btn.disabled = true;
         btn.textContent = "Mencari…";
         out.innerHTML = `<div class="kd-card"><div class="kd-skel" style="height:120px"></div></div>`;
-
         try {
-            const [payload, tiers] = await Promise.all([
-                getJSON(`${CONFIG.API.CEK_POIN}?nis=${encodeURIComponent(key)}`),
-                ensureTiers()
-            ]);
+            const [payload, tiers] = await Promise.all([getJSON(`${CONFIG.API.CEK_POIN}?${query}`), ensureTiers()]);
             render(payload.data, tiers);
         } catch (e) {
             out.innerHTML = `<div class="kd-card kd-error" role="alert"><h2 class="kd-card-title">${e.status === 404 ? "Data tidak ditemukan" : "Terjadi kendala"}</h2><p class="kd-card-sub">${esc(e.message)}</p></div>`;
@@ -90,10 +77,89 @@
             btn.disabled = false;
             btn.textContent = "Cari →";
         }
+    }
+
+    form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const key = input.value.trim();
+        if (key.length < 4) {
+            out.innerHTML = `<div class="kd-card kd-error" role="alert"><p>Masukkan NIS minimal 4 digit.</p></div>`;
+            input.focus();
+            return;
+        }
+        cari("nis=" + encodeURIComponent(key));
+    });
+
+    /* ---------- Pindai QR kartu (diproses di perangkat; hanya teks QR yang dikirim) ---------- */
+    const $ = (id) => document.getElementById(id);
+    const pesan = (t) => { $("cpScanMsg").textContent = t || ""; };
+    let stream = null, timer = 0, det = null, lastText = "", busy = false;
+    const loaded = {};
+    const loadScript = (src) => loaded[src] || (loaded[src] = new Promise((ok, no) => { const el = document.createElement("script"); el.src = src; el.onload = ok; el.onerror = () => no(new Error("gagal memuat")); document.head.appendChild(el); }));
+
+    async function siapDetektor() {
+        if (det) return det;
+        if ("BarcodeDetector" in window) {
+            try { if ((await window.BarcodeDetector.getSupportedFormats()).includes("qr_code")) return (det = { n: true, d: new window.BarcodeDetector({ formats: ["qr_code"] }) }); } catch (e) { /* cadangan */ }
+        }
+        await loadScript("../js/vendor/jsqr.js");
+        return (det = { n: false });
+    }
+    async function baca(video) {
+        const d = await siapDetektor();
+        if (d.n) { const r = await d.d.detect(video); return r && r[0] ? r[0].rawValue : ""; }
+        const w = video.videoWidth, h = video.videoHeight; if (!w) return "";
+        const sk = Math.min(1, 640 / w), cw = Math.round(w * sk), ch = Math.round(h * sk), c = $("cpCanvas");
+        c.width = cw; c.height = ch; const x = c.getContext("2d", { willReadFrequently: true }); x.drawImage(video, 0, 0, cw, ch);
+        const q = window.jsQR(x.getImageData(0, 0, cw, ch).data, cw, ch, { inversionAttempts: "dontInvert" });
+        return q ? q.data : "";
+    }
+    function pakaiKode(t) {
+        const m = /^(SSK1\.[A-Za-z0-9\-_]{1,24})\.([0-9A-Fa-f]{10})$/.exec(String(t || "").trim());
+        if (!m) { pesan("QR ini bukan kartu siswa SMAN 1 Sooko."); return false; }
+        pesan(""); cari("kode=" + encodeURIComponent(m[1] + "." + m[2].toUpperCase())); return true;
+    }
+    function loop() {
+        timer = setTimeout(async () => {
+            if (!stream) return;
+            const v = $("cpVideo");
+            if (!busy && v.readyState >= 2) {
+                try { const t = await baca(v); if (t && t !== lastText) { lastText = t; busy = true; if (pakaiKode(t)) { setTimeout(() => { busy = false; }, 2500); } else busy = false; } } catch (e) { /* coba lagi */ }
+            }
+            loop();
+        }, 200);
+    }
+    async function start() {
+        pesan("");
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return pesan("Peramban ini tidak mendukung kamera. Gunakan tombol ambil/unggah foto QR atau ketik NIS.");
+        try { stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 } }, audio: false }); }
+        catch (e) { return pesan(e && e.name === "NotAllowedError" ? "Izin kamera ditolak. Izinkan kamera pada pengaturan situs, atau ketik NIS." : "Kamera tidak dapat dibuka."); }
+        const v = $("cpVideo"); v.srcObject = stream; await v.play().catch(() => {});
+        $("cpCam").dataset.on = "1"; $("cpScanStart").hidden = true; $("cpScanStop").hidden = false; lastText = ""; siapDetektor().catch(() => {}); loop();
+    }
+    function stop() {
+        clearTimeout(timer); if (stream) stream.getTracks().forEach((t) => t.stop());
+        stream = null; $("cpVideo").srcObject = null; $("cpCam").dataset.on = "0"; $("cpScanStart").hidden = false; $("cpScanStop").hidden = true;
+    }
+    $("cpScanStart").addEventListener("click", start);
+    $("cpScanStop").addEventListener("click", stop);
+    document.addEventListener("visibilitychange", () => { if (document.hidden) stop(); });
+    $("cpFile").addEventListener("change", async (e) => {
+        const f = e.target.files && e.target.files[0]; e.target.value = ""; if (!f) return;
+        try {
+            await loadScript("../js/vendor/jsqr.js");
+            const bmp = await createImageBitmap(f), sk = Math.min(1, 1200 / Math.max(bmp.width, bmp.height)), w = Math.round(bmp.width * sk), h = Math.round(bmp.height * sk);
+            const c = $("cpCanvas"); c.width = w; c.height = h; const x = c.getContext("2d", { willReadFrequently: true }); x.drawImage(bmp, 0, 0, w, h);
+            const q = window.jsQR(x.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: "attemptBoth" });
+            if (!q) return pesan("QR tidak terbaca pada foto. Dekatkan kamera dan pastikan QR tidak terpotong.");
+            pakaiKode(q.data);
+        } catch (err) { pesan("Foto tidak dapat dibaca."); }
     });
 
     // Dari dashboard: /pages/cek-poin.html?nis=XXXX langsung mencari.
-    const awal = new URLSearchParams(location.search).get("nis");
+    const qs = new URLSearchParams(location.search);
+    if (qs.get("scan") === "1") start();
+    const awal = qs.get("nis");
     if (awal) { input.value = awal.replace(/[^0-9A-Za-z-]/g, "").slice(0, 24); form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event("submit", { cancelable: true })); }
 
 })();

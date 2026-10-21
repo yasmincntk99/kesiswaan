@@ -870,3 +870,8 @@ body[data-page="qr"] [hidden]{display:none !important}
 .kd-cekhero-form{display:flex;gap:.5rem;flex:1 1 18rem;max-width:30rem}
 .kd-cekhero-form .kd-input{flex:1;min-width:0}
 @media (max-width:560px){.kd-cekhero-form{max-width:none;width:100%}}
+.kd-cekhero{padding:var(--space-xl,1.75rem);box-shadow:0 0 0 0 rgba(255,213,79,.5);animation:kdCekPulse 3.2s ease-out 1s 2}
+@keyframes kdCekPulse{0%{box-shadow:0 0 0 0 rgba(255,213,79,.5)}100%{box-shadow:0 0 0 22px rgba(255,213,79,0)}}
+@media (prefers-reduced-motion:reduce){.kd-cekhero{animation:none}}
+.kd-cekhero-scan{flex:1 1 100%;justify-content:center;font-weight:700;border-color:rgba(255,213,79,.7)}
+body[data-page="cek-poin"] [hidden]{display:none !important}

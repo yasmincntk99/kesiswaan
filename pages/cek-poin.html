@@ -69,6 +69,24 @@
             </form>
         </section>
 
+        <section class="kd-card" id="cpScanCard" aria-labelledby="cpScanT">
+            <h2 class="kd-card-title" id="cpScanT">📷 Atau pindai QR kartu siswa</h2>
+            <p class="kd-card-sub">Arahkan kamera ke QR pada kartu pelajarmu. Gambar kamera diproses di perangkat ini dan tidak diunggah.</p>
+            <div class="qr-cam" id="cpCam" data-on="0">
+                <video id="cpVideo" playsinline muted></video>
+                <div class="qr-frame" aria-hidden="true"></div>
+                <p class="qr-cam-empty">Kamera belum menyala.</p>
+            </div>
+            <canvas id="cpCanvas" hidden></canvas>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem">
+                <button type="button" class="kd-btn kd-btn--primary" id="cpScanStart">Nyalakan kamera</button>
+                <button type="button" class="kd-btn" id="cpScanStop" hidden>Matikan kamera</button>
+                <label class="kd-btn" for="cpFile" style="cursor:pointer">Ambil/unggah foto QR</label>
+                <input type="file" id="cpFile" accept="image/*" capture="environment" hidden>
+            </div>
+            <p class="kd-card-sub" id="cpScanMsg" role="alert" style="margin:.6rem 0 0"></p>
+        </section>
+
         <div id="cpResult" aria-live="polite"></div>
 
     </main>

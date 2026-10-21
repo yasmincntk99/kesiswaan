@@ -1,12 +1,13 @@
 /*
 ==========================================================
-GET /api/cek-poin?nis=<NIS>
+GET /api/cek-poin?nis=<NIS>  atau  ?kode=<isi QR kartu siswa>
 Siswa melihat poin & riwayat pelanggarannya sendiri.
 Pencarian harus cocok persis dengan NIS.
 ==========================================================
 */
 const K = require("./_lib/kesiswaan");
 const sheets = require("./_lib/sheets");
+const QR = require("./_lib/h/qr");
 
 module.exports = async (req, res) => {
 
@@ -17,7 +18,11 @@ module.exports = async (req, res) => {
         return res.status(405).json({ success: false, message: "Metode tidak diizinkan." });
     }
 
-    const key = K.cleanNIS(req.query.nis);
+    let key;
+    if (req.query.kode) {                       // dari pindai QR kartu: tanda tangan diperiksa, lalu sama seperti NIS
+        key = QR.urai(req.query.kode);
+        if (!key) return res.status(422).json({ success: false, message: "QR tidak dikenali. Pastikan yang dipindai adalah QR pada kartu siswa SMAN 1 Sooko." });
+    } else key = K.cleanNIS(req.query.nis);
 
     if (key.length < 4) {
         return res.status(400).json({ success: false, message: "Masukkan NIS minimal 4 digit." });
