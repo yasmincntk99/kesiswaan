@@ -92,7 +92,7 @@ table.p th,table.p td{border:1px solid #000;padding:2px 6px}table.p th{backgroun
 @media print{.noprint{display:none}}
 </style></head><body>
 <div class="noprint"><button onclick="window.print()">Cetak</button></div>
-<div class="kop"><img src="${base}/assets/logo/kop-jatim.png" alt=""><div class="t"><div>PEMERINTAH PROVINSI JAWA TIMUR</div><div>DINAS PENDIDIKAN</div><b>SMA NEGERI 1 SOOKO MOJOKERTO</b><small>Jalan R.A. Basuni No. 361 Kecamatan Sooko, Kab. Mojokerto 61361</small><small>Pos-el : info@sman1sooko.sch.id &nbsp; Laman : www.sman1sooko.sch.id</small></div></div>
+<div class="kop"><img src="${base}/assets/logo/kop-jatim-transparan.png" alt=""><div class="t"><div>PEMERINTAH PROVINSI JAWA TIMUR</div><div>DINAS PENDIDIKAN</div><b>SMA NEGERI 1 SOOKO MOJOKERTO</b><small>Jalan R.A. Basuni No. 361 Kecamatan Sooko, Kab. Mojokerto 61361</small><small>Pos-el : info@sman1sooko.sch.id &nbsp; Laman : www.sman1sooko.sch.id</small></div></div>
 <div class="tgl">Mojokerto, ${esc(tglPanjang(state.hariIni))}</div>
 <table class="i"><tr><td>Nomor</td><td>: ......... / ......... / 101.6.27.15 / ${esc(state.hariIni.slice(0, 4))}</td></tr><tr><td>Lampiran</td><td>: -</td></tr><tr><td>Hal</td><td>: <b>${esc(hal)}</b></td></tr></table>
 <p style="margin-top:10px">Kepada :<br>Yth. Bapak/Ibu Orang Tua / Wali dari <b>${esc(nama)}</b> (Kelas ${esc(kelas)}, NIS ${esc(nis)})<br>Di <b><u>TEMPAT</u></b></p>
