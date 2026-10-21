@@ -418,3 +418,4 @@ module.exports.verifyAdmin = verifyAdmin;
 module.exports.parsePeran = parsePeran;
 module.exports.signingSecret = signingSecret;
 module.exports.signToken = signToken;
+module.exports.upstash = upstash;

@@ -59,7 +59,7 @@ function verifyLink(token, secret) {
 }
 
 /** rows: pelanggaran siswa pada tahun ajaran, urut tanggal; t: tingkat; today: ISO tanggal surat. */
-function letterHTML({ nis, nama, kelas, rows, poin, t, today, ayLabel, jadwal }) {
+function letterHTML({ nis, nama, kelas, rows, poin, t, today, ayLabel, jadwal, nomor }) {
     const r = { label: ayLabel };
     const state = { hariIni: today };
     const isSP = /^Surat Peringatan/.test(t.label);
@@ -94,7 +94,7 @@ table.p th,table.p td{border:1px solid #000;padding:2px 6px}table.p th{backgroun
 <div class="noprint"><button onclick="window.print()">Cetak</button></div>
 <div class="kop"><img src="${base}/assets/logo/kop-jatim-transparan.png" alt=""><div class="t"><div>PEMERINTAH PROVINSI JAWA TIMUR</div><div>DINAS PENDIDIKAN</div><b>SMA NEGERI 1 SOOKO MOJOKERTO</b><small>Jalan R.A. Basuni No. 361 Kecamatan Sooko, Kab. Mojokerto 61361</small><small>Pos-el : info@sman1sooko.sch.id &nbsp; Laman : www.sman1sooko.sch.id</small></div></div>
 <div class="tgl">Mojokerto, ${esc(tglPanjang(state.hariIni))}</div>
-<table class="i"><tr><td>Nomor</td><td>: ......... / ......... / 101.6.27.15 / ${esc(state.hariIni.slice(0, 4))}</td></tr><tr><td>Lampiran</td><td>: -</td></tr><tr><td>Hal</td><td>: <b>${esc(hal)}</b></td></tr></table>
+<table class="i"><tr><td>Nomor</td><td>: ${esc(nomor || "........." + "/KDS/101.6.27.15/" + state.hariIni.slice(0, 4))}</td></tr><tr><td>Lampiran</td><td>: -</td></tr><tr><td>Hal</td><td>: <b>${esc(hal)}</b></td></tr></table>
 <p style="margin-top:10px">Kepada :<br>Yth. Bapak/Ibu Orang Tua / Wali dari <b>${esc(nama)}</b> (Kelas ${esc(kelas)}, NIS ${esc(nis)})<br>Di <b><u>TEMPAT</u></b></p>
 <p>Dengan hormat,<br>${esc(isi)}</p>
 <p>Total poin pelanggaran tahun ajaran ${esc(r.label)}: <b>${esc(poin)} poin</b> (${esc(t.label)}), dengan rincian:</p>
@@ -109,4 +109,25 @@ table.p th,table.p td{border:1px solid #000;padding:2px 6px}table.p th{backgroun
 </body></html>`;
 }
 
-module.exports = { letterHTML, signLink, verifyLink, tglPanjang, TTL_DAYS, WAKTU, RUANG, MAKS_HARI_KE_DEPAN, hariTanggal, cekJadwal };
+/** Nomor surat: <urut 3 digit><tanggal panggil>/KDS/101.6.27.15/<tahun>, mis. 00521/KDS/101.6.27.15/2026. */
+async function nomorSurat(upstash, nis, tingkat, tanggalIso) {
+    const m = /^(\d{4})-\d{2}-(\d{2})$/.exec(tanggalIso || "");
+    if (!m || typeof upstash !== "function") return null;
+    const [, thn, tgl] = m;
+    const mapKey = `surat:map:${thn}:${nis}:${tingkat}:${tanggalIso}`;
+    const fmt = (n) => `${String(n).padStart(3, "0")}${tgl}/KDS/101.6.27.15/${thn}`;
+    const ada = await upstash([["GET", mapKey]]);
+    if (!ada) return null;                                   // Upstash belum aktif: kosongkan agar tidak ada nomor ganda
+    if (ada[0] && ada[0].result) return fmt(Number(ada[0].result));
+    const inc = await upstash([["INCR", `surat:no:${thn}`]]);
+    const n = inc && inc[0] && Number(inc[0].result);
+    if (!n) return null;
+    const set = await upstash([["SET", mapKey, String(n), "NX"]]);
+    if (set && set[0] && set[0].result === null) {           // keduluan permintaan lain untuk surat yang sama
+        const lagi = await upstash([["GET", mapKey]]);
+        if (lagi && lagi[0] && lagi[0].result) return fmt(Number(lagi[0].result));
+    }
+    return fmt(n);
+}
+
+module.exports = { nomorSurat, letterHTML, signLink, verifyLink, tglPanjang, TTL_DAYS, WAKTU, RUANG, MAKS_HARI_KE_DEPAN, hariTanggal, cekJadwal };

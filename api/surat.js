@@ -13,7 +13,7 @@ GET  ?t=<token> (PUBLIK, tanpa login; token tidak bisa ditebak dan kedaluwarsa)
 const K = require("./_lib/kesiswaan");
 const S = require("./_lib/surat");
 const sheets = require("./_lib/sheets");
-const { verifyAdmin, signingSecret } = require("./admin-auth");
+const { verifyAdmin, signingSecret, upstash } = require("./admin-auth");
 
 const DAILY_LIMIT = () => Math.max(1, Number(process.env.WA_DAILY_LIMIT) || 20);
 const clipTxt = (v, n) => String(v || "").replace(/[\r\n]+/g, " ").trim().slice(0, n);
@@ -52,7 +52,7 @@ module.exports = async (req, res) => {
             if (!s || !rows.length) return res.status(404).send(page(404, "Surat tidak ditemukan", "Data untuk surat ini tidak ditemukan. Silakan hubungi SMAN 1 Sooko."));
 
             const poin = rows.reduce((t, x) => t + x.poin, 0);
-            return res.status(200).send(S.letterHTML({ nis: s.nis, nama: s.nama, kelas: s.kelas, rows, poin, t: K.tingkatFor(poin), today: issued, ayLabel: K.academicYearLabel(start), jadwal: claim.j ? { d: claim.j.d, w: claim.j.w, r: claim.j.r } : null }));   // jadwal ikut tertandatangani di token
+            return res.status(200).send(S.letterHTML({ nis: s.nis, nama: s.nama, kelas: s.kelas, rows, poin, t: K.tingkatFor(poin), today: issued, ayLabel: K.academicYearLabel(start), jadwal: claim.j ? { d: claim.j.d, w: claim.j.w, r: claim.j.r } : null, nomor: claim.no || "" }));   // jadwal ikut tertandatangani di token
         }
 
         if (req.method === "POST") {
@@ -94,7 +94,8 @@ module.exports = async (req, res) => {
             }
 
             const iat = Math.floor(Date.now() / 1000);
-            const token = S.signLink({ k: "surat", n: nis, iat, exp: iat + S.TTL_DAYS * 86400, j: { d: jd.d, w: jd.w, r: jd.r } }, signingSecret());
+            const no = await S.nomorSurat(upstash, nis, t.label, jd.d).catch(() => null);   // urut per tahun; sama untuk surat yang sama
+            const token = S.signLink({ k: "surat", n: nis, iat, exp: iat + S.TTL_DAYS * 86400, j: { d: jd.d, w: jd.w, r: jd.r }, no: no || "" }, signingSecret());
             const host = String(req.headers["x-forwarded-host"] || req.headers.host || "kedisiplinan.sman1sooko.sch.id").split(",")[0];
             const proto = String(req.headers["x-forwarded-proto"] || (/^(localhost|127\.)/.test(host) ? "http" : "https")).split(",")[0];
             const url = `${proto}://${host}/api/surat?t=${token}`;
