@@ -843,11 +843,17 @@ body[data-page="qr"] [hidden]{display:none !important}
 .qr-card-kode{background:#fff;line-height:0;flex:none}
 .qr-card .qr-card-kode{width:24mm;height:24mm}
 .qr-card-kode svg{width:100%;height:100%;display:block}
+.qr-card,.qr-stiker{cursor:zoom-in}
+.qr-zoom{position:fixed;inset:0;z-index:1000;background:rgba(6,18,31,.86);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:1rem}
+.qr-zoom[hidden]{display:none !important}
+.qr-zoom p{margin:0;color:#fff;font-size:var(--font-sm)}
+.qr-zoom-x{position:absolute;top:1rem;right:1rem}
+.qr-zoom .qr-card{cursor:default;max-width:none}
 .qr-stiker{display:flex;flex-direction:column;align-items:center;gap:1mm;padding:2.5mm;font-size:7pt;border-radius:2mm}
 .qr-stiker .qr-card-kode{width:22mm;height:22mm}
 @media print{
     body[data-page="qr"]{background:#fff !important}
-    body[data-page="qr"] #shellNav,body[data-page="qr"] .app-sidebar,body[data-page="qr"] .app-sidebar-overlay,body[data-page="qr"] #shellFooter,body[data-page="qr"] .bg-layer,body[data-page="qr"] .kd-badge,body[data-page="qr"] .kd-badge-panel,body[data-page="qr"] .header,body[data-page="qr"] .kd-eks-bar,body[data-page="qr"] #paneScan,body[data-page="qr"] #paneCetak>.kd-card-sub,body[data-page="qr"] #qrAlert{display:none !important}
+    body[data-page="qr"] #shellNav,body[data-page="qr"] .app-sidebar,body[data-page="qr"] .app-sidebar-overlay,body[data-page="qr"] #shellFooter,body[data-page="qr"] .bg-layer,body[data-page="qr"] .kd-badge,body[data-page="qr"] .kd-badge-panel,body[data-page="qr"] .header,body[data-page="qr"] .kd-eks-bar,body[data-page="qr"] #paneScan,body[data-page="qr"] #paneCetak>.kd-card-sub,body[data-page="qr"] #qrAlert,body[data-page="qr"] .qr-zoom{display:none !important}
     body[data-page="qr"] #paneCetak{display:block !important}
     body[data-page="qr"] .app-main,body[data-page="qr"] .kd-wrap,body[data-page="qr"] main{margin:0 !important;padding:0 !important;max-width:none !important}
     .qr-sheet{margin:0;gap:4mm}

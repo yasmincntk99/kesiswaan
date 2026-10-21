@@ -184,6 +184,7 @@ Kartu & Pindai QR siswa.
         const bentuk = $("cBentuk").value; $("cGrid").dataset.bentuk = bentuk;
         $("cGrid").innerHTML = d.data.map(bentuk === "kartu" ? kartuHTML : stikerHTML).join("");
         $("cJumlah").textContent = d.data.length.toLocaleString("id-ID") + " siswa";
+        $("cCari").value = "";
         return d;
     }
     async function initCetak() {
@@ -195,6 +196,22 @@ Kartu & Pindai QR siswa.
         $("cKelas").addEventListener("change", () => render($("cKelas").value));
         $("cBentuk").addEventListener("change", () => render($("cKelas").value));
         $("cPrint").addEventListener("click", () => window.print());
+        $("cCari").addEventListener("input", () => {
+            const q = $("cCari").value.trim().toLowerCase(); let n = 0;
+            $("cGrid").querySelectorAll(".qr-card,.qr-stiker").forEach((el) => { const ok = !q || el.textContent.toLowerCase().includes(q); el.hidden = !ok; if (ok) n++; });
+            $("cJumlah").textContent = n.toLocaleString("id-ID") + " siswa";
+        });
+        $("cGrid").addEventListener("click", (e) => {
+            const c = e.target.closest(".qr-card,.qr-stiker"); if (!c) return;
+            const box = $("qrZoomBox"); box.innerHTML = ""; const k = c.cloneNode(true); k.hidden = false; box.appendChild(k);
+            $("qrZoom").hidden = false;
+            const w = c.getBoundingClientRect().width || 323;
+            k.style.zoom = String(Math.min(3, (innerWidth * 0.92) / w, (innerHeight * 0.7) / (w * 54 / 85.6)));
+        });
+        const tutup = () => { $("qrZoom").hidden = true; $("qrZoomBox").innerHTML = ""; };
+        $("qrZoomX").addEventListener("click", tutup);
+        $("qrZoom").addEventListener("click", (e) => { if (e.target === $("qrZoom")) tutup(); });
+        document.addEventListener("keydown", (e) => { if (e.key === "Escape") tutup(); });
         render($("cKelas").value);
     }
 

@@ -116,12 +116,15 @@
                     <option value="kartu">Kartu (85,6 × 54 mm)</option>
                     <option value="stiker">Stiker QR (kecil)</option>
                 </select>
+                <input class="kd-input" id="cCari" type="search" placeholder="Cari nama / NIS" autocomplete="off" style="max-width:13rem">
                 <span class="kd-chip" id="cJumlah"></span>
                 <div class="kd-eks-actions"><button type="button" class="kd-btn kd-btn--primary kd-btn--sm" id="cPrint">Cetak</button></div>
             </div>
-            <p class="kd-card-sub">Cetak dengan skala 100% (tanpa “muat ke halaman”) agar ukuran QR tepat. Nama pada kartu hanya untuk dibaca manusia; QR berisi NIS dan tanda tangan digital.</p>
+            <p class="kd-card-sub">Klik sebuah kartu untuk memperbesarnya (bisa dipindai dari layar oleh HP lain, cocok untuk peragaan). Cetak dengan skala 100% (tanpa “muat ke halaman”) agar ukuran QR tepat. Nama pada kartu hanya untuk dibaca manusia; QR berisi NIS dan tanda tangan digital.</p>
             <div id="cGrid" class="qr-sheet" data-bentuk="kartu"></div>
         </section>
+
+    <div class="qr-zoom" id="qrZoom" hidden role="dialog" aria-modal="true" aria-label="Pratinjau kartu"><button type="button" class="kd-btn kd-btn--sm qr-zoom-x" id="qrZoomX">Tutup ✕</button><div id="qrZoomBox"></div><p>Arahkan kamera HP ke QR pada kartu ini</p></div>
 
     </main>
 
